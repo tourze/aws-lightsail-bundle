@@ -1,0 +1,3 @@
+aws_lightsail_controllers:
+  resource: '../../Controller/'
+  type: attribute
