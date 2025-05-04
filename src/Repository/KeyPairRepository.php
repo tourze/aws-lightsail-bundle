@@ -30,7 +30,7 @@ class KeyPairRepository
      * @param string $region AWS 区域
      * @return array 密钥对数组
      */
-    public function findAll(
+    public function findAllFromApi(
         string $accessKey,
         string $secretKey,
         string $region
@@ -74,7 +74,7 @@ class KeyPairRepository
         string $region
     ): ?KeyPair {
         try {
-            $keyPairs = $this->findAll($accessKey, $secretKey, $region);
+            $keyPairs = $this->findAllFromApi($accessKey, $secretKey, $region);
 
             foreach ($keyPairs as $keyPair) {
                 if ($keyPair->getName() === $name) {
