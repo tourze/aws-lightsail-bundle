@@ -9,8 +9,6 @@ services:
     resource: '../../Client/'
   AwsLightsailBundle\Command\:
     resource: '../../Command/'
-  AwsLightsailBundle\Controller\:
-    resource: '../../Controller/'
   AwsLightsailBundle\EventSubscriber\:
     resource: '../../EventSubscriber/'
   AwsLightsailBundle\Repository\:
