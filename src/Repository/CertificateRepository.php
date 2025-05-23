@@ -74,4 +74,4 @@ class CertificateRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
-} 
+}
