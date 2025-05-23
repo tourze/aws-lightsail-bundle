@@ -2,91 +2,103 @@
 
 namespace AwsLightsailBundle\Repository;
 
-use AwsLightsailBundle\Client\LightsailApiClient;
 use AwsLightsailBundle\Entity\Distribution;
-use AwsLightsailBundle\Request\GetDistributionRequest;
-use AwsLightsailBundle\Request\GetDistributionsRequest;
-use Psr\Log\LoggerInterface;
+use AwsLightsailBundle\Enum\DistributionStatusEnum;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * AWS Lightsail 分发仓库
+ * @extends ServiceEntityRepository<Distribution>
  *
- * @method Distribution|null findOneBy(array $criteria)
- * @method Distribution[] findAll()
- * @method Distribution[] findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method Distribution|null find($id, $lockMode = null, $lockVersion = null)
+ * @method Distribution|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Distribution[]    findAll()
+ * @method Distribution[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class DistributionRepository
+class DistributionRepository extends ServiceEntityRepository
 {
-    public function __construct(
-        private readonly LightsailApiClient $lightsailApiClient,
-        private readonly LoggerInterface $logger,
-    ) {
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, Distribution::class);
     }
 
     /**
-     * 获取所有分发
+     * 按状态查找分发
      *
-     * @param string $accessKey AWS 访问密钥
-     * @param string $secretKey AWS 密钥
-     * @param string $region AWS 区域
-     * @return array 分发数组
+     * @param DistributionStatusEnum $status 分发状态
+     * @return Distribution[]
      */
-    public function findAll(
-        string $accessKey,
-        string $secretKey,
-        string $region
-    ): array {
-        $request = new GetDistributionsRequest();
-        $request->setCredentials($accessKey, $secretKey, $region);
-
-        try {
-            $response = $this->lightsailApiClient->request($request);
-            $distributions = [];
-
-            if (isset($response['distributions']) && is_array($response['distributions'])) {
-                foreach ($response['distributions'] as $distributionData) {
-                    $distributions[] = Distribution::fromApiResponse($distributionData);
-                }
-            }
-
-            return $distributions;
-        } catch (\Exception $e) {
-            $this->logger->error('获取分发列表失败', [
-                'exception' => $e,
-                'region' => $region
-            ]);
-            return [];
-        }
+    public function findByStatus(DistributionStatusEnum $status): array
+    {
+        return $this->createQueryBuilder('d')
+            ->andWhere('d.status = :status')
+            ->setParameter('status', $status)
+            ->orderBy('d.name', 'ASC')
+            ->getQuery()
+            ->getResult();
     }
 
     /**
-     * 根据名称查找分发
+     * 按区域查找分发
      *
-     * @param string $distributionName 分发名称
-     * @param string $accessKey AWS 访问密钥
-     * @param string $secretKey AWS 密钥
-     * @param string $region AWS 区域
-     * @return Distribution|null 分发实体或null（找不到或出错）
+     * @param string $region 区域
+     * @return Distribution[]
      */
-    public function findByName(
-        string $distributionName,
-        string $accessKey,
-        string $secretKey,
-        string $region
-    ): ?Distribution {
-        $request = new GetDistributionRequest($distributionName);
-        $request->setCredentials($accessKey, $secretKey, $region);
-
-        try {
-            $response = $this->lightsailApiClient->request($request);
-            return Distribution::fromApiResponse($response);
-        } catch (\Exception $e) {
-            $this->logger->error('获取分发失败', [
-                'exception' => $e,
-                'distributionName' => $distributionName,
-                'region' => $region
-            ]);
-            return null;
-        }
+    public function findByRegion(string $region): array
+    {
+        return $this->createQueryBuilder('d')
+            ->andWhere('d.region = :region')
+            ->setParameter('region', $region)
+            ->orderBy('d.name', 'ASC')
+            ->getQuery()
+            ->getResult();
     }
-}
+
+    /**
+     * 查找已启用的分发
+     *
+     * @return Distribution[]
+     */
+    public function findEnabled(): array
+    {
+        return $this->createQueryBuilder('d')
+            ->andWhere('d.isEnabled = :isEnabled')
+            ->setParameter('isEnabled', true)
+            ->orderBy('d.name', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * 按证书名称查找分发
+     *
+     * @param string $certificateName 证书名称
+     * @return Distribution[]
+     */
+    public function findByCertificate(string $certificateName): array
+    {
+        return $this->createQueryBuilder('d')
+            ->andWhere('d.certificateName = :certificateName')
+            ->setParameter('certificateName', $certificateName)
+            ->orderBy('d.name', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * 查找包含特定域名的分发
+     *
+     * @param string $domainName 域名
+     * @return Distribution[]
+     */
+    public function findByDomainName(string $domainName): array
+    {
+        return $this->createQueryBuilder('d')
+            ->andWhere('d.defaultDomainName = :domainName OR d.alternativeDomainNames LIKE :pattern')
+            ->setParameter('domainName', $domainName)
+            ->setParameter('pattern', '%' . $domainName . '%')
+            ->orderBy('d.name', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+} 

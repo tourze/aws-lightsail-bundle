@@ -2,91 +2,69 @@
 
 namespace AwsLightsailBundle\Repository;
 
-use AwsLightsailBundle\Client\LightsailApiClient;
 use AwsLightsailBundle\Entity\Domain;
-use AwsLightsailBundle\Request\GetDomainRequest;
-use AwsLightsailBundle\Request\GetDomainsRequest;
-use Psr\Log\LoggerInterface;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * AWS Lightsail 域名仓库
+ * @extends ServiceEntityRepository<Domain>
  *
- * @method Domain|null findOneBy(array $criteria)
- * @method Domain[] findAll()
- * @method Domain[] findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method Domain|null find($id, $lockMode = null, $lockVersion = null)
+ * @method Domain|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Domain[]    findAll()
+ * @method Domain[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class DomainRepository
+class DomainRepository extends ServiceEntityRepository
 {
-    public function __construct(
-        private readonly LightsailApiClient $lightsailApiClient,
-        private readonly LoggerInterface $logger,
-    ) {
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, Domain::class);
     }
 
     /**
-     * 获取所有域名
+     * 按区域查找域名
      *
-     * @param string $accessKey AWS 访问密钥
-     * @param string $secretKey AWS 密钥
-     * @param string $region AWS 区域
-     * @return array 域名数组
+     * @param string $region 区域
+     * @return Domain[]
      */
-    public function findAll(
-        string $accessKey,
-        string $secretKey,
-        string $region
-    ): array {
-        $request = new GetDomainsRequest();
-        $request->setCredentials($accessKey, $secretKey, $region);
-
-        try {
-            $response = $this->lightsailApiClient->request($request);
-            $domains = [];
-
-            if (isset($response['domains']) && is_array($response['domains'])) {
-                foreach ($response['domains'] as $domainData) {
-                    $domains[] = Domain::fromApiResponse($domainData);
-                }
-            }
-
-            return $domains;
-        } catch (\Exception $e) {
-            $this->logger->error('获取域名列表失败', [
-                'exception' => $e,
-                'region' => $region
-            ]);
-            return [];
-        }
+    public function findByRegion(string $region): array
+    {
+        return $this->createQueryBuilder('d')
+            ->andWhere('d.region = :region')
+            ->setParameter('region', $region)
+            ->orderBy('d.name', 'ASC')
+            ->getQuery()
+            ->getResult();
     }
 
     /**
-     * 根据名称查找域名
+     * 查找托管的域名
      *
-     * @param string $domainName 域名名称
-     * @param string $accessKey AWS 访问密钥
-     * @param string $secretKey AWS 密钥
-     * @param string $region AWS 区域
-     * @return Domain|null 域名实体或null（找不到或出错）
+     * @return Domain[]
      */
-    public function findByName(
-        string $domainName,
-        string $accessKey,
-        string $secretKey,
-        string $region
-    ): ?Domain {
-        $request = new GetDomainRequest($domainName);
-        $request->setCredentials($accessKey, $secretKey, $region);
-
-        try {
-            $response = $this->lightsailApiClient->request($request);
-            return Domain::fromApiResponse($response);
-        } catch (\Exception $e) {
-            $this->logger->error('获取域名失败', [
-                'exception' => $e,
-                'domainName' => $domainName,
-                'region' => $region
-            ]);
-            return null;
-        }
+    public function findManaged(): array
+    {
+        return $this->createQueryBuilder('d')
+            ->andWhere('d.isManaged = :isManaged')
+            ->setParameter('isManaged', true)
+            ->orderBy('d.name', 'ASC')
+            ->getQuery()
+            ->getResult();
     }
-}
+
+    /**
+     * 按名称模式查找域名
+     *
+     * @param string $pattern 名称模式
+     * @return Domain[]
+     */
+    public function findByNamePattern(string $pattern): array
+    {
+        return $this->createQueryBuilder('d')
+            ->andWhere('d.name LIKE :pattern')
+            ->setParameter('pattern', '%' . $pattern . '%')
+            ->orderBy('d.name', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+} 

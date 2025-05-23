@@ -2,36 +2,46 @@
 
 namespace AwsLightsailBundle\Entity;
 
-use AwsLightsailBundle\Repository\DomainRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+use AwsLightsailBundle\Enum\DatabaseEngineEnum;
 use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
 use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
 
-#[ORM\Entity(repositoryClass: DomainRepository::class)]
-#[ORM\Table(name: 'aws_lightsail_domain', options: ['comment' => 'AWS Lightsail 域名表'])]
-class Domain implements \Stringable
+#[ORM\Entity]
+#[ORM\Table(name: 'aws_lightsail_database_snapshot', options: ['comment' => 'AWS Lightsail 数据库快照表'])]
+class DatabaseSnapshot implements \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => '域名'])]
+    #[ORM\Column(type: 'string', length: 255, options: ['comment' => '快照名称'])]
     private string $name;
 
     #[ORM\Column(type: 'string', length: 255, options: ['comment' => 'AWS ARN'])]
     private string $arn;
 
+    #[ORM\Column(type: 'string', length: 255, options: ['comment' => '数据库名称'])]
+    private string $databaseName;
+
+    #[ORM\Column(type: 'string', length: 50, enumType: DatabaseEngineEnum::class, options: ['comment' => '数据库引擎'])]
+    private DatabaseEngineEnum $engine;
+
+    #[ORM\Column(type: 'string', length: 20, options: ['comment' => '引擎版本'])]
+    private string $engineVersion;
+
+    #[ORM\Column(type: 'bigint', nullable: true, options: ['comment' => '大小(GB)'])]
+    private ?int $sizeInGb = null;
+
     #[ORM\Column(type: 'string', length: 50, options: ['comment' => 'AWS 区域'])]
     private string $region;
 
-    #[ORM\Column(type: 'boolean', options: ['comment' => '是否由 Lightsail 管理'])]
-    private bool $isManaged = true;
+    #[ORM\Column(type: 'string', length: 255, nullable: true, options: ['comment' => '状态'])]
+    private ?string $state = null;
 
-    #[ORM\OneToMany(mappedBy: 'domain', targetEntity: DomainEntry::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
-    private Collection $entries;
+    #[ORM\Column(type: 'boolean', options: ['comment' => '是否来自自动快照'])]
+    private bool $isFromAutoSnapshot = false;
 
     #[ORM\Column(type: 'json', nullable: true, options: ['comment' => '标签'])]
     private ?array $tags = null;
@@ -47,6 +57,9 @@ class Domain implements \Stringable
     #[ORM\JoinColumn(nullable: false)]
     private AwsCredential $credential;
 
+    #[ORM\ManyToOne(targetEntity: Database::class)]
+    private ?Database $database = null;
+
     #[UpdateTimeColumn]
     #[ORM\Column(type: 'datetime_immutable', nullable: true, options: ['comment' => '更新时间'])]
     private ?\DateTimeImmutable $updateTime = null;
@@ -54,12 +67,12 @@ class Domain implements \Stringable
     public function __construct()
     {
         $this->createTime = new \DateTimeImmutable();
-        $this->entries = new ArrayCollection();
+        $this->engine = DatabaseEngineEnum::MYSQL;
     }
 
     public function __toString(): string
     {
-        return sprintf('Domain %s', $this->name);
+        return sprintf('DatabaseSnapshot %s (%s)', $this->name, $this->databaseName);
     }
 
     public function getId(): ?int
@@ -89,6 +102,50 @@ class Domain implements \Stringable
         return $this;
     }
 
+    public function getDatabaseName(): string
+    {
+        return $this->databaseName;
+    }
+
+    public function setDatabaseName(string $databaseName): self
+    {
+        $this->databaseName = $databaseName;
+        return $this;
+    }
+
+    public function getEngine(): DatabaseEngineEnum
+    {
+        return $this->engine;
+    }
+
+    public function setEngine(DatabaseEngineEnum $engine): self
+    {
+        $this->engine = $engine;
+        return $this;
+    }
+
+    public function getEngineVersion(): string
+    {
+        return $this->engineVersion;
+    }
+
+    public function setEngineVersion(string $engineVersion): self
+    {
+        $this->engineVersion = $engineVersion;
+        return $this;
+    }
+
+    public function getSizeInGb(): ?int
+    {
+        return $this->sizeInGb;
+    }
+
+    public function setSizeInGb(?int $sizeInGb): self
+    {
+        $this->sizeInGb = $sizeInGb;
+        return $this;
+    }
+
     public function getRegion(): string
     {
         return $this->region;
@@ -100,44 +157,25 @@ class Domain implements \Stringable
         return $this;
     }
 
-    public function isManaged(): bool
+    public function getState(): ?string
     {
-        return $this->isManaged;
+        return $this->state;
     }
 
-    public function setIsManaged(bool $isManaged): self
+    public function setState(?string $state): self
     {
-        $this->isManaged = $isManaged;
+        $this->state = $state;
         return $this;
     }
 
-    /**
-     * @return Collection<int, DomainEntry>
-     */
-    public function getEntries(): Collection
+    public function isFromAutoSnapshot(): bool
     {
-        return $this->entries;
+        return $this->isFromAutoSnapshot;
     }
 
-    public function addEntry(DomainEntry $entry): self
+    public function setIsFromAutoSnapshot(bool $isFromAutoSnapshot): self
     {
-        if (!$this->entries->contains($entry)) {
-            $this->entries->add($entry);
-            $entry->setDomain($this);
-        }
-
-        return $this;
-    }
-
-    public function removeEntry(DomainEntry $entry): self
-    {
-        if ($this->entries->removeElement($entry)) {
-            // set the owning side to null (unless already changed)
-            if ($entry->getDomain() === $this) {
-                $entry->setDomain(null);
-            }
-        }
-
+        $this->isFromAutoSnapshot = $isFromAutoSnapshot;
         return $this;
     }
 
@@ -176,6 +214,17 @@ class Domain implements \Stringable
     public function setCredential(AwsCredential $credential): self
     {
         $this->credential = $credential;
+        return $this;
+    }
+
+    public function getDatabase(): ?Database
+    {
+        return $this->database;
+    }
+
+    public function setDatabase(?Database $database): self
+    {
+        $this->database = $database;
         return $this;
     }
 

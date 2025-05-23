@@ -2,39 +2,37 @@
 
 namespace AwsLightsailBundle\Entity;
 
-use AwsLightsailBundle\Repository\DomainRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+use AwsLightsailBundle\Repository\StaticIpRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
 use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
 
-#[ORM\Entity(repositoryClass: DomainRepository::class)]
-#[ORM\Table(name: 'aws_lightsail_domain', options: ['comment' => 'AWS Lightsail 域名表'])]
-class Domain implements \Stringable
+#[ORM\Entity(repositoryClass: StaticIpRepository::class)]
+#[ORM\Table(name: 'aws_lightsail_static_ip', options: ['comment' => 'AWS Lightsail 静态 IP 表'])]
+class StaticIp implements \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => '域名'])]
+    #[ORM\Column(type: 'string', length: 255, options: ['comment' => '静态 IP 名称'])]
     private string $name;
 
     #[ORM\Column(type: 'string', length: 255, options: ['comment' => 'AWS ARN'])]
     private string $arn;
 
+    #[ORM\Column(type: 'string', length: 20, options: ['comment' => 'IP 地址'])]
+    private string $ipAddress;
+
+    #[ORM\Column(type: 'string', length: 255, nullable: true, options: ['comment' => '挂载到的实例'])]
+    private ?string $attachedTo = null;
+
+    #[ORM\Column(type: 'boolean', options: ['comment' => '是否已挂载'])]
+    private bool $isAttached = false;
+
     #[ORM\Column(type: 'string', length: 50, options: ['comment' => 'AWS 区域'])]
     private string $region;
-
-    #[ORM\Column(type: 'boolean', options: ['comment' => '是否由 Lightsail 管理'])]
-    private bool $isManaged = true;
-
-    #[ORM\OneToMany(mappedBy: 'domain', targetEntity: DomainEntry::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
-    private Collection $entries;
-
-    #[ORM\Column(type: 'json', nullable: true, options: ['comment' => '标签'])]
-    private ?array $tags = null;
 
     #[CreateTimeColumn]
     #[ORM\Column(type: 'datetime_immutable', options: ['comment' => '创建时间'])]
@@ -54,12 +52,11 @@ class Domain implements \Stringable
     public function __construct()
     {
         $this->createTime = new \DateTimeImmutable();
-        $this->entries = new ArrayCollection();
     }
 
     public function __toString(): string
     {
-        return sprintf('Domain %s', $this->name);
+        return sprintf('StaticIp %s (%s)', $this->name, $this->ipAddress);
     }
 
     public function getId(): ?int
@@ -89,6 +86,39 @@ class Domain implements \Stringable
         return $this;
     }
 
+    public function getIpAddress(): string
+    {
+        return $this->ipAddress;
+    }
+
+    public function setIpAddress(string $ipAddress): self
+    {
+        $this->ipAddress = $ipAddress;
+        return $this;
+    }
+
+    public function getAttachedTo(): ?string
+    {
+        return $this->attachedTo;
+    }
+
+    public function setAttachedTo(?string $attachedTo): self
+    {
+        $this->attachedTo = $attachedTo;
+        return $this;
+    }
+
+    public function isAttached(): bool
+    {
+        return $this->isAttached;
+    }
+
+    public function setIsAttached(bool $isAttached): self
+    {
+        $this->isAttached = $isAttached;
+        return $this;
+    }
+
     public function getRegion(): string
     {
         return $this->region;
@@ -97,58 +127,6 @@ class Domain implements \Stringable
     public function setRegion(string $region): self
     {
         $this->region = $region;
-        return $this;
-    }
-
-    public function isManaged(): bool
-    {
-        return $this->isManaged;
-    }
-
-    public function setIsManaged(bool $isManaged): self
-    {
-        $this->isManaged = $isManaged;
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, DomainEntry>
-     */
-    public function getEntries(): Collection
-    {
-        return $this->entries;
-    }
-
-    public function addEntry(DomainEntry $entry): self
-    {
-        if (!$this->entries->contains($entry)) {
-            $this->entries->add($entry);
-            $entry->setDomain($this);
-        }
-
-        return $this;
-    }
-
-    public function removeEntry(DomainEntry $entry): self
-    {
-        if ($this->entries->removeElement($entry)) {
-            // set the owning side to null (unless already changed)
-            if ($entry->getDomain() === $this) {
-                $entry->setDomain(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function getTags(): ?array
-    {
-        return $this->tags;
-    }
-
-    public function setTags(?array $tags): self
-    {
-        $this->tags = $tags;
         return $this;
     }
 

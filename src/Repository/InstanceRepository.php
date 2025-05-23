@@ -2,85 +2,70 @@
 
 namespace AwsLightsailBundle\Repository;
 
-use AwsLightsailBundle\Client\LightsailApiClient;
 use AwsLightsailBundle\Entity\Instance;
-use AwsLightsailBundle\Request\GetInstanceRequest;
-use AwsLightsailBundle\Request\GetInstanceStateRequest;
-use Psr\Log\LoggerInterface;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * AWS Lightsail 实例仓库
+ * @extends ServiceEntityRepository<Instance>
  *
- * @method Instance|null findOneBy(array $criteria)
- * @method Instance[] findAll()
- * @method Instance[] findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method Instance|null find($id, $lockMode = null, $lockVersion = null)
+ * @method Instance|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Instance[]    findAll()
+ * @method Instance[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class InstanceRepository
+class InstanceRepository extends ServiceEntityRepository
 {
-    public function __construct(
-        private readonly LightsailApiClient $lightsailApiClient,
-        private readonly LoggerInterface $logger,
-    ) {
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, Instance::class);
     }
 
     /**
-     * 获取单个实例
+     * 按实例状态查找
      *
-     * @param string $instanceName 实例名称
-     * @param string $accessKey AWS 访问密钥
-     * @param string $secretKey AWS 密钥
-     * @param string $region AWS 区域
-     * @return Instance|null 实例对象或null（找不到或出错）
+     * @param string $state 实例状态
+     * @return Instance[]
      */
-    public function findByName(
-        string $instanceName,
-        string $accessKey,
-        string $secretKey,
-        string $region
-    ): ?Instance {
-        $request = new GetInstanceRequest($instanceName);
-        $request->setCredentials($accessKey, $secretKey, $region);
-
-        try {
-            $response = $this->lightsailApiClient->request($request);
-            return Instance::fromApiResponse($response);
-        } catch (\Exception $e) {
-            $this->logger->error('获取实例失败', [
-                'exception' => $e,
-                'instanceName' => $instanceName,
-                'region' => $region
-            ]);
-            return null;
-        }
+    public function findByState(string $state): array
+    {
+        return $this->createQueryBuilder('i')
+            ->andWhere('i.state = :state')
+            ->setParameter('state', $state)
+            ->orderBy('i.name', 'ASC')
+            ->getQuery()
+            ->getResult();
     }
 
     /**
-     * 获取实例状态
+     * 按区域查找
      *
-     * @param string $instanceName 实例名称
-     * @param string $accessKey AWS 访问密钥
-     * @param string $secretKey AWS 密钥
-     * @param string $region AWS 区域
-     * @return array|null 实例状态数据或null（出错）
+     * @param string $region 区域
+     * @return Instance[]
      */
-    public function getInstanceState(
-        string $instanceName,
-        string $accessKey,
-        string $secretKey,
-        string $region
-    ): ?array {
-        $request = new GetInstanceStateRequest($instanceName);
-        $request->setCredentials($accessKey, $secretKey, $region);
+    public function findByRegion(string $region): array
+    {
+        return $this->createQueryBuilder('i')
+            ->andWhere('i.region = :region')
+            ->setParameter('region', $region)
+            ->orderBy('i.name', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 
-        try {
-            return $this->lightsailApiClient->request($request);
-        } catch (\Exception $e) {
-            $this->logger->error('获取实例状态失败', [
-                'exception' => $e,
-                'instanceName' => $instanceName,
-                'region' => $region
-            ]);
-            return null;
-        }
+    /**
+     * 按蓝图类型查找
+     *
+     * @param string $blueprint 蓝图类型
+     * @return Instance[]
+     */
+    public function findByBlueprint(string $blueprint): array
+    {
+        return $this->createQueryBuilder('i')
+            ->andWhere('i.blueprint = :blueprint')
+            ->setParameter('blueprint', $blueprint)
+            ->orderBy('i.name', 'ASC')
+            ->getQuery()
+            ->getResult();
     }
 }
