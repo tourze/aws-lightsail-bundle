@@ -4,6 +4,7 @@ namespace AwsLightsailBundle\Repository;
 
 use AwsLightsailBundle\Entity\Certificate;
 use AwsLightsailBundle\Enum\CertificateStatusEnum;
+use Carbon\Carbon;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -63,12 +64,12 @@ class CertificateRepository extends ServiceEntityRepository
     public function findExpiringCertificates(int $daysThreshold = 30): array
     {
         $expiryDate = new \DateTimeImmutable("+" . $daysThreshold . " days");
-        
+
         return $this->createQueryBuilder('c')
             ->andWhere('c.notAfter <= :expiryDate')
             ->andWhere('c.notAfter > :now')
             ->setParameter('expiryDate', $expiryDate)
-            ->setParameter('now', new \DateTimeImmutable())
+            ->setParameter('now', Carbon::now())
             ->orderBy('c.notAfter', 'ASC')
             ->getQuery()
             ->getResult();

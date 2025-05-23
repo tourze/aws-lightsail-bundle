@@ -6,6 +6,8 @@ use AwsLightsailBundle\Enum\InstanceBlueprintEnum;
 use AwsLightsailBundle\Enum\InstanceBundleEnum;
 use AwsLightsailBundle\Enum\InstanceStateEnum;
 use AwsLightsailBundle\Repository\InstanceRepository;
+use Carbon\Carbon;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
 use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
@@ -26,10 +28,16 @@ class Instance implements \Stringable
     private string $arn;
 
     #[ORM\Column(type: 'string', length: 100, enumType: InstanceStateEnum::class, options: ['comment' => '实例状态'])]
-    private InstanceStateEnum $state;
+    private InstanceStateEnum $state = InstanceStateEnum::UNKNOWN;
+
+    #[ORM\Column(type: 'integer', nullable: true, options: ['comment' => '实例状态代码'])]
+    private ?int $stateCode = null;
 
     #[ORM\Column(type: 'string', length: 100, enumType: InstanceBlueprintEnum::class, options: ['comment' => '蓝图类型'])]
     private InstanceBlueprintEnum $blueprint;
+
+    #[ORM\Column(type: 'string', length: 100, nullable: true, options: ['comment' => '蓝图名称'])]
+    private ?string $blueprintName = null;
 
     #[ORM\Column(type: 'string', length: 100, enumType: InstanceBundleEnum::class, options: ['comment' => '实例套餐'])]
     private InstanceBundleEnum $bundle;
@@ -37,14 +45,30 @@ class Instance implements \Stringable
     #[ORM\Column(type: 'string', length: 50, options: ['comment' => 'AWS 区域'])]
     private string $region;
 
+    #[ORM\Column(type: 'string', length: 50, nullable: true, options: ['comment' => '可用区'])]
+    private ?string $availabilityZone = null;
+
+    #[ORM\Column(type: 'string', length: 50, nullable: true, options: ['comment' => '资源类型'])]
+    private ?string $resourceType = null;
+
     #[ORM\Column(type: 'string', length: 20, nullable: true, options: ['comment' => '公网 IP 地址'])]
     private ?string $publicIpAddress = null;
 
     #[ORM\Column(type: 'string', length: 20, nullable: true, options: ['comment' => '私网 IP 地址'])]
     private ?string $privateIpAddress = null;
 
-    #[ORM\Column(type: 'text', nullable: true, options: ['comment' => '密钥对名称'])]
-    private ?string $keyPairName = null;
+    #[ORM\Column(type: 'json', nullable: true, options: ['comment' => 'IPv6 地址列表'])]
+    private ?array $ipv6Addresses = null;
+
+    #[ORM\Column(type: 'string', length: 20, nullable: true, options: ['comment' => 'IP 地址类型（ipv4/ipv6/dualstack）'])]
+    private ?string $ipAddressType = null;
+
+    #[ORM\Column(type: 'boolean', options: ['comment' => '是否为静态 IP'])]
+    private bool $isStaticIp = false;
+
+    #[ORM\ManyToOne(targetEntity: KeyPair::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?KeyPair $keyPair = null;
 
     #[ORM\Column(type: 'json', nullable: true, options: ['comment' => '标签'])]
     private ?array $tags = null;
@@ -55,16 +79,22 @@ class Instance implements \Stringable
     #[ORM\Column(type: 'json', nullable: true, options: ['comment' => '网络配置'])]
     private ?array $networking = null;
 
+    #[ORM\Column(type: 'json', nullable: true, options: ['comment' => '元数据选项'])]
+    private ?array $metadataOptions = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => 'AWS 创建时间'])]
+    private ?\DateTimeInterface $awsCreatedAt = null;
+
     #[CreateTimeColumn]
-    #[ORM\Column(type: 'datetime_immutable', options: ['comment' => '创建时间'])]
-    private \DateTimeImmutable $createdAt;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, options: ['comment' => '创建时间'])]
+    private \DateTimeInterface $createdAt;
 
     #[ORM\ManyToOne(targetEntity: AwsCredential::class)]
     #[ORM\JoinColumn(nullable: false)]
     private AwsCredential $credential;
 
-    #[ORM\Column(type: 'datetime_immutable', nullable: true, options: ['comment' => '同步时间'])]
-    private ?\DateTimeImmutable $syncedAt = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '同步时间'])]
+    private ?\DateTimeInterface $syncedAt = null;
 
     #[ORM\Column(type: 'text', nullable: true, options: ['comment' => '用户名'])]
     private ?string $username = null;
@@ -76,13 +106,12 @@ class Instance implements \Stringable
     private ?string $supportCode = null;
 
     #[UpdateTimeColumn]
-    #[ORM\Column(type: 'datetime_immutable', nullable: true, options: ['comment' => '更新时间'])]
-    private ?\DateTimeImmutable $updatedAt = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]
+    private ?\DateTimeInterface $updatedAt = null;
 
     public function __construct()
     {
-        $this->createdAt = new \DateTimeImmutable();
-        $this->state = InstanceStateEnum::UNKNOWN;
+        $this->createdAt = Carbon::now();
     }
 
     public function __toString(): string
@@ -128,6 +157,17 @@ class Instance implements \Stringable
         return $this;
     }
 
+    public function getStateCode(): ?int
+    {
+        return $this->stateCode;
+    }
+
+    public function setStateCode(?int $stateCode): self
+    {
+        $this->stateCode = $stateCode;
+        return $this;
+    }
+
     public function getBlueprint(): InstanceBlueprintEnum
     {
         return $this->blueprint;
@@ -136,6 +176,17 @@ class Instance implements \Stringable
     public function setBlueprint(InstanceBlueprintEnum $blueprint): self
     {
         $this->blueprint = $blueprint;
+        return $this;
+    }
+
+    public function getBlueprintName(): ?string
+    {
+        return $this->blueprintName;
+    }
+
+    public function setBlueprintName(?string $blueprintName): self
+    {
+        $this->blueprintName = $blueprintName;
         return $this;
     }
 
@@ -161,6 +212,28 @@ class Instance implements \Stringable
         return $this;
     }
 
+    public function getAvailabilityZone(): ?string
+    {
+        return $this->availabilityZone;
+    }
+
+    public function setAvailabilityZone(?string $availabilityZone): self
+    {
+        $this->availabilityZone = $availabilityZone;
+        return $this;
+    }
+
+    public function getResourceType(): ?string
+    {
+        return $this->resourceType;
+    }
+
+    public function setResourceType(?string $resourceType): self
+    {
+        $this->resourceType = $resourceType;
+        return $this;
+    }
+
     public function getPublicIpAddress(): ?string
     {
         return $this->publicIpAddress;
@@ -183,14 +256,47 @@ class Instance implements \Stringable
         return $this;
     }
 
-    public function getKeyPairName(): ?string
+    public function getIpv6Addresses(): ?array
     {
-        return $this->keyPairName;
+        return $this->ipv6Addresses;
     }
 
-    public function setKeyPairName(?string $keyPairName): self
+    public function setIpv6Addresses(?array $ipv6Addresses): self
     {
-        $this->keyPairName = $keyPairName;
+        $this->ipv6Addresses = $ipv6Addresses;
+        return $this;
+    }
+
+    public function getIpAddressType(): ?string
+    {
+        return $this->ipAddressType;
+    }
+
+    public function setIpAddressType(?string $ipAddressType): self
+    {
+        $this->ipAddressType = $ipAddressType;
+        return $this;
+    }
+
+    public function isStaticIp(): bool
+    {
+        return $this->isStaticIp;
+    }
+
+    public function setIsStaticIp(bool $isStaticIp): self
+    {
+        $this->isStaticIp = $isStaticIp;
+        return $this;
+    }
+
+    public function getKeyPair(): ?KeyPair
+    {
+        return $this->keyPair;
+    }
+
+    public function setKeyPair(?KeyPair $keyPair): self
+    {
+        $this->keyPair = $keyPair;
         return $this;
     }
 
@@ -227,7 +333,29 @@ class Instance implements \Stringable
         return $this;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable
+    public function getMetadataOptions(): ?array
+    {
+        return $this->metadataOptions;
+    }
+
+    public function setMetadataOptions(?array $metadataOptions): self
+    {
+        $this->metadataOptions = $metadataOptions;
+        return $this;
+    }
+
+    public function getAwsCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->awsCreatedAt;
+    }
+
+    public function setAwsCreatedAt(?\DateTimeInterface $awsCreatedAt): self
+    {
+        $this->awsCreatedAt = $awsCreatedAt;
+        return $this;
+    }
+
+    public function getCreatedAt(): \DateTimeInterface
     {
         return $this->createdAt;
     }
@@ -243,12 +371,12 @@ class Instance implements \Stringable
         return $this;
     }
 
-    public function getSyncedAt(): ?\DateTimeImmutable
+    public function getSyncedAt(): ?\DateTimeInterface
     {
         return $this->syncedAt;
     }
 
-    public function setSyncedAt(?\DateTimeImmutable $syncedAt): self
+    public function setSyncedAt(?\DateTimeInterface $syncedAt): self
     {
         $this->syncedAt = $syncedAt;
         return $this;
@@ -287,12 +415,12 @@ class Instance implements \Stringable
         return $this;
     }
 
-    public function getUpdatedAt(): ?\DateTimeImmutable
+    public function getUpdatedAt(): ?\DateTimeInterface
     {
         return $this->updatedAt;
     }
 
-    public function setUpdatedAt(?\DateTimeImmutable $updatedAt): self
+    public function setUpdatedAt(?\DateTimeInterface $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
         return $this;

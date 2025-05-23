@@ -4,6 +4,7 @@ namespace AwsLightsailBundle\Command;
 
 use Aws\Lightsail\LightsailClient;
 use AwsLightsailBundle\Entity\AwsCredential;
+use AwsLightsailBundle\Enum\AmazonRegion;
 use AwsLightsailBundle\Enum\InstanceBlueprintEnum;
 use AwsLightsailBundle\Enum\InstanceBundleEnum;
 use AwsLightsailBundle\Repository\AwsCredentialRepository;
@@ -180,7 +181,7 @@ class InstanceCreateCommand extends Command
         // 让用户选择凭证
         $credentialChoices = [];
         foreach ($credentials as $cred) {
-            $credentialChoices[$cred->getId()] = $cred->getName() . ' (' . $cred->getRegion() . ')';
+            $credentialChoices[$cred->getId()] = $cred->getName();
         }
 
         $question = new ChoiceQuestion(
@@ -198,37 +199,20 @@ class InstanceCreateCommand extends Command
             return $region;
         }
 
-        // 提供常用区域供选择
-        $regionChoices = [
-            $credential->getRegion() . ' (凭证默认区域)',
-            'us-east-1' => 'US East (N. Virginia)',
-            'us-east-2' => 'US East (Ohio)',
-            'us-west-1' => 'US West (N. California)',
-            'us-west-2' => 'US West (Oregon)',
-            'eu-west-1' => 'EU (Ireland)',
-            'eu-west-2' => 'EU (London)',
-            'eu-west-3' => 'EU (Paris)',
-            'eu-central-1' => 'EU (Frankfurt)',
-            'ap-northeast-1' => 'Asia Pacific (Tokyo)',
-            'ap-northeast-2' => 'Asia Pacific (Seoul)',
-            'ap-southeast-1' => 'Asia Pacific (Singapore)',
-            'ap-southeast-2' => 'Asia Pacific (Sydney)',
-            'ap-south-1' => 'Asia Pacific (Mumbai)',
-        ];
+        // 使用 AmazonRegion 枚举构建区域选择
+        $regionChoices = [];
+        foreach (AmazonRegion::cases() as $regionCase) {
+            if ($regionCase !== AmazonRegion::NONE) {
+                $regionChoices[$regionCase->value] = sprintf('%s (%s)', $regionCase->value, $regionCase->getLabel());
+            }
+        }
 
         $question = new ChoiceQuestion(
             '请选择区域:',
             $regionChoices,
-            0 // 默认使用凭证的区域
+            'us-east-1' // 默认使用 us-east-1
         );
-        $answer = $helper->ask($input, $output, $question);
-
-        // 如果选择的是带有凭证区域的选项，则提取区域部分
-        if (strpos($answer, '凭证默认区域') !== false) {
-            return $credential->getRegion();
-        }
-
-        return $answer;
+        return $helper->ask($input, $output, $question);
     }
 
     private function getBlueprint(InputInterface $input, OutputInterface $output, $helper): string

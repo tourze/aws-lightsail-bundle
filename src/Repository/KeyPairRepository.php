@@ -2,6 +2,7 @@
 
 namespace AwsLightsailBundle\Repository;
 
+use AwsLightsailBundle\Entity\AwsCredential;
 use AwsLightsailBundle\Entity\KeyPair;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -74,4 +75,25 @@ class KeyPairRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
-} 
+
+    /**
+     * 根据名称、凭证和区域查找密钥对
+     *
+     * @param string $name 密钥对名称
+     * @param AwsCredential $credential AWS 凭证
+     * @param string $region 区域
+     * @return KeyPair|null
+     */
+    public function findOneByNameAndCredentialAndRegion(string $name, AwsCredential $credential, string $region): ?KeyPair
+    {
+        return $this->createQueryBuilder('kp')
+            ->andWhere('kp.name = :name')
+            ->andWhere('kp.credential = :credential')
+            ->andWhere('kp.region = :region')
+            ->setParameter('name', $name)
+            ->setParameter('credential', $credential)
+            ->setParameter('region', $region)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+}

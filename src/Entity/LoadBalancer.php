@@ -4,6 +4,8 @@ namespace AwsLightsailBundle\Entity;
 
 use AwsLightsailBundle\Enum\LoadBalancerStatusEnum;
 use AwsLightsailBundle\Repository\LoadBalancerRepository;
+use Carbon\Carbon;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
 use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
@@ -69,11 +71,11 @@ class LoadBalancer implements \Stringable
     private bool $configurationOptions = false;
 
     #[CreateTimeColumn]
-    #[ORM\Column(type: 'datetime_immutable', options: ['comment' => '创建时间'])]
-    private \DateTimeImmutable $createTime;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, options: ['comment' => '创建时间'])]
+    private \DateTimeInterface $createTime;
 
-    #[ORM\Column(type: 'datetime_immutable', nullable: true, options: ['comment' => '同步时间'])]
-    private ?\DateTimeImmutable $syncTime = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '同步时间'])]
+    private ?\DateTimeInterface $syncTime = null;
 
     #[ORM\ManyToOne(targetEntity: AwsCredential::class)]
     #[ORM\JoinColumn(nullable: false)]
@@ -83,12 +85,12 @@ class LoadBalancer implements \Stringable
     private array $attachedInstances = [];
 
     #[UpdateTimeColumn]
-    #[ORM\Column(type: 'datetime_immutable', nullable: true, options: ['comment' => '更新时间'])]
-    private ?\DateTimeImmutable $updateTime = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]
+    private ?\DateTimeInterface $updateTime = null;
 
     public function __construct()
     {
-        $this->createTime = new \DateTimeImmutable();
+        $this->createTime = Carbon::now();
         $this->status = LoadBalancerStatusEnum::UNKNOWN;
     }
 
@@ -289,17 +291,17 @@ class LoadBalancer implements \Stringable
         return $this;
     }
 
-    public function getCreateTime(): \DateTimeImmutable
+    public function getCreateTime(): \DateTimeInterface
     {
         return $this->createTime;
     }
 
-    public function getSyncTime(): ?\DateTimeImmutable
+    public function getSyncTime(): ?\DateTimeInterface
     {
         return $this->syncTime;
     }
 
-    public function setSyncTime(?\DateTimeImmutable $syncTime): self
+    public function setSyncTime(?\DateTimeInterface $syncTime): self
     {
         $this->syncTime = $syncTime;
         return $this;
@@ -345,12 +347,12 @@ class LoadBalancer implements \Stringable
         return $this;
     }
 
-    public function getUpdateTime(): ?\DateTimeImmutable
+    public function getUpdateTime(): ?\DateTimeInterface
     {
         return $this->updateTime;
     }
 
-    public function setUpdateTime(?\DateTimeImmutable $updateTime): self
+    public function setUpdateTime(?\DateTimeInterface $updateTime): self
     {
         $this->updateTime = $updateTime;
         return $this;

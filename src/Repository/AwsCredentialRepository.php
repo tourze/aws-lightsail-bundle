@@ -30,20 +30,4 @@ class AwsCredentialRepository extends ServiceEntityRepository
     {
         return $this->findOneBy(['isDefault' => true]);
     }
-
-    /**
-     * 按区域查找凭证
-     *
-     * @param string $region 区域
-     * @return AwsCredential[]
-     */
-    public function findByRegion(string $region): array
-    {
-        return $this->createQueryBuilder('a')
-            ->andWhere('a.region = :region')
-            ->setParameter('region', $region)
-            ->orderBy('a.name', 'ASC')
-            ->getQuery()
-            ->getResult();
-    }
-} 
+}

@@ -4,6 +4,7 @@ namespace AwsLightsailBundle\Command;
 
 use Aws\Lightsail\LightsailClient;
 use AwsLightsailBundle\Entity\Instance;
+use AwsLightsailBundle\Enum\AmazonRegion;
 use AwsLightsailBundle\Repository\AwsCredentialRepository;
 use AwsLightsailBundle\Repository\InstanceRepository;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -116,7 +117,7 @@ class InstanceControlCommand extends Command
                 }
             }
 
-            $region = $input->getOption('region') ?? ($instance ? $instance->getRegion() : $credential->getRegion());
+            $region = $input->getOption('region') ?? ($instance ? $instance->getRegion() : AmazonRegion::US_EAST_1->value);
         }
 
         // 确认操作

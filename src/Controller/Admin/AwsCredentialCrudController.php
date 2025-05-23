@@ -34,7 +34,7 @@ class AwsCredentialCrudController extends AbstractCrudController
             ->setPageTitle('new', '创建 AWS 凭证')
             ->setPageTitle('edit', fn (AwsCredential $credential) => sprintf('编辑凭证: %s', $credential->getName()))
             ->setPageTitle('detail', fn (AwsCredential $credential) => sprintf('凭证详情: %s', $credential->getName()))
-            ->setSearchFields(['name', 'accessKeyId', 'region'])
+            ->setSearchFields(['name', 'accessKeyId'])
             ->setDefaultSort(['name' => 'ASC']);
     }
 
@@ -53,9 +53,6 @@ class AwsCredentialCrudController extends AbstractCrudController
         yield TextField::new('secretAccessKey', 'Secret Access Key')
             ->setHelp('AWS访问密钥')
             ->hideOnIndex();
-            
-        yield TextField::new('region', '区域')
-            ->setHelp('AWS区域代码，如: us-east-1');
             
         yield BooleanField::new('isDefault', '默认凭证')
             ->setHelp('设置为默认凭证后将优先使用');
@@ -89,7 +86,6 @@ class AwsCredentialCrudController extends AbstractCrudController
     {
         return $filters
             ->add(TextFilter::new('name', '凭证名称'))
-            ->add(TextFilter::new('region', '区域'))
             ->add(BooleanFilter::new('isDefault', '默认凭证'));
     }
 }

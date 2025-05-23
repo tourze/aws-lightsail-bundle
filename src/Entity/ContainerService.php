@@ -4,6 +4,8 @@ namespace AwsLightsailBundle\Entity;
 
 use AwsLightsailBundle\Enum\ContainerServicePowerEnum;
 use AwsLightsailBundle\Enum\ContainerServiceStateEnum;
+use Carbon\Carbon;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
 use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
@@ -63,23 +65,23 @@ class ContainerService implements \Stringable
     private ?array $tags = null;
 
     #[CreateTimeColumn]
-    #[ORM\Column(type: 'datetime_immutable', options: ['comment' => '创建时间'])]
-    private \DateTimeImmutable $createdAt;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, options: ['comment' => '创建时间'])]
+    private \DateTimeInterface $createdAt;
 
-    #[ORM\Column(type: 'datetime_immutable', nullable: true, options: ['comment' => '同步时间'])]
-    private ?\DateTimeImmutable $syncedAt = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '同步时间'])]
+    private ?\DateTimeInterface $syncedAt = null;
 
     #[ORM\ManyToOne(targetEntity: AwsCredential::class)]
     #[ORM\JoinColumn(nullable: false)]
     private AwsCredential $credential;
 
     #[UpdateTimeColumn]
-    #[ORM\Column(type: 'datetime_immutable', nullable: true, options: ['comment' => '更新时间'])]
-    private ?\DateTimeImmutable $updatedAt = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]
+    private ?\DateTimeInterface $updatedAt = null;
 
     public function __construct()
     {
-        $this->createdAt = new \DateTimeImmutable();
+        $this->createdAt = Carbon::now();
         $this->state = ContainerServiceStateEnum::UNKNOWN;
         $this->power = ContainerServicePowerEnum::NANO;
         $this->scale = 1;
@@ -260,17 +262,17 @@ class ContainerService implements \Stringable
         return $this;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable
+    public function getCreatedAt(): \DateTimeInterface
     {
         return $this->createdAt;
     }
 
-    public function getSyncedAt(): ?\DateTimeImmutable
+    public function getSyncedAt(): ?\DateTimeInterface
     {
         return $this->syncedAt;
     }
 
-    public function setSyncedAt(?\DateTimeImmutable $syncedAt): self
+    public function setSyncedAt(?\DateTimeInterface $syncedAt): self
     {
         $this->syncedAt = $syncedAt;
         return $this;
@@ -287,12 +289,12 @@ class ContainerService implements \Stringable
         return $this;
     }
 
-    public function getUpdatedAt(): ?\DateTimeImmutable
+    public function getUpdatedAt(): ?\DateTimeInterface
     {
         return $this->updatedAt;
     }
 
-    public function setUpdatedAt(?\DateTimeImmutable $updatedAt): self
+    public function setUpdatedAt(?\DateTimeInterface $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
         return $this;

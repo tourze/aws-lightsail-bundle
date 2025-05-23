@@ -3,6 +3,8 @@
 namespace AwsLightsailBundle\Entity;
 
 use AwsLightsailBundle\Repository\AwsCredentialRepository;
+use Carbon\Carbon;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
 use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
@@ -25,28 +27,25 @@ class AwsCredential implements \Stringable
     #[ORM\Column(type: 'string', length: 255, options: ['comment' => 'AWS Secret Access Key'])]
     private string $secretAccessKey;
 
-    #[ORM\Column(type: 'string', length: 50, options: ['comment' => 'AWS 区域'])]
-    private string $region;
-
     #[ORM\Column(type: 'boolean', options: ['comment' => '是否为默认凭证'])]
     private bool $isDefault = false;
 
     #[CreateTimeColumn]
-    #[ORM\Column(type: 'datetime_immutable', options: ['comment' => '创建时间'])]
-    private \DateTimeImmutable $createdAt;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, options: ['comment' => '创建时间'])]
+    private \DateTimeInterface $createdAt;
 
     #[UpdateTimeColumn]
-    #[ORM\Column(type: 'datetime_immutable', nullable: true, options: ['comment' => '更新时间'])]
-    private ?\DateTimeImmutable $updatedAt = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]
+    private ?\DateTimeInterface $updatedAt = null;
 
     public function __construct()
     {
-        $this->createdAt = new \DateTimeImmutable();
+        $this->createdAt = Carbon::now();
     }
 
     public function __toString(): string
     {
-        return sprintf('AwsCredential %s (%s)', $this->name, $this->region);
+        return sprintf('AwsCredential %s', $this->name);
     }
 
     public function getId(): ?int
@@ -87,17 +86,6 @@ class AwsCredential implements \Stringable
         return $this;
     }
 
-    public function getRegion(): string
-    {
-        return $this->region;
-    }
-
-    public function setRegion(string $region): self
-    {
-        $this->region = $region;
-        return $this;
-    }
-
     public function isDefault(): bool
     {
         return $this->isDefault;
@@ -109,17 +97,17 @@ class AwsCredential implements \Stringable
         return $this;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable
+    public function getCreatedAt(): \DateTimeInterface
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): ?\DateTimeImmutable
+    public function getUpdatedAt(): ?\DateTimeInterface
     {
         return $this->updatedAt;
     }
 
-    public function setUpdatedAt(?\DateTimeImmutable $updatedAt): self
+    public function setUpdatedAt(?\DateTimeInterface $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
         return $this;

@@ -5,6 +5,8 @@ namespace AwsLightsailBundle\Entity;
 use AwsLightsailBundle\Enum\AlarmMetricEnum;
 use AwsLightsailBundle\Enum\AlarmStateEnum;
 use AwsLightsailBundle\Repository\AlarmRepository;
+use Carbon\Carbon;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
 use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
@@ -63,27 +65,27 @@ class Alarm implements \Stringable
     #[ORM\Column(type: 'boolean', options: ['comment' => '是否启用通知'])]
     private bool $notificationEnabled = true;
 
-    #[ORM\Column(type: 'datetime_immutable', nullable: true, options: ['comment' => '通知触发时间'])]
-    private ?\DateTimeImmutable $notificationTriggeredTime = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '通知触发时间'])]
+    private ?\DateTimeInterface $notificationTriggeredTime = null;
 
     #[CreateTimeColumn]
-    #[ORM\Column(type: 'datetime_immutable', options: ['comment' => '创建时间'])]
-    private \DateTimeImmutable $createTime;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, options: ['comment' => '创建时间'])]
+    private \DateTimeInterface $createTime;
 
-    #[ORM\Column(type: 'datetime_immutable', nullable: true, options: ['comment' => '同步时间'])]
-    private ?\DateTimeImmutable $syncTime = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '同步时间'])]
+    private ?\DateTimeInterface $syncTime = null;
 
     #[ORM\ManyToOne(targetEntity: AwsCredential::class)]
     #[ORM\JoinColumn(nullable: false)]
     private AwsCredential $credential;
 
     #[UpdateTimeColumn]
-    #[ORM\Column(type: 'datetime_immutable', nullable: true, options: ['comment' => '更新时间'])]
-    private ?\DateTimeImmutable $updateTime = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]
+    private ?\DateTimeInterface $updateTime = null;
 
     public function __construct()
     {
-        $this->createTime = new \DateTimeImmutable();
+        $this->createTime = Carbon::now();
         $this->state = AlarmStateEnum::UNKNOWN;
     }
 
@@ -262,28 +264,28 @@ class Alarm implements \Stringable
         return $this;
     }
 
-    public function getNotificationTriggeredTime(): ?\DateTimeImmutable
+    public function getNotificationTriggeredTime(): ?\DateTimeInterface
     {
         return $this->notificationTriggeredTime;
     }
 
-    public function setNotificationTriggeredTime(?\DateTimeImmutable $notificationTriggeredTime): self
+    public function setNotificationTriggeredTime(?\DateTimeInterface $notificationTriggeredTime): self
     {
         $this->notificationTriggeredTime = $notificationTriggeredTime;
         return $this;
     }
 
-    public function getCreateTime(): \DateTimeImmutable
+    public function getCreateTime(): \DateTimeInterface
     {
         return $this->createTime;
     }
 
-    public function getSyncTime(): ?\DateTimeImmutable
+    public function getSyncTime(): ?\DateTimeInterface
     {
         return $this->syncTime;
     }
 
-    public function setSyncTime(?\DateTimeImmutable $syncTime): self
+    public function setSyncTime(?\DateTimeInterface $syncTime): self
     {
         $this->syncTime = $syncTime;
         return $this;
@@ -300,12 +302,12 @@ class Alarm implements \Stringable
         return $this;
     }
 
-    public function getUpdateTime(): ?\DateTimeImmutable
+    public function getUpdateTime(): ?\DateTimeInterface
     {
         return $this->updateTime;
     }
 
-    public function setUpdateTime(?\DateTimeImmutable $updateTime): self
+    public function setUpdateTime(?\DateTimeInterface $updateTime): self
     {
         $this->updateTime = $updateTime;
         return $this;

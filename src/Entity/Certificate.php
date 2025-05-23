@@ -4,6 +4,8 @@ namespace AwsLightsailBundle\Entity;
 
 use AwsLightsailBundle\Enum\CertificateStatusEnum;
 use AwsLightsailBundle\Repository\CertificateRepository;
+use Carbon\Carbon;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
 use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
@@ -38,11 +40,11 @@ class Certificate implements \Stringable
     #[ORM\Column(type: 'string', length: 50, options: ['comment' => 'AWS 区域'])]
     private string $region;
 
-    #[ORM\Column(type: 'datetime_immutable', nullable: true, options: ['comment' => '证书生效日期'])]
-    private ?\DateTimeImmutable $notBefore = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '证书生效日期'])]
+    private ?\DateTimeInterface $notBefore = null;
 
-    #[ORM\Column(type: 'datetime_immutable', nullable: true, options: ['comment' => '证书过期日期'])]
-    private ?\DateTimeImmutable $notAfter = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '证书过期日期'])]
+    private ?\DateTimeInterface $notAfter = null;
 
     #[ORM\Column(type: 'json', nullable: true, options: ['comment' => '标签'])]
     private ?array $tags = null;
@@ -60,11 +62,11 @@ class Certificate implements \Stringable
     private bool $inUse = false;
 
     #[CreateTimeColumn]
-    #[ORM\Column(type: 'datetime_immutable', options: ['comment' => '创建时间'])]
-    private \DateTimeImmutable $createTime;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, options: ['comment' => '创建时间'])]
+    private \DateTimeInterface $createTime;
 
-    #[ORM\Column(type: 'datetime_immutable', nullable: true, options: ['comment' => '同步时间'])]
-    private ?\DateTimeImmutable $syncTime = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '同步时间'])]
+    private ?\DateTimeInterface $syncTime = null;
 
     #[ORM\ManyToOne(targetEntity: AwsCredential::class)]
     #[ORM\JoinColumn(nullable: false)]
@@ -74,12 +76,12 @@ class Certificate implements \Stringable
     private ?array $supportedOnResources = null;
 
     #[UpdateTimeColumn]
-    #[ORM\Column(type: 'datetime_immutable', nullable: true, options: ['comment' => '更新时间'])]
-    private ?\DateTimeImmutable $updateTime = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]
+    private ?\DateTimeInterface $updateTime = null;
 
     public function __construct()
     {
-        $this->createTime = new \DateTimeImmutable();
+        $this->createTime = Carbon::now();
         $this->status = CertificateStatusEnum::UNKNOWN;
     }
 
@@ -170,23 +172,23 @@ class Certificate implements \Stringable
         return $this;
     }
 
-    public function getNotBefore(): ?\DateTimeImmutable
+    public function getNotBefore(): ?\DateTimeInterface
     {
         return $this->notBefore;
     }
 
-    public function setNotBefore(?\DateTimeImmutable $notBefore): self
+    public function setNotBefore(?\DateTimeInterface $notBefore): self
     {
         $this->notBefore = $notBefore;
         return $this;
     }
 
-    public function getNotAfter(): ?\DateTimeImmutable
+    public function getNotAfter(): ?\DateTimeInterface
     {
         return $this->notAfter;
     }
 
-    public function setNotAfter(?\DateTimeImmutable $notAfter): self
+    public function setNotAfter(?\DateTimeInterface $notAfter): self
     {
         $this->notAfter = $notAfter;
         return $this;
@@ -247,17 +249,17 @@ class Certificate implements \Stringable
         return $this;
     }
 
-    public function getCreateTime(): \DateTimeImmutable
+    public function getCreateTime(): \DateTimeInterface
     {
         return $this->createTime;
     }
 
-    public function getSyncTime(): ?\DateTimeImmutable
+    public function getSyncTime(): ?\DateTimeInterface
     {
         return $this->syncTime;
     }
 
-    public function setSyncTime(?\DateTimeImmutable $syncTime): self
+    public function setSyncTime(?\DateTimeInterface $syncTime): self
     {
         $this->syncTime = $syncTime;
         return $this;
@@ -285,12 +287,12 @@ class Certificate implements \Stringable
         return $this;
     }
 
-    public function getUpdateTime(): ?\DateTimeImmutable
+    public function getUpdateTime(): ?\DateTimeInterface
     {
         return $this->updateTime;
     }
 
-    public function setUpdateTime(?\DateTimeImmutable $updateTime): self
+    public function setUpdateTime(?\DateTimeInterface $updateTime): self
     {
         $this->updateTime = $updateTime;
         return $this;

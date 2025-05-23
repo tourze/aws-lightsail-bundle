@@ -2,6 +2,7 @@
 
 namespace AwsLightsailBundle\Repository;
 
+use AwsLightsailBundle\Entity\AwsCredential;
 use AwsLightsailBundle\Entity\Instance;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -19,6 +20,11 @@ class InstanceRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Instance::class);
+    }
+
+    public function findOneByNameAndCredential(string $name, AwsCredential $credential): ?Instance
+    {
+        return $this->findOneBy(['name' => $name, 'credential' => $credential]);
     }
 
     /**

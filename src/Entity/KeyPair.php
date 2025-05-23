@@ -3,6 +3,8 @@
 namespace AwsLightsailBundle\Entity;
 
 use AwsLightsailBundle\Repository\KeyPairRepository;
+use Carbon\Carbon;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
 use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
@@ -37,27 +39,36 @@ class KeyPair implements \Stringable
     #[ORM\Column(type: 'string', length: 50, options: ['comment' => 'AWS 区域'])]
     private string $region;
 
+    #[ORM\Column(type: 'string', length: 50, nullable: true, options: ['comment' => '资源类型'])]
+    private ?string $resourceType = null;
+
+    #[ORM\Column(type: 'string', length: 255, nullable: true, options: ['comment' => '支持代码'])]
+    private ?string $supportCode = null;
+
     #[ORM\Column(type: 'json', nullable: true, options: ['comment' => '标签'])]
     private ?array $tags = null;
 
-    #[CreateTimeColumn]
-    #[ORM\Column(type: 'datetime_immutable', options: ['comment' => '创建时间'])]
-    private \DateTimeImmutable $createTime;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => 'AWS 创建时间'])]
+    private ?\DateTimeInterface $awsCreatedAt = null;
 
-    #[ORM\Column(type: 'datetime_immutable', nullable: true, options: ['comment' => '同步时间'])]
-    private ?\DateTimeImmutable $syncTime = null;
+    #[CreateTimeColumn]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, options: ['comment' => '创建时间'])]
+    private \DateTimeInterface $createTime;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '同步时间'])]
+    private ?\DateTimeInterface $syncTime = null;
 
     #[ORM\ManyToOne(targetEntity: AwsCredential::class)]
     #[ORM\JoinColumn(nullable: false)]
     private AwsCredential $credential;
 
     #[UpdateTimeColumn]
-    #[ORM\Column(type: 'datetime_immutable', nullable: true, options: ['comment' => '更新时间'])]
-    private ?\DateTimeImmutable $updateTime = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]
+    private ?\DateTimeInterface $updateTime = null;
 
     public function __construct()
     {
-        $this->createTime = new \DateTimeImmutable();
+        $this->createTime = Carbon::now();
     }
 
     public function __toString(): string
@@ -147,6 +158,28 @@ class KeyPair implements \Stringable
         return $this;
     }
 
+    public function getResourceType(): ?string
+    {
+        return $this->resourceType;
+    }
+
+    public function setResourceType(?string $resourceType): self
+    {
+        $this->resourceType = $resourceType;
+        return $this;
+    }
+
+    public function getSupportCode(): ?string
+    {
+        return $this->supportCode;
+    }
+
+    public function setSupportCode(?string $supportCode): self
+    {
+        $this->supportCode = $supportCode;
+        return $this;
+    }
+
     public function getTags(): ?array
     {
         return $this->tags;
@@ -158,17 +191,28 @@ class KeyPair implements \Stringable
         return $this;
     }
 
-    public function getCreateTime(): \DateTimeImmutable
+    public function getAwsCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->awsCreatedAt;
+    }
+
+    public function setAwsCreatedAt(?\DateTimeInterface $awsCreatedAt): self
+    {
+        $this->awsCreatedAt = $awsCreatedAt;
+        return $this;
+    }
+
+    public function getCreateTime(): \DateTimeInterface
     {
         return $this->createTime;
     }
 
-    public function getSyncTime(): ?\DateTimeImmutable
+    public function getSyncTime(): ?\DateTimeInterface
     {
         return $this->syncTime;
     }
 
-    public function setSyncTime(?\DateTimeImmutable $syncTime): self
+    public function setSyncTime(?\DateTimeInterface $syncTime): self
     {
         $this->syncTime = $syncTime;
         return $this;
@@ -185,12 +229,12 @@ class KeyPair implements \Stringable
         return $this;
     }
 
-    public function getUpdateTime(): ?\DateTimeImmutable
+    public function getUpdateTime(): ?\DateTimeInterface
     {
         return $this->updateTime;
     }
 
-    public function setUpdateTime(?\DateTimeImmutable $updateTime): self
+    public function setUpdateTime(?\DateTimeInterface $updateTime): self
     {
         $this->updateTime = $updateTime;
         return $this;

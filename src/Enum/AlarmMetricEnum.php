@@ -27,12 +27,12 @@ enum AlarmMetricEnum: string implements Labelable, Itemable, Selectable
     case DISK_WRITE_BYTES = 'DiskWriteBytes';
     case MEMORY_UTILIZATION = 'MemoryUtilization';
 
-    // 数据库指标
-    case DB_CONNECTIONS = 'DatabaseConnections';
-    case DB_CPU_UTILIZATION = 'CPUUtilization';
-    case DB_FREE_STORAGE_SPACE = 'FreeStorageSpace';
-    case DB_NETWORK_RECEIVE_THROUGHPUT = 'NetworkReceiveThroughput';
-    case DB_NETWORK_TRANSMIT_THROUGHPUT = 'NetworkTransmitThroughput';
+//    // 数据库指标
+//    case DB_CONNECTIONS = 'DatabaseConnections';
+//    case DB_CPU_UTILIZATION = 'CPUUtilization';
+//    case DB_FREE_STORAGE_SPACE = 'FreeStorageSpace';
+//    case DB_NETWORK_RECEIVE_THROUGHPUT = 'NetworkReceiveThroughput';
+//    case DB_NETWORK_TRANSMIT_THROUGHPUT = 'NetworkTransmitThroughput';
 
     // 负载均衡器指标
     case LB_HEALTHY_HOST_COUNT = 'HealthyHostCount';
@@ -55,11 +55,11 @@ enum AlarmMetricEnum: string implements Labelable, Itemable, Selectable
             self::DISK_READ_BYTES => '磁盘读取字节数',
             self::DISK_WRITE_BYTES => '磁盘写入字节数',
             self::MEMORY_UTILIZATION => '内存使用率',
-            self::DB_CONNECTIONS => '数据库连接数',
-            self::DB_CPU_UTILIZATION => '数据库 CPU 使用率',
-            self::DB_FREE_STORAGE_SPACE => '数据库可用存储空间',
-            self::DB_NETWORK_RECEIVE_THROUGHPUT => '数据库网络接收吞吐量',
-            self::DB_NETWORK_TRANSMIT_THROUGHPUT => '数据库网络传输吞吐量',
+//            self::DB_CONNECTIONS => '数据库连接数',
+//            self::DB_CPU_UTILIZATION => '数据库 CPU 使用率',
+//            self::DB_FREE_STORAGE_SPACE => '数据库可用存储空间',
+//            self::DB_NETWORK_RECEIVE_THROUGHPUT => '数据库网络接收吞吐量',
+//            self::DB_NETWORK_TRANSMIT_THROUGHPUT => '数据库网络传输吞吐量',
             self::LB_HEALTHY_HOST_COUNT => '负载均衡器健康主机数',
             self::LB_UNHEALTHY_HOST_COUNT => '负载均衡器不健康主机数',
             self::LB_HTTP_4XX_COUNT => '负载均衡器 HTTP 4XX 错误数',

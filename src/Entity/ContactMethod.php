@@ -4,6 +4,8 @@ namespace AwsLightsailBundle\Entity;
 
 use AwsLightsailBundle\Enum\ContactMethodStatusEnum;
 use AwsLightsailBundle\Enum\ContactMethodTypeEnum;
+use Carbon\Carbon;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
 use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
@@ -30,7 +32,7 @@ class ContactMethod implements \Stringable
     private string $contactEndpoint;
 
     #[ORM\Column(type: 'string', length: 50, enumType: ContactMethodStatusEnum::class, options: ['comment' => '联系方式状态'])]
-    private ContactMethodStatusEnum $status;
+    private ContactMethodStatusEnum $status = ContactMethodStatusEnum::PENDING;
 
     #[ORM\Column(type: 'string', length: 50, options: ['comment' => 'AWS 区域'])]
     private string $region;
@@ -38,28 +40,27 @@ class ContactMethod implements \Stringable
     #[ORM\Column(type: 'string', length: 255, nullable: true, options: ['comment' => '协议'])]
     private ?string $protocol = null;
 
-    #[ORM\Column(type: 'datetime_immutable', nullable: true, options: ['comment' => '最后验证时间'])]
-    private ?\DateTimeImmutable $lastVerifiedTime = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '最后验证时间'])]
+    private ?\DateTimeInterface $lastVerifiedTime = null;
 
     #[CreateTimeColumn]
-    #[ORM\Column(type: 'datetime_immutable', options: ['comment' => '创建时间'])]
-    private \DateTimeImmutable $createdAt;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, options: ['comment' => '创建时间'])]
+    private \DateTimeInterface $createdAt;
 
-    #[ORM\Column(type: 'datetime_immutable', nullable: true, options: ['comment' => '同步时间'])]
-    private ?\DateTimeImmutable $syncedAt = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '同步时间'])]
+    private ?\DateTimeInterface $syncedAt = null;
 
     #[ORM\ManyToOne(targetEntity: AwsCredential::class)]
     #[ORM\JoinColumn(nullable: false)]
     private AwsCredential $credential;
 
     #[UpdateTimeColumn]
-    #[ORM\Column(type: 'datetime_immutable', nullable: true, options: ['comment' => '更新时间'])]
-    private ?\DateTimeImmutable $updatedAt = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]
+    private ?\DateTimeInterface $updatedAt = null;
 
     public function __construct()
     {
-        $this->createdAt = new \DateTimeImmutable();
-        $this->status = ContactMethodStatusEnum::PENDING;
+        $this->createdAt = Carbon::now();
     }
 
     public function __toString(): string
@@ -149,28 +150,28 @@ class ContactMethod implements \Stringable
         return $this;
     }
 
-    public function getLastVerifiedTime(): ?\DateTimeImmutable
+    public function getLastVerifiedTime(): ?\DateTimeInterface
     {
         return $this->lastVerifiedTime;
     }
 
-    public function setLastVerifiedTime(?\DateTimeImmutable $lastVerifiedTime): self
+    public function setLastVerifiedTime(?\DateTimeInterface $lastVerifiedTime): self
     {
         $this->lastVerifiedTime = $lastVerifiedTime;
         return $this;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable
+    public function getCreatedAt(): \DateTimeInterface
     {
         return $this->createdAt;
     }
 
-    public function getSyncedAt(): ?\DateTimeImmutable
+    public function getSyncedAt(): ?\DateTimeInterface
     {
         return $this->syncedAt;
     }
 
-    public function setSyncedAt(?\DateTimeImmutable $syncedAt): self
+    public function setSyncedAt(?\DateTimeInterface $syncedAt): self
     {
         $this->syncedAt = $syncedAt;
         return $this;
@@ -187,12 +188,12 @@ class ContactMethod implements \Stringable
         return $this;
     }
 
-    public function getUpdatedAt(): ?\DateTimeImmutable
+    public function getUpdatedAt(): ?\DateTimeInterface
     {
         return $this->updatedAt;
     }
 
-    public function setUpdatedAt(?\DateTimeImmutable $updatedAt): self
+    public function setUpdatedAt(?\DateTimeInterface $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
         return $this;
