@@ -141,7 +141,7 @@ class InstanceCreateCommand extends Command
             $io->note('操作 ID: ' . ($result->get('operations')[0]['id'] ?? '未知'));
 
             return Command::SUCCESS;
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             $io->error('创建实例时出错: ' . $e->getMessage());
             return Command::FAILURE;
         }

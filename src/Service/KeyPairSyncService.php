@@ -97,7 +97,7 @@ class KeyPairSyncService
                 } elseif (is_string($data['createdAt'])) {
                     $keyPair->setAwsCreatedAt(Carbon::parse($data['createdAt']));
                 }
-            } catch  (\Throwable $e) {
+            } catch (\Throwable $e) {
                 $this->logger->warning('无法解析 AWS 创建时间', [
                     'createdAt' => $data['createdAt'],
                     'error' => $e->getMessage()
@@ -156,7 +156,7 @@ class KeyPairSyncService
                     $stats['new']++;
                 }
                 $stats['total']++;
-            } catch  (\Throwable $e) {
+            } catch (\Throwable $e) {
                 $stats['errors']++;
                 $this->logger->error('同步密钥对时出错', [
                     'keyPairData' => $keyPairData,
@@ -169,7 +169,7 @@ class KeyPairSyncService
         // 批量处理完成后统一刷新到数据库
         try {
             $this->entityManager->flush();
-        } catch  (\Throwable $e) {
+        } catch (\Throwable $e) {
             $this->logger->error('批量刷新密钥对数据到数据库时出错', [
                 'credential' => $credential->getName(),
                 'error' => $e->getMessage(),
