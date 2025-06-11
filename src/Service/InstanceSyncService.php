@@ -142,7 +142,7 @@ class InstanceSyncService
             $stateValue = $data['state']['name'];
             try {
                 $instance->setState(InstanceStateEnum::fromString($stateValue));
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 $this->logger->warning('未知的实例状态', ['state' => $stateValue]);
                 $instance->setState(InstanceStateEnum::UNKNOWN);
             }
@@ -163,7 +163,7 @@ class InstanceSyncService
         if (isset($data['blueprintId'])) {
             try {
                 $instance->setBlueprint(InstanceBlueprintEnum::fromString($data['blueprintId']));
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 $this->logger->warning('未知的蓝图类型', ['blueprint' => $data['blueprintId']]);
                 $instance->setBlueprint(InstanceBlueprintEnum::UBUNTU_20_04);
             }
@@ -178,7 +178,7 @@ class InstanceSyncService
         if (isset($data['bundleId'])) {
             try {
                 $instance->setBundle(InstanceBundleEnum::fromString($data['bundleId']));
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 $this->logger->warning('未知的套餐类型', ['bundle' => $data['bundleId']]);
                 $instance->setBundle(InstanceBundleEnum::MICRO_2_0);
             }
@@ -288,7 +288,7 @@ class InstanceSyncService
                     $dateString = $data['createdAt']->format('c');
                     $instance->setAwsCreatedAt(Carbon::parse($dateString));
                 }
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 $this->logger->warning('无法解析 AWS 创建时间', [
                     'createdAt' => $data['createdAt'],
                     'error' => $e->getMessage()
@@ -330,7 +330,7 @@ class InstanceSyncService
                     $stats['new']++;
                 }
                 $stats['total']++;
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 $stats['errors']++;
                 $this->logger->error('同步实例时出错', [
                     'instanceData' => $instanceData,
@@ -343,7 +343,7 @@ class InstanceSyncService
         // 批量处理完成后统一刷新到数据库
         try {
             $this->entityManager->flush();
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->logger->error('批量刷新实例数据到数据库时出错', [
                 'credential' => $credential->getName(),
                 'error' => $e->getMessage(),

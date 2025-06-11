@@ -151,7 +151,7 @@ class InstanceSyncCommand extends Command
                     if ($stats['errors'] > 0) {
                         $io->text(sprintf('  → 同步完成，其中 %d 个出错', $stats['errors']));
                     }
-                } catch (\Exception $e) {
+                } catch (\Throwable $e) {
                     $this->logger->error('获取实例列表时出错', [
                         'region' => $region,
                         'credential' => $credential->getName(),

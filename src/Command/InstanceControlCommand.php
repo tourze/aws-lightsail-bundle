@@ -161,7 +161,7 @@ class InstanceControlCommand extends Command
             $io->text('php bin/console aws:lightsail:instance:sync');
 
             return Command::SUCCESS;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $io->error("{$operationName}实例时出错: " . $e->getMessage());
             return Command::FAILURE;
         }
