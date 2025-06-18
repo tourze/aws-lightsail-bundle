@@ -9,12 +9,14 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
-use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
+use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 #[ORM\Entity(repositoryClass: DomainRepository::class)]
 #[ORM\Table(name: 'aws_lightsail_domain', options: ['comment' => 'AWS Lightsail 域名表'])]
 class Domain implements \Stringable
 {
+    use TimestampableAware;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
@@ -48,10 +50,6 @@ class Domain implements \Stringable
     #[ORM\ManyToOne(targetEntity: AwsCredential::class)]
     #[ORM\JoinColumn(nullable: false)]
     private AwsCredential $credential;
-
-    #[UpdateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]
-    private ?\DateTimeInterface $updateTime = null;
 
     public function __construct()
     {
@@ -154,11 +152,6 @@ class Domain implements \Stringable
         return $this;
     }
 
-    public function getCreateTime(): \DateTimeInterface
-    {
-        return $this->createTime;
-    }
-
     public function getSyncTime(): ?\DateTimeInterface
     {
         return $this->syncTime;
@@ -178,17 +171,6 @@ class Domain implements \Stringable
     public function setCredential(AwsCredential $credential): self
     {
         $this->credential = $credential;
-        return $this;
-    }
-
-    public function getUpdateTime(): ?\DateTimeInterface
-    {
-        return $this->updateTime;
-    }
-
-    public function setUpdateTime(?\DateTimeInterface $updateTime): self
-    {
-        $this->updateTime = $updateTime;
         return $this;
     }
 }

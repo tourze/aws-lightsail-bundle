@@ -6,12 +6,14 @@ use Carbon\Carbon;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
-use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
+use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'aws_lightsail_disk_snapshot', options: ['comment' => 'AWS Lightsail 磁盘快照表'])]
 class DiskSnapshot implements \Stringable
 {
+    use TimestampableAware;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
@@ -66,10 +68,6 @@ class DiskSnapshot implements \Stringable
 
     #[ORM\ManyToOne(targetEntity: Disk::class)]
     private ?Disk $disk = null;
-
-    #[UpdateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]
-    private ?\DateTimeInterface $updateTime = null;
 
     public function __construct()
     {
@@ -218,11 +216,6 @@ class DiskSnapshot implements \Stringable
         return $this;
     }
 
-    public function getCreateTime(): \DateTimeInterface
-    {
-        return $this->createTime;
-    }
-
     public function getSyncTime(): ?\DateTimeInterface
     {
         return $this->syncTime;
@@ -253,17 +246,6 @@ class DiskSnapshot implements \Stringable
     public function setDisk(?Disk $disk): self
     {
         $this->disk = $disk;
-        return $this;
-    }
-
-    public function getUpdateTime(): ?\DateTimeInterface
-    {
-        return $this->updateTime;
-    }
-
-    public function setUpdateTime(?\DateTimeInterface $updateTime): self
-    {
-        $this->updateTime = $updateTime;
         return $this;
     }
 }

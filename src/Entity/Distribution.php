@@ -7,12 +7,14 @@ use Carbon\Carbon;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
-use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
+use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'aws_lightsail_distribution', options: ['comment' => 'AWS Lightsail CDN 分发表'])]
 class Distribution implements \Stringable
 {
+    use TimestampableAware;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
@@ -70,10 +72,6 @@ class Distribution implements \Stringable
 
     #[ORM\Column(type: 'json', nullable: true, options: ['comment' => '源站公共DNS'])]
     private ?array $originPublicDNS = null;
-
-    #[UpdateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]
-    private ?\DateTimeInterface $updateTime = null;
 
     public function __construct()
     {
@@ -223,11 +221,6 @@ class Distribution implements \Stringable
         return $this;
     }
 
-    public function getCreateTime(): \DateTimeInterface
-    {
-        return $this->createTime;
-    }
-
     public function getSyncTime(): ?\DateTimeInterface
     {
         return $this->syncTime;
@@ -269,17 +262,6 @@ class Distribution implements \Stringable
     public function setOriginPublicDNS(?array $originPublicDNS): self
     {
         $this->originPublicDNS = $originPublicDNS;
-        return $this;
-    }
-
-    public function getUpdateTime(): ?\DateTimeInterface
-    {
-        return $this->updateTime;
-    }
-
-    public function setUpdateTime(?\DateTimeInterface $updateTime): self
-    {
-        $this->updateTime = $updateTime;
         return $this;
     }
 }

@@ -8,12 +8,13 @@ use Carbon\Carbon;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
-use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
+use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 #[ORM\Entity(repositoryClass: SnapshotRepository::class)]
 #[ORM\Table(name: 'aws_lightsail_snapshot', options: ['comment' => 'AWS Lightsail 实例快照表'])]
 class Snapshot implements \Stringable
 {
+    use TimestampableAware;
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
@@ -65,10 +66,6 @@ class Snapshot implements \Stringable
 
     #[ORM\Column(type: 'boolean', options: ['comment' => '是否来自自动快照'])]
     private bool $isFromAutoSnapshot = false;
-
-    #[UpdateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]
-    private ?\DateTimeInterface $updateTime = null;
 
     public function __construct()
     {
@@ -149,14 +146,7 @@ class Snapshot implements \Stringable
     {
         $this->tags = $tags;
         return $this;
-    }
-
-    public function getCreateTime(): \DateTimeInterface
-    {
-        return $this->createTime;
-    }
-
-    public function getSyncTime(): ?\DateTimeInterface
+    }public function getSyncTime(): ?\DateTimeInterface
     {
         return $this->syncTime;
     }
@@ -242,16 +232,4 @@ class Snapshot implements \Stringable
     {
         $this->isFromAutoSnapshot = $isFromAutoSnapshot;
         return $this;
-    }
-
-    public function getUpdateTime(): ?\DateTimeInterface
-    {
-        return $this->updateTime;
-    }
-
-    public function setUpdateTime(?\DateTimeInterface $updateTime): self
-    {
-        $this->updateTime = $updateTime;
-        return $this;
-    }
-}
+    }}

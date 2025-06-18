@@ -9,12 +9,14 @@ use Carbon\Carbon;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
-use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
+use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 #[ORM\Entity(repositoryClass: AlarmRepository::class)]
 #[ORM\Table(name: 'aws_lightsail_alarm', options: ['comment' => 'AWS Lightsail 告警表'])]
 class Alarm implements \Stringable
 {
+    use TimestampableAware;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
@@ -78,10 +80,6 @@ class Alarm implements \Stringable
     #[ORM\ManyToOne(targetEntity: AwsCredential::class)]
     #[ORM\JoinColumn(nullable: false)]
     private AwsCredential $credential;
-
-    #[UpdateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]
-    private ?\DateTimeInterface $updateTime = null;
 
     public function __construct()
     {
@@ -275,11 +273,6 @@ class Alarm implements \Stringable
         return $this;
     }
 
-    public function getCreateTime(): \DateTimeInterface
-    {
-        return $this->createTime;
-    }
-
     public function getSyncTime(): ?\DateTimeInterface
     {
         return $this->syncTime;
@@ -301,15 +294,4 @@ class Alarm implements \Stringable
         $this->credential = $credential;
         return $this;
     }
-
-    public function getUpdateTime(): ?\DateTimeInterface
-    {
-        return $this->updateTime;
-    }
-
-    public function setUpdateTime(?\DateTimeInterface $updateTime): self
-    {
-        $this->updateTime = $updateTime;
-        return $this;
-    }
-} 
+}

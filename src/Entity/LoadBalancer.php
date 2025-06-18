@@ -8,12 +8,14 @@ use Carbon\Carbon;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
-use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
+use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 #[ORM\Entity(repositoryClass: LoadBalancerRepository::class)]
 #[ORM\Table(name: 'aws_lightsail_load_balancer', options: ['comment' => 'AWS Lightsail 负载均衡器表'])]
 class LoadBalancer implements \Stringable
 {
+    use TimestampableAware;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
@@ -83,10 +85,6 @@ class LoadBalancer implements \Stringable
 
     #[ORM\Column(type: 'json', options: ['comment' => '已附加的实例'])]
     private array $attachedInstances = [];
-
-    #[UpdateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]
-    private ?\DateTimeInterface $updateTime = null;
 
     public function __construct()
     {
@@ -291,11 +289,6 @@ class LoadBalancer implements \Stringable
         return $this;
     }
 
-    public function getCreateTime(): \DateTimeInterface
-    {
-        return $this->createTime;
-    }
-
     public function getSyncTime(): ?\DateTimeInterface
     {
         return $this->syncTime;
@@ -344,17 +337,6 @@ class LoadBalancer implements \Stringable
             unset($this->attachedInstances[$index]);
             $this->attachedInstances = array_values($this->attachedInstances);
         }
-        return $this;
-    }
-
-    public function getUpdateTime(): ?\DateTimeInterface
-    {
-        return $this->updateTime;
-    }
-
-    public function setUpdateTime(?\DateTimeInterface $updateTime): self
-    {
-        $this->updateTime = $updateTime;
         return $this;
     }
 }

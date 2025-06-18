@@ -9,12 +9,14 @@ use Carbon\Carbon;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
-use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
+use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 #[ORM\Entity(repositoryClass: OperationRepository::class)]
 #[ORM\Table(name: 'aws_lightsail_operation', options: ['comment' => 'AWS Lightsail 操作记录表'])]
 class Operation implements \Stringable
 {
+    use TimestampableAware;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
@@ -57,10 +59,6 @@ class Operation implements \Stringable
 
     #[ORM\Column(type: 'json', nullable: true, options: ['comment' => '元数据'])]
     private ?array $metadata = null;
-
-    #[UpdateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]
-    private ?\DateTimeInterface $updateTime = null;
 
     public function __construct()
     {
@@ -167,11 +165,6 @@ class Operation implements \Stringable
         return $this;
     }
 
-    public function getCreateTime(): \DateTimeInterface
-    {
-        return $this->createTime;
-    }
-
     public function getCompleteTime(): ?\DateTimeInterface
     {
         return $this->completeTime;
@@ -204,15 +197,4 @@ class Operation implements \Stringable
         $this->metadata = $metadata;
         return $this;
     }
-
-    public function getUpdateTime(): ?\DateTimeInterface
-    {
-        return $this->updateTime;
-    }
-
-    public function setUpdateTime(?\DateTimeInterface $updateTime): self
-    {
-        $this->updateTime = $updateTime;
-        return $this;
-    }
-} 
+}

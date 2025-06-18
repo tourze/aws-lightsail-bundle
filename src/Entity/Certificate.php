@@ -8,12 +8,14 @@ use Carbon\Carbon;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
-use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
+use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 #[ORM\Entity(repositoryClass: CertificateRepository::class)]
 #[ORM\Table(name: 'aws_lightsail_certificate', options: ['comment' => 'AWS Lightsail 证书表'])]
 class Certificate implements \Stringable
 {
+    use TimestampableAware;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
@@ -74,10 +76,6 @@ class Certificate implements \Stringable
 
     #[ORM\Column(type: 'json', nullable: true, options: ['comment' => '支持的资源'])]
     private ?array $supportedOnResources = null;
-
-    #[UpdateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]
-    private ?\DateTimeInterface $updateTime = null;
 
     public function __construct()
     {
@@ -249,11 +247,6 @@ class Certificate implements \Stringable
         return $this;
     }
 
-    public function getCreateTime(): \DateTimeInterface
-    {
-        return $this->createTime;
-    }
-
     public function getSyncTime(): ?\DateTimeInterface
     {
         return $this->syncTime;
@@ -284,17 +277,6 @@ class Certificate implements \Stringable
     public function setSupportedOnResources(?array $supportedOnResources): self
     {
         $this->supportedOnResources = $supportedOnResources;
-        return $this;
-    }
-
-    public function getUpdateTime(): ?\DateTimeInterface
-    {
-        return $this->updateTime;
-    }
-
-    public function setUpdateTime(?\DateTimeInterface $updateTime): self
-    {
-        $this->updateTime = $updateTime;
         return $this;
     }
 }
