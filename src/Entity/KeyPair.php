@@ -3,10 +3,8 @@
 namespace AwsLightsailBundle\Entity;
 
 use AwsLightsailBundle\Repository\KeyPairRepository;
-use Carbon\Carbon;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 #[ORM\Entity(repositoryClass: KeyPairRepository::class)]
@@ -53,9 +51,6 @@ class KeyPair implements \Stringable
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => 'AWS 创建时间'])]
     private ?\DateTimeInterface $awsCreatedAt = null;
 
-    #[CreateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, options: ['comment' => '创建时间'])]
-    private \DateTimeInterface $createTime;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '同步时间'])]
     private ?\DateTimeInterface $syncTime = null;
@@ -64,10 +59,6 @@ class KeyPair implements \Stringable
     #[ORM\JoinColumn(nullable: false)]
     private AwsCredential $credential;
 
-    public function __construct()
-    {
-        $this->createTime = Carbon::now();
-    }
 
     public function __toString(): string
     {

@@ -3,12 +3,10 @@
 namespace AwsLightsailBundle\Entity;
 
 use AwsLightsailBundle\Repository\DomainRepository;
-use Carbon\Carbon;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 #[ORM\Entity(repositoryClass: DomainRepository::class)]
@@ -40,9 +38,6 @@ class Domain implements \Stringable
     #[ORM\Column(type: 'json', nullable: true, options: ['comment' => '标签'])]
     private ?array $tags = null;
 
-    #[CreateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, options: ['comment' => '创建时间'])]
-    private \DateTimeInterface $createTime;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '同步时间'])]
     private ?\DateTimeInterface $syncTime = null;
@@ -53,7 +48,6 @@ class Domain implements \Stringable
 
     public function __construct()
     {
-        $this->createTime = Carbon::now();
         $this->entries = new ArrayCollection();
     }
 

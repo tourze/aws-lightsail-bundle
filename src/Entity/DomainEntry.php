@@ -4,10 +4,8 @@ namespace AwsLightsailBundle\Entity;
 
 use AwsLightsailBundle\Enum\DnsRecordTypeEnum;
 use AwsLightsailBundle\Repository\DomainEntryRepository;
-use Carbon\Carbon;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 #[ORM\Entity(repositoryClass: DomainEntryRepository::class)]
@@ -43,17 +41,10 @@ class DomainEntry implements \Stringable
     #[ORM\JoinColumn(nullable: false)]
     private Domain $domain;
 
-    #[CreateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, options: ['comment' => '创建时间'])]
-    private \DateTimeInterface $createTime;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '同步时间'])]
     private ?\DateTimeInterface $syncTime = null;
 
-    public function __construct()
-    {
-        $this->createTime = Carbon::now();
-    }
 
     public function __toString(): string
     {
