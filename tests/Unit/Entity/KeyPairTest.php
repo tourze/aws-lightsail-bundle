@@ -246,7 +246,7 @@ final class KeyPairTest extends TestCase
 
     public function testSetUpdateTime_andGetUpdateTime_worksCorrectly(): void
     {
-        $updateTime = new \DateTime();
+        $updateTime = new \DateTimeImmutable();
         
         $result = $this->keyPair->setUpdateTime($updateTime);
         
