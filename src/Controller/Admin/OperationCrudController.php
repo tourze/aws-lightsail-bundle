@@ -6,12 +6,10 @@ use AwsLightsailBundle\Entity\AwsCredential;
 use AwsLightsailBundle\Entity\Operation;
 use AwsLightsailBundle\Enum\OperationStatusEnum;
 use AwsLightsailBundle\Enum\OperationTypeEnum;
-use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
-use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
@@ -23,21 +21,13 @@ use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\DateTimeFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\TextFilter;
-use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
 
 /**
  * Lightsail 操作记录管理控制器
  */
 class OperationCrudController extends AbstractCrudController
 {
-    public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly AdminUrlGenerator $adminUrlGenerator
-    ) {
-    }
 
     public static function getEntityFqcn(): string
     {
@@ -164,84 +154,5 @@ class OperationCrudController extends AbstractCrudController
             ->add(DateTimeFilter::new('createTime', '创建时间'))
             ->add(DateTimeFilter::new('completeTime', '完成时间'))
             ->add(EntityFilter::new('credential', 'AWS 凭证'));
-    }
-    
-    /**
-     * 刷新操作状态
-     */
-    #[Route('admin/operation/{entityId}/refresh', name: 'refresh_operation')]
-    public function refreshOperation(AdminContext $context): Response
-    {
-        $operation = $context->getEntity()->getInstance();
-        
-        $this->addFlash('info', sprintf('操作记录 %s 刷新指令已发送', $operation->getOperationId()));
-        
-        return $this->redirect($this->adminUrlGenerator
-            ->setAction(Action::INDEX)
-            ->setEntityId(null)
-            ->generateUrl());
-    }
-    
-    /**
-     * 查看相关资源
-     */
-    #[Route('admin/operation/{entityId}/view-resource', name: 'view_operation_resource')]
-    public function viewResource(AdminContext $context): Response
-    {
-        $operation = $context->getEntity()->getInstance();
-        $resourceName = $operation->getResourceName();
-        $resourceType = $operation->getResourceType();
-        
-        if (!$resourceName || !$resourceType) {
-            $this->addFlash('warning', '该操作没有关联的资源信息');
-            
-            return $this->redirect($this->adminUrlGenerator
-                ->setAction(Action::INDEX)
-                ->setEntityId(null)
-                ->generateUrl());
-        }
-        
-        // 根据资源类型决定重定向到哪个控制器
-        $controllerClass = match ($resourceType) {
-            'Instance' => InstanceCrudController::class,
-            'LoadBalancer' => LoadBalancerCrudController::class,
-            'Domain' => DomainCrudController::class,
-            'Database' => DatabaseCrudController::class,
-            'Disk' => DiskCrudController::class,
-            'Certificate' => CertificateCrudController::class,
-            'Distribution' => DistributionCrudController::class,
-            'Bucket' => BucketCrudController::class,
-            'KeyPair' => KeyPairCrudController::class,
-            default => null
-        };
-        
-        if (!$controllerClass) {
-            $this->addFlash('warning', sprintf('无法识别资源类型: %s', $resourceType));
-            
-            return $this->redirect($this->adminUrlGenerator
-                ->setAction(Action::INDEX)
-                ->setEntityId(null)
-                ->generateUrl());
-        }
-        
-        // 尝试查找对应的资源实体
-        $repository = $this->entityManager->getRepository($controllerClass::getEntityFqcn());
-        $resource = $repository->findOneBy(['name' => $resourceName]);
-        
-        if (!$resource) {
-            $this->addFlash('warning', sprintf('找不到资源: %s [%s]', $resourceName, $resourceType));
-            
-            return $this->redirect($this->adminUrlGenerator
-                ->setAction(Action::INDEX)
-                ->setEntityId(null)
-                ->generateUrl());
-        }
-        
-        // 重定向到资源详情页
-        return $this->redirect($this->adminUrlGenerator
-            ->setController($controllerClass)
-            ->setAction(Action::DETAIL)
-            ->setEntityId($resource->getId())
-            ->generateUrl());
     }
 } 

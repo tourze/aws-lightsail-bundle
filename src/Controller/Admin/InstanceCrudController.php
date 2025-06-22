@@ -11,7 +11,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
-use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
@@ -23,19 +22,13 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\TextFilter;
-use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
 
 /**
  * Lightsail 实例管理控制器
  */
 class InstanceCrudController extends AbstractCrudController
 {
-    public function __construct(private readonly AdminUrlGenerator $adminUrlGenerator)
-    {
-    }
 
     public static function getEntityFqcn(): string
     {
@@ -228,69 +221,5 @@ class InstanceCrudController extends AbstractCrudController
             ->add(TextFilter::new('region', '区域'))
             ->add(TextFilter::new('publicIpAddress', '公网IP'))
             ->add(EntityFilter::new('credential', 'AWS 凭证'));
-    }
-
-    /**
-     * 启动实例
-     */
-    #[Route('admin/instance/{entityId}/start', name: 'start_instance')]
-    public function startInstance(AdminContext $context): Response
-    {
-        $instance = $context->getEntity()->getInstance();
-
-        $this->addFlash('info', sprintf('实例 %s 启动指令已发送', $instance->getName()));
-
-        return $this->redirect($this->adminUrlGenerator
-            ->setAction(Action::INDEX)
-            ->setEntityId(null)
-            ->generateUrl());
-    }
-
-    /**
-     * 停止实例
-     */
-    #[Route('admin/instance/{entityId}/stop', name: 'stop_instance')]
-    public function stopInstance(AdminContext $context): Response
-    {
-        $instance = $context->getEntity()->getInstance();
-
-        $this->addFlash('info', sprintf('实例 %s 停止指令已发送', $instance->getName()));
-
-        return $this->redirect($this->adminUrlGenerator
-            ->setAction(Action::INDEX)
-            ->setEntityId(null)
-            ->generateUrl());
-    }
-
-    /**
-     * 重启实例
-     */
-    #[Route('admin/instance/{entityId}/reboot', name: 'reboot_instance')]
-    public function rebootInstance(AdminContext $context): Response
-    {
-        $instance = $context->getEntity()->getInstance();
-
-        $this->addFlash('info', sprintf('实例 %s 重启指令已发送', $instance->getName()));
-
-        return $this->redirect($this->adminUrlGenerator
-            ->setAction(Action::INDEX)
-            ->setEntityId(null)
-            ->generateUrl());
-    }
-
-    /**
-     * 同步实例状态
-     */
-    #[Route('admin/instance/{entityId}/sync', name: 'sync_instance')]
-    public function syncInstance(AdminContext $context): Response
-    {
-        $instance = $context->getEntity()->getInstance();
-
-        $this->addFlash('info', sprintf('实例 %s 同步指令已发送', $instance->getName()));
-
-        return $this->redirect($this->adminUrlGenerator
-            ->setAction(Action::INDEX)
-            ->setEntityId(null)
-            ->generateUrl());
     }
 }

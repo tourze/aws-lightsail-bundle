@@ -37,7 +37,7 @@ class AdminMenu implements MenuProviderInterface
     public function __invoke(ItemInterface $item): void
     {
         // 创建主菜单项 AWS Lightsail
-        if (!$item->getChild('AWS Lightsail')) {
+        if ($item->getChild('AWS Lightsail') === null) {
             $item->addChild('AWS Lightsail')
                 ->setAttribute('icon', 'fa fa-cloud');
         }

@@ -4,10 +4,8 @@ namespace AwsLightsailBundle\Entity;
 
 use AwsLightsailBundle\Enum\DatabaseEngineEnum;
 use AwsLightsailBundle\Enum\DatabaseStatusEnum;
-use Carbon\Carbon;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 #[ORM\Entity]
@@ -18,75 +16,72 @@ class Database implements \Stringable
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER, options: ['comment' => '主键ID'])]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => '数据库名称'])]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '数据库名称'])]
     private string $name;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => 'AWS ARN'])]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => 'AWS ARN'])]
     private string $arn;
 
-    #[ORM\Column(type: 'string', length: 50, enumType: DatabaseEngineEnum::class, options: ['comment' => '数据库引擎'])]
+    #[ORM\Column(type: Types::STRING, length: 50, enumType: DatabaseEngineEnum::class, options: ['comment' => '数据库引擎'])]
     private DatabaseEngineEnum $engine;
 
-    #[ORM\Column(type: 'string', length: 20, options: ['comment' => '引擎版本'])]
+    #[ORM\Column(type: Types::STRING, length: 20, options: ['comment' => '引擎版本'])]
     private string $engineVersion;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => '主用户名'])]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '主用户名'])]
     private string $masterUsername;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true, options: ['comment' => '主节点终端节点'])]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '主节点终端节点'])]
     private ?string $masterEndpoint = null;
 
-    #[ORM\Column(type: 'integer', nullable: true, options: ['comment' => '主节点端口'])]
+    #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['comment' => '主节点端口'])]
     private ?int $masterPort = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true, options: ['comment' => '从节点终端节点'])]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '从节点终端节点'])]
     private ?string $secondaryEndpoint = null;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => '首选备份窗口'])]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '首选备份窗口'])]
     private string $preferredBackupWindow;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => '首选维护窗口'])]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '首选维护窗口'])]
     private string $preferredMaintenanceWindow;
 
-    #[ORM\Column(type: 'boolean', options: ['comment' => '是否可公开访问'])]
+    #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否可公开访问'])]
     private bool $publiclyAccessible = false;
 
-    #[ORM\Column(type: 'string', length: 50, enumType: DatabaseStatusEnum::class, options: ['comment' => '数据库状态'])]
+    #[ORM\Column(type: Types::STRING, length: 50, enumType: DatabaseStatusEnum::class, options: ['comment' => '数据库状态'])]
     private DatabaseStatusEnum $status;
 
-    #[ORM\Column(type: 'string', length: 50, options: ['comment' => 'AWS 区域'])]
+    #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => 'AWS 区域'])]
     private string $region;
 
-    #[ORM\Column(type: 'boolean', options: ['comment' => '支持代码'])]
+    #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '支持代码'])]
     private bool $supportCode = false;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true, options: ['comment' => 'CA证书标识符'])]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => 'CA证书标识符'])]
     private ?string $caCertificateIdentifier = null;
 
-    #[ORM\Column(type: 'json', nullable: true, options: ['comment' => '待修改的值'])]
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '待修改的值'])]
     private ?array $pendingModifiedValues = null;
 
-    #[ORM\Column(type: 'boolean', options: ['comment' => '是否启用备份保留'])]
+    #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否启用备份保留'])]
     private bool $backupRetentionEnabled = false;
 
-    #[ORM\Column(type: 'json', nullable: true, options: ['comment' => '标签'])]
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '标签'])]
     private ?array $tags = null;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => '套餐ID'])]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '套餐ID'])]
     private string $bundleId;
 
-    #[ORM\Column(type: 'boolean', options: ['comment' => '是否自动升级小版本'])]
+    #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否自动升级小版本'])]
     private bool $autoMinorVersionUpgrade = false;
 
-    #[CreateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, options: ['comment' => '创建时间'])]
-    private \DateTimeInterface $createTime;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '同步时间'])]
-    private ?\DateTimeInterface $syncTime = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '同步时间'])]
+    private ?\DateTimeImmutable $syncTime = null;
 
     #[ORM\ManyToOne(targetEntity: AwsCredential::class)]
     #[ORM\JoinColumn(nullable: false)]
@@ -94,7 +89,6 @@ class Database implements \Stringable
 
     public function __construct()
     {
-        $this->createTime = Carbon::now();
         $this->status = DatabaseStatusEnum::UNKNOWN;
         $this->engine = DatabaseEngineEnum::MYSQL;
     }
@@ -329,13 +323,16 @@ class Database implements \Stringable
         return $this;
     }
 
-    public function getSyncTime(): ?\DateTimeInterface
+    public function getSyncTime(): ?\DateTimeImmutable
     {
         return $this->syncTime;
     }
 
     public function setSyncTime(?\DateTimeInterface $syncTime): self
     {
+        if ($syncTime !== null && !$syncTime instanceof \DateTimeImmutable) {
+            $syncTime = \DateTimeImmutable::createFromInterface($syncTime);
+        }
         $this->syncTime = $syncTime;
         return $this;
     }

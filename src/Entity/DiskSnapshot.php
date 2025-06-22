@@ -2,10 +2,8 @@
 
 namespace AwsLightsailBundle\Entity;
 
-use Carbon\Carbon;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 #[ORM\Entity]
@@ -16,51 +14,48 @@ class DiskSnapshot implements \Stringable
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER, options: ['comment' => '主键ID'])]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => '快照名称'])]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '快照名称'])]
     private string $name;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => 'AWS ARN'])]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => 'AWS ARN'])]
     private string $arn;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => '磁盘名称'])]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '磁盘名称'])]
     private string $diskName;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true, options: ['comment' => '磁盘路径'])]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '磁盘路径'])]
     private ?string $diskPath = null;
 
-    #[ORM\Column(type: 'string', length: 50, options: ['comment' => 'AWS 区域'])]
+    #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => 'AWS 区域'])]
     private string $region;
 
-    #[ORM\Column(type: 'bigint', options: ['comment' => '大小(GB)'])]
+    #[ORM\Column(type: Types::BIGINT, options: ['comment' => '大小(GB)'])]
     private int $sizeInGb;
 
-    #[ORM\Column(type: 'text', nullable: true, options: ['comment' => '状态'])]
+    #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '状态'])]
     private ?string $state = null;
 
-    #[ORM\Column(type: 'text', nullable: true, options: ['comment' => '进度'])]
+    #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '进度'])]
     private ?string $progress = null;
 
-    #[ORM\Column(type: 'json', nullable: true, options: ['comment' => '标签'])]
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '标签'])]
     private ?array $tags = null;
 
-    #[ORM\Column(type: 'boolean', options: ['comment' => '是否来自自动快照'])]
+    #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否来自自动快照'])]
     private bool $isFromAutoSnapshot = false;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true, options: ['comment' => '来源磁盘快照名称'])]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '来源磁盘快照名称'])]
     private ?string $fromDiskSnapshotName = null;
 
-    #[ORM\Column(type: 'string', length: 50, nullable: true, options: ['comment' => '来源区域'])]
+    #[ORM\Column(type: Types::STRING, length: 50, nullable: true, options: ['comment' => '来源区域'])]
     private ?string $fromRegion = null;
 
-    #[CreateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, options: ['comment' => '创建时间'])]
-    private \DateTimeInterface $createTime;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '同步时间'])]
-    private ?\DateTimeInterface $syncTime = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '同步时间'])]
+    private ?\DateTimeImmutable $syncTime = null;
 
     #[ORM\ManyToOne(targetEntity: AwsCredential::class)]
     #[ORM\JoinColumn(nullable: false)]
@@ -69,10 +64,6 @@ class DiskSnapshot implements \Stringable
     #[ORM\ManyToOne(targetEntity: Disk::class)]
     private ?Disk $disk = null;
 
-    public function __construct()
-    {
-        $this->createTime = Carbon::now();
-    }
 
     public function __toString(): string
     {
@@ -216,13 +207,16 @@ class DiskSnapshot implements \Stringable
         return $this;
     }
 
-    public function getSyncTime(): ?\DateTimeInterface
+    public function getSyncTime(): ?\DateTimeImmutable
     {
         return $this->syncTime;
     }
 
     public function setSyncTime(?\DateTimeInterface $syncTime): self
     {
+        if ($syncTime !== null && !$syncTime instanceof \DateTimeImmutable) {
+            $syncTime = \DateTimeImmutable::createFromInterface($syncTime);
+        }
         $this->syncTime = $syncTime;
         return $this;
     }

@@ -16,25 +16,25 @@ class DomainEntry implements \Stringable
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER, options: ['comment' => '主键ID'])]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => '记录名称'])]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '记录名称'])]
     private string $name;
 
-    #[ORM\Column(type: 'string', length: 50, enumType: DnsRecordTypeEnum::class, options: ['comment' => '记录类型'])]
+    #[ORM\Column(type: Types::STRING, length: 50, enumType: DnsRecordTypeEnum::class, options: ['comment' => '记录类型'])]
     private DnsRecordTypeEnum $type;
 
-    #[ORM\Column(type: 'text', options: ['comment' => '记录值'])]
+    #[ORM\Column(type: Types::TEXT, options: ['comment' => '记录值'])]
     private string $value;
 
-    #[ORM\Column(type: 'integer', nullable: true, options: ['comment' => 'TTL'])]
+    #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['comment' => 'TTL'])]
     private ?int $ttl = null;
 
-    #[ORM\Column(type: 'boolean', options: ['comment' => '是否为别名'])]
+    #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否为别名'])]
     private bool $isAlias = false;
 
-    #[ORM\Column(type: 'integer', nullable: true, options: ['comment' => '优先级'])]
+    #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['comment' => '优先级'])]
     private ?int $priority = null;
 
     #[ORM\ManyToOne(targetEntity: Domain::class, inversedBy: 'entries')]
@@ -42,8 +42,8 @@ class DomainEntry implements \Stringable
     private Domain $domain;
 
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '同步时间'])]
-    private ?\DateTimeInterface $syncTime = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '同步时间'])]
+    private ?\DateTimeImmutable $syncTime = null;
 
 
     public function __toString(): string
@@ -133,13 +133,16 @@ class DomainEntry implements \Stringable
         return $this;
     }
 
-    public function getSyncTime(): ?\DateTimeInterface
+    public function getSyncTime(): ?\DateTimeImmutable
     {
         return $this->syncTime;
     }
 
     public function setSyncTime(?\DateTimeInterface $syncTime): self
     {
+        if ($syncTime !== null && !$syncTime instanceof \DateTimeImmutable) {
+            $syncTime = \DateTimeImmutable::createFromInterface($syncTime);
+        }
         $this->syncTime = $syncTime;
         return $this;
     }

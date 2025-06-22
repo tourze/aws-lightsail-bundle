@@ -24,7 +24,8 @@ final class KeyPairTest extends TestCase
     {
         $keyPair = new KeyPair();
         
-        $this->assertInstanceOf(\DateTimeInterface::class, $keyPair->getCreateTime());
+        // TimestampableAware trait sets timestamps via Doctrine event listeners, not in constructor
+        $this->assertNull($keyPair->getCreateTime());
         $this->assertNull($keyPair->getSyncTime());
         $this->assertNull($keyPair->getUpdateTime());
     }
@@ -207,7 +208,8 @@ final class KeyPairTest extends TestCase
         $result = $this->keyPair->setAwsCreatedAt($awsCreatedAt);
         
         $this->assertSame($this->keyPair, $result);
-        $this->assertSame($awsCreatedAt, $this->keyPair->getAwsCreatedAt());
+        $this->assertInstanceOf(\DateTimeImmutable::class, $this->keyPair->getAwsCreatedAt());
+        $this->assertEquals($awsCreatedAt->format('Y-m-d H:i:s'), $this->keyPair->getAwsCreatedAt()->format('Y-m-d H:i:s'));
     }
 
     public function testSetAwsCreatedAt_withNull_worksCorrectly(): void
@@ -225,7 +227,8 @@ final class KeyPairTest extends TestCase
         $result = $this->keyPair->setSyncTime($syncTime);
         
         $this->assertSame($this->keyPair, $result);
-        $this->assertSame($syncTime, $this->keyPair->getSyncTime());
+        $this->assertInstanceOf(\DateTimeImmutable::class, $this->keyPair->getSyncTime());
+        $this->assertEquals($syncTime->format('Y-m-d H:i:s'), $this->keyPair->getSyncTime()->format('Y-m-d H:i:s'));
     }
 
     public function testSetSyncTime_withNull_worksCorrectly(): void
@@ -309,7 +312,8 @@ final class KeyPairTest extends TestCase
         $this->assertSame($tags, $this->keyPair->getTags());
         $this->assertSame($this->credential, $this->keyPair->getCredential());
         $this->assertSame("KeyPair {$name} ({$region})", (string) $this->keyPair);
-        $this->assertInstanceOf(\DateTimeInterface::class, $this->keyPair->getCreateTime());
+        // TimestampableAware trait sets timestamps via Doctrine event listeners
+        $this->assertNull($this->keyPair->getCreateTime());
     }
 
     public function testChainedMethodCalls_returnsSameInstance(): void
@@ -362,8 +366,8 @@ final class KeyPairTest extends TestCase
 
     public function testGetCreateTime_isSetAutomatically(): void
     {
-        $this->assertInstanceOf(\DateTimeInterface::class, $this->keyPair->getCreateTime());
-        $this->assertLessThanOrEqual(time(), $this->keyPair->getCreateTime()->getTimestamp());
+        // TimestampableAware trait sets timestamps via Doctrine event listeners, not in constructor
+        $this->assertNull($this->keyPair->getCreateTime());
     }
 
     public function testEncryptionMethods_workCorrectly(): void

@@ -3,10 +3,8 @@
 namespace AwsLightsailBundle\Entity;
 
 use AwsLightsailBundle\Enum\DatabaseEngineEnum;
-use Carbon\Carbon;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 #[ORM\Entity]
@@ -17,45 +15,42 @@ class DatabaseSnapshot implements \Stringable
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER, options: ['comment' => '主键ID'])]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => '快照名称'])]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '快照名称'])]
     private string $name;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => 'AWS ARN'])]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => 'AWS ARN'])]
     private string $arn;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => '数据库名称'])]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '数据库名称'])]
     private string $databaseName;
 
-    #[ORM\Column(type: 'string', length: 50, enumType: DatabaseEngineEnum::class, options: ['comment' => '数据库引擎'])]
+    #[ORM\Column(type: Types::STRING, length: 50, enumType: DatabaseEngineEnum::class, options: ['comment' => '数据库引擎'])]
     private DatabaseEngineEnum $engine;
 
-    #[ORM\Column(type: 'string', length: 20, options: ['comment' => '引擎版本'])]
+    #[ORM\Column(type: Types::STRING, length: 20, options: ['comment' => '引擎版本'])]
     private string $engineVersion;
 
-    #[ORM\Column(type: 'bigint', nullable: true, options: ['comment' => '大小(GB)'])]
+    #[ORM\Column(type: Types::BIGINT, nullable: true, options: ['comment' => '大小(GB)'])]
     private ?int $sizeInGb = null;
 
-    #[ORM\Column(type: 'string', length: 50, options: ['comment' => 'AWS 区域'])]
+    #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => 'AWS 区域'])]
     private string $region;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true, options: ['comment' => '状态'])]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '状态'])]
     private ?string $state = null;
 
-    #[ORM\Column(type: 'boolean', options: ['comment' => '是否来自自动快照'])]
+    #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否来自自动快照'])]
     private bool $isFromAutoSnapshot = false;
 
-    #[ORM\Column(type: 'json', nullable: true, options: ['comment' => '标签'])]
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '标签'])]
     private ?array $tags = null;
 
-    #[CreateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, options: ['comment' => '创建时间'])]
-    private \DateTimeInterface $createTime;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '同步时间'])]
-    private ?\DateTimeInterface $syncTime = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '同步时间'])]
+    private ?\DateTimeImmutable $syncTime = null;
 
     #[ORM\ManyToOne(targetEntity: AwsCredential::class)]
     #[ORM\JoinColumn(nullable: false)]
@@ -66,7 +61,6 @@ class DatabaseSnapshot implements \Stringable
 
     public function __construct()
     {
-        $this->createTime = Carbon::now();
         $this->engine = DatabaseEngineEnum::MYSQL;
     }
 
@@ -190,13 +184,16 @@ class DatabaseSnapshot implements \Stringable
         return $this;
     }
 
-    public function getSyncTime(): ?\DateTimeInterface
+    public function getSyncTime(): ?\DateTimeImmutable
     {
         return $this->syncTime;
     }
 
     public function setSyncTime(?\DateTimeInterface $syncTime): self
     {
+        if ($syncTime !== null && !$syncTime instanceof \DateTimeImmutable) {
+            $syncTime = \DateTimeImmutable::createFromInterface($syncTime);
+        }
         $this->syncTime = $syncTime;
         return $this;
     }

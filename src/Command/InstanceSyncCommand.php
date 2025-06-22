@@ -16,11 +16,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
-    name: 'aws:lightsail:instance:sync',
+    name: self::NAME,
     description: '同步 AWS Lightsail 实例列表',
 )]
 class InstanceSyncCommand extends Command
 {
+    public const NAME = 'aws:lightsail:instance:sync';
     public function __construct(
         private readonly AwsCredentialRepository $credentialRepository,
         private readonly InstanceSyncService $instanceSyncService,
@@ -47,9 +48,9 @@ class InstanceSyncCommand extends Command
         $specifiedRegion = $input->getOption('region');
 
         // 获取 AWS 凭证
-        if ($credentialId) {
+        if ($credentialId !== null && $credentialId !== '') {
             $credentials = [$this->credentialRepository->find($credentialId)];
-            if (!$credentials[0]) {
+            if ($credentials[0] === null) {
                 $io->error('未找到指定的 AWS 凭证');
                 return Command::FAILURE;
             }
@@ -63,7 +64,7 @@ class InstanceSyncCommand extends Command
 
         // 确定要同步的区域列表
         $regions = [];
-        if ($specifiedRegion) {
+        if ($specifiedRegion !== null && $specifiedRegion !== '') {
             $regions = [$specifiedRegion];
         } else {
             // 遍历所有区域（排除 NONE）

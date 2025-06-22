@@ -4,12 +4,10 @@ namespace AwsLightsailBundle\Controller\Admin;
 
 use AwsLightsailBundle\Entity\AwsCredential;
 use AwsLightsailBundle\Entity\KeyPair;
-use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
-use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
@@ -21,20 +19,12 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\BooleanFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\TextFilter;
-use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
 
 /**
  * Lightsail 密钥对管理控制器
  */
 class KeyPairCrudController extends AbstractCrudController
 {
-    public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly AdminUrlGenerator $adminUrlGenerator
-    ) {
-    }
 
     public static function getEntityFqcn(): string
     {
@@ -144,46 +134,5 @@ class KeyPairCrudController extends AbstractCrudController
             ->add(TextFilter::new('region', '区域'))
             ->add(BooleanFilter::new('isEncrypted', '是否加密'))
             ->add(EntityFilter::new('credential', 'AWS 凭证'));
-    }
-    
-    /**
-     * 同步密钥对状态
-     */
-    #[Route('admin/key-pair/{entityId}/sync', name: 'sync_key_pair')]
-    public function syncKeyPair(AdminContext $context): Response
-    {
-        $keyPair = $context->getEntity()->getInstance();
-        
-        $this->addFlash('info', sprintf('密钥对 %s 同步指令已发送', $keyPair->getName()));
-        
-        return $this->redirect($this->adminUrlGenerator
-            ->setAction(Action::INDEX)
-            ->setEntityId(null)
-            ->generateUrl());
-    }
-    
-    /**
-     * 下载密钥对私钥
-     */
-    #[Route('admin/key-pair/{entityId}/download', name: 'download_key_pair')]
-    public function downloadKeyPair(AdminContext $context): Response
-    {
-        $keyPair = $context->getEntity()->getInstance();
-        $privateKey = $keyPair->getPrivateKey();
-        
-        if (!$privateKey) {
-            $this->addFlash('danger', sprintf('密钥对 %s 没有可用的私钥', $keyPair->getName()));
-            
-            return $this->redirect($this->adminUrlGenerator
-                ->setAction(Action::INDEX)
-                ->setEntityId(null)
-                ->generateUrl());
-        }
-        
-        $response = new Response($privateKey);
-        $response->headers->set('Content-Type', 'application/x-pem-file');
-        $response->headers->set('Content-Disposition', 'attachment; filename="' . $keyPair->getName() . '.pem"');
-        
-        return $response;
     }
 } 

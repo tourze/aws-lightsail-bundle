@@ -5,12 +5,10 @@ namespace AwsLightsailBundle\Controller\Admin;
 use AwsLightsailBundle\Entity\AwsCredential;
 use AwsLightsailBundle\Entity\Certificate;
 use AwsLightsailBundle\Enum\CertificateStatusEnum;
-use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
-use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
@@ -23,21 +21,13 @@ use EasyCorp\Bundle\EasyAdminBundle\Filter\BooleanFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\TextFilter;
-use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
 
 /**
  * Lightsail 证书管理控制器
  */
 class CertificateCrudController extends AbstractCrudController
 {
-    public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly AdminUrlGenerator $adminUrlGenerator
-    ) {
-    }
 
     public static function getEntityFqcn(): string
     {
@@ -150,16 +140,22 @@ class CertificateCrudController extends AbstractCrudController
     public function configureActions(Actions $actions): Actions
     {
         $syncAction = Action::new('syncCertificate', '同步')
-            ->linkToCrudAction('syncCertificate')
+            ->linkToRoute('sync_certificate', function (Certificate $certificate) {
+                return ['entityId' => $certificate->getId()];
+            })
             ->setIcon('fa fa-refresh');
             
         $validateAction = Action::new('validateCertificate', '验证证书')
-            ->linkToCrudAction('validateCertificate')
+            ->linkToRoute('validate_certificate', function (Certificate $certificate) {
+                return ['entityId' => $certificate->getId()];
+            })
             ->setIcon('fa fa-check')
             ->setCssClass('text-success');
             
         $exportAction = Action::new('exportCertificate', '导出证书')
-            ->linkToCrudAction('exportCertificate')
+            ->linkToRoute('export_certificate', function (Certificate $certificate) {
+                return ['entityId' => $certificate->getId()];
+            })
             ->setIcon('fa fa-download')
             ->setCssClass('text-primary');
             
@@ -197,53 +193,5 @@ class CertificateCrudController extends AbstractCrudController
             ->add(BooleanFilter::new('isManaged', '由 AWS 管理'))
             ->add(BooleanFilter::new('inUse', '正在使用'))
             ->add(EntityFilter::new('credential', 'AWS 凭证'));
-    }
-    
-    /**
-     * 同步证书状态
-     */
-    #[Route('admin/certificate/{entityId}/sync', name: 'sync_certificate')]
-    public function syncCertificate(AdminContext $context): Response
-    {
-        $certificate = $context->getEntity()->getInstance();
-        
-        $this->addFlash('info', sprintf('证书 %s 同步指令已发送', $certificate->getName()));
-        
-        return $this->redirect($this->adminUrlGenerator
-            ->setAction(Action::INDEX)
-            ->setEntityId(null)
-            ->generateUrl());
-    }
-    
-    /**
-     * 验证证书
-     */
-    #[Route('admin/certificate/{entityId}/validate', name: 'validate_certificate')]
-    public function validateCertificate(AdminContext $context): Response
-    {
-        $certificate = $context->getEntity()->getInstance();
-        
-        $this->addFlash('warning', sprintf('证书 %s 验证指令已发送', $certificate->getName()));
-        
-        return $this->redirect($this->adminUrlGenerator
-            ->setAction(Action::INDEX)
-            ->setEntityId(null)
-            ->generateUrl());
-    }
-    
-    /**
-     * 导出证书
-     */
-    #[Route('admin/certificate/{entityId}/export', name: 'export_certificate')]
-    public function exportCertificate(AdminContext $context): Response
-    {
-        $certificate = $context->getEntity()->getInstance();
-        
-        $this->addFlash('info', sprintf('证书 %s 导出指令已发送', $certificate->getName()));
-        
-        return $this->redirect($this->adminUrlGenerator
-            ->setAction(Action::INDEX)
-            ->setEntityId(null)
-            ->generateUrl());
     }
 } 

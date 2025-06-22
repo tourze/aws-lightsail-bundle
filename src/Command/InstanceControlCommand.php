@@ -17,11 +17,12 @@ use Symfony\Component\Console\Question\ChoiceQuestion;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
-    name: 'aws:lightsail:instance:control',
+    name: self::NAME,
     description: '控制 AWS Lightsail 实例（启动/停止/重启）',
 )]
 class InstanceControlCommand extends Command
 {
+    public const NAME = 'aws:lightsail:instance:control';
     public function __construct(
         private readonly InstanceRepository $instanceRepository,
         private readonly AwsCredentialRepository $credentialRepository,
@@ -63,9 +64,9 @@ class InstanceControlCommand extends Command
         $instanceName = $input->getArgument('instance-name');
         $helper = $this->getHelper('question');
 
-        if (!$instanceName) {
+        if ($instanceName === null || $instanceName === '') {
             $instance = $this->selectInstance($input, $output, $io, $helper);
-            if (!$instance) {
+            if ($instance === null) {
                 return Command::FAILURE;
             }
             $instanceName = $instance->getName();
@@ -74,9 +75,9 @@ class InstanceControlCommand extends Command
         } else {
             // 使用名称查找实例
             $credentialId = $input->getOption('credential-id');
-            if ($credentialId) {
+            if ($credentialId !== null && $credentialId !== '') {
                 $credential = $this->credentialRepository->find($credentialId);
-                if (!$credential) {
+                if ($credential === null) {
                     $io->error('未找到指定的 AWS 凭证');
                     return Command::FAILURE;
                 }
@@ -90,7 +91,7 @@ class InstanceControlCommand extends Command
                     'name' => $instanceName,
                 ]);
 
-                if ($instance) {
+                if ($instance !== null) {
                     $credential = $instance->getCredential();
                 } else {
                     // 尝试查找所有凭证
@@ -109,7 +110,7 @@ class InstanceControlCommand extends Command
                         }
                     }
 
-                    if (!$credential) {
+                    if ($credential === null) {
                         $credential = $credentials[0];
                     }
 
@@ -117,12 +118,12 @@ class InstanceControlCommand extends Command
                 }
             }
 
-            $region = $input->getOption('region') ?? ($instance ? $instance->getRegion() : AmazonRegion::US_EAST_1->value);
+            $region = $input->getOption('region') ?? ($instance !== null ? $instance->getRegion() : AmazonRegion::US_EAST_1->value);
         }
 
         // 确认操作
         $force = $input->getOption('force');
-        if (!$force) {
+        if ($force === false) {
             if (!$io->confirm("确认要{$operationName}实例 {$instanceName}?", false)) {
                 $io->warning('操作已取消');
                 return Command::SUCCESS;
@@ -170,14 +171,14 @@ class InstanceControlCommand extends Command
     private function selectInstance(InputInterface $input, OutputInterface $output, SymfonyStyle $io, $helper): ?Instance
     {
         $credentialId = $input->getOption('credential-id');
-        if ($credentialId) {
+        if ($credentialId !== null && $credentialId !== '') {
             $credential = $this->credentialRepository->find($credentialId);
-            if (!$credential) {
+            if ($credential === null) {
                 $io->error('未找到指定的 AWS 凭证');
                 return null;
             }
 
-            $instances = $this->instanceRepository->findByCredential($credential);
+            $instances = $this->instanceRepository->findBy(['credential' => $credential]);
         } else {
             $instances = $this->instanceRepository->findAll();
         }

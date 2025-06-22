@@ -5,7 +5,7 @@ namespace AwsLightsailBundle\Service;
 use AwsLightsailBundle\Entity\AwsCredential;
 use AwsLightsailBundle\Entity\KeyPair;
 use AwsLightsailBundle\Repository\KeyPairRepository;
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 
@@ -46,7 +46,7 @@ class KeyPairSyncService
         $keyPair = $this->keyPairRepository->findOneByNameAndCredentialAndRegion($keyPairName, $credential, $region);
 
         // 如果不存在则创建新密钥对
-        if (!$keyPair) {
+        if ($keyPair === null) {
             $keyPair = new KeyPair();
             $keyPair->setName($keyPairName);
             $keyPair->setCredential($credential);
@@ -89,13 +89,13 @@ class KeyPairSyncService
             try {
                 if (is_numeric($data['createdAt'])) {
                     // Unix timestamp
-                    $keyPair->setAwsCreatedAt(Carbon::createFromTimestamp('@' . $data['createdAt']));
+                    $keyPair->setAwsCreatedAt(CarbonImmutable::createFromTimestamp('@' . $data['createdAt']));
                 } elseif ($data['createdAt'] instanceof \DateTime) {
-                    $keyPair->setAwsCreatedAt(Carbon::parse($data['createdAt']));
+                    $keyPair->setAwsCreatedAt(CarbonImmutable::parse($data['createdAt']));
                 } elseif ($data['createdAt'] instanceof \DateTimeImmutable) {
                     $keyPair->setAwsCreatedAt($data['createdAt']);
                 } elseif (is_string($data['createdAt'])) {
-                    $keyPair->setAwsCreatedAt(Carbon::parse($data['createdAt']));
+                    $keyPair->setAwsCreatedAt(CarbonImmutable::parse($data['createdAt']));
                 }
             } catch (\Throwable $e) {
                 $this->logger->warning('无法解析 AWS 创建时间', [
@@ -106,7 +106,7 @@ class KeyPairSyncService
         }
 
         // 设置同步时间
-        $keyPair->setSyncTime(Carbon::now());
+        $keyPair->setSyncTime(CarbonImmutable::now());
 
         // 保存密钥对到持久化上下文
         $this->entityManager->persist($keyPair);
@@ -150,7 +150,7 @@ class KeyPairSyncService
                 // 不立即刷新，等批量处理完成后统一刷新
                 $keyPair = $this->updateKeyPairFromData($credential, $keyPairData, false);
 
-                if ($existingId) {
+                if ($existingId !== null) {
                     $stats['updated']++;
                 } else {
                     $stats['new']++;

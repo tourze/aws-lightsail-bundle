@@ -5,12 +5,10 @@ namespace AwsLightsailBundle\Controller\Admin;
 use AwsLightsailBundle\Entity\AwsCredential;
 use AwsLightsailBundle\Entity\Distribution;
 use AwsLightsailBundle\Enum\DistributionStatusEnum;
-use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
-use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
@@ -23,21 +21,13 @@ use EasyCorp\Bundle\EasyAdminBundle\Filter\BooleanFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\TextFilter;
-use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
 
 /**
  * Lightsail CDN 分发管理控制器
  */
 class DistributionCrudController extends AbstractCrudController
 {
-    public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly AdminUrlGenerator $adminUrlGenerator
-    ) {
-    }
 
     public static function getEntityFqcn(): string
     {
@@ -196,58 +186,5 @@ class DistributionCrudController extends AbstractCrudController
             ->add(ChoiceFilter::new('status', '状态')->setChoices($statusChoices))
             ->add(TextFilter::new('certificateName', '证书名称'))
             ->add(EntityFilter::new('credential', 'AWS 凭证'));
-    }
-    
-    /**
-     * 同步 CDN 分发状态
-     */
-    #[Route('admin/distribution/{entityId}/sync', name: 'sync_distribution')]
-    public function syncDistribution(AdminContext $context): Response
-    {
-        $distribution = $context->getEntity()->getInstance();
-        
-        $this->addFlash('info', sprintf('CDN分发 %s 同步指令已发送', $distribution->getName()));
-        
-        return $this->redirect($this->adminUrlGenerator
-            ->setAction(Action::INDEX)
-            ->setEntityId(null)
-            ->generateUrl());
-    }
-    
-    /**
-     * 清除 CDN 分发缓存
-     */
-    #[Route('admin/distribution/{entityId}/reset-cache', name: 'reset_distribution_cache')]
-    public function resetCache(AdminContext $context): Response
-    {
-        $distribution = $context->getEntity()->getInstance();
-        
-        $this->addFlash('warning', sprintf('CDN分发 %s 缓存清除指令已发送', $distribution->getName()));
-        
-        return $this->redirect($this->adminUrlGenerator
-            ->setAction(Action::INDEX)
-            ->setEntityId(null)
-            ->generateUrl());
-    }
-    
-    /**
-     * 切换 CDN 分发启用状态
-     */
-    #[Route('admin/distribution/{entityId}/toggle-enable', name: 'toggle_distribution_enable')]
-    public function toggleEnable(AdminContext $context): Response
-    {
-        $distribution = $context->getEntity()->getInstance();
-        $currentState = $distribution->isEnabled();
-        
-        $distribution->setIsEnabled(!$currentState);
-        $this->entityManager->flush();
-        
-        $newState = $distribution->isEnabled() ? '启用' : '禁用';
-        $this->addFlash('success', sprintf('CDN分发 %s 已%s', $distribution->getName(), $newState));
-        
-        return $this->redirect($this->adminUrlGenerator
-            ->setAction(Action::INDEX)
-            ->setEntityId(null)
-            ->generateUrl());
     }
 }

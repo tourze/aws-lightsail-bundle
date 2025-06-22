@@ -161,7 +161,6 @@ final class OperationStatusEnumTest extends TestCase
     {
         foreach (OperationStatusEnum::cases() as $enum) {
             $label = $enum->getLabel();
-            $this->assertIsString($label);
             $this->assertNotEmpty($label);
         }
     }

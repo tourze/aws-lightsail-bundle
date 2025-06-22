@@ -3,11 +3,8 @@
 namespace AwsLightsailBundle\Entity;
 
 use AwsLightsailBundle\Repository\AwsCredentialRepository;
-use Carbon\Carbon;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
-use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 #[ORM\Entity(repositoryClass: AwsCredentialRepository::class)]
@@ -17,33 +14,22 @@ class AwsCredential implements \Stringable
     use TimestampableAware;
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER, options: ['comment' => '主键ID'])]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => '凭证名称'])]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '凭证名称'])]
     private string $name;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => 'AWS Access Key ID'])]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => 'AWS Access Key ID'])]
     private string $accessKeyId;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => 'AWS Secret Access Key'])]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => 'AWS Secret Access Key'])]
     private string $secretAccessKey;
 
-    #[ORM\Column(type: 'boolean', options: ['comment' => '是否为默认凭证'])]
+    #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否为默认凭证'])]
     private bool $isDefault = false;
 
-    #[CreateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, options: ['comment' => '创建时间'])]
-    private \DateTimeInterface $createdAt;
 
-    #[UpdateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]
-    private ?\DateTimeInterface $updatedAt = null;
-
-    public function __construct()
-    {
-        $this->createdAt = Carbon::now();
-    }
 
     public function __toString(): string
     {
@@ -99,19 +85,4 @@ class AwsCredential implements \Stringable
         return $this;
     }
 
-    public function getCreatedAt(): \DateTimeInterface
-    {
-        return $this->createdAt;
-    }
-
-    public function getUpdatedAt(): ?\DateTimeInterface
-    {
-        return $this->updatedAt;
-    }
-
-    public function setUpdatedAt(?\DateTimeInterface $updatedAt): self
-    {
-        $this->updatedAt = $updatedAt;
-        return $this;
-    }
 }

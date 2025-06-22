@@ -18,11 +18,12 @@ use Symfony\Component\Console\Question\ChoiceQuestion;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
-    name: 'aws:lightsail:instance:create',
+    name: self::NAME,
     description: '创建 AWS Lightsail 实例',
 )]
 class InstanceCreateCommand extends Command
 {
+    public const NAME = 'aws:lightsail:instance:create';
     public function __construct(
         private readonly AwsCredentialRepository $credentialRepository,
     ) {
@@ -53,7 +54,7 @@ class InstanceCreateCommand extends Command
 
         // 获取/选择凭证
         $credential = $this->getCredential($input, $output, $io, $helper);
-        if (!$credential) {
+        if ($credential === null) {
             return Command::FAILURE;
         }
 
@@ -73,7 +74,7 @@ class InstanceCreateCommand extends Command
 
         // 解析标签
         $tags = [];
-        if ($tagsOption = $input->getOption('tags')) {
+        if (($tagsOption = $input->getOption('tags')) !== null && $tagsOption !== '') {
             $tagPairs = explode(',', $tagsOption);
             foreach ($tagPairs as $pair) {
                 [$key, $value] = explode('=', $pair, 2);
@@ -96,8 +97,8 @@ class InstanceCreateCommand extends Command
                 ['套餐', $bundle],
                 ['可用区', $availabilityZone ?: '默认'],
                 ['密钥对', $keyPairName ?: '无'],
-                ['标签', $tags ? json_encode($tags) : '无'],
-                ['用户数据', $userData ? '已设置' : '无'],
+                ['标签', !empty($tags) ? json_encode($tags) : '无'],
+                ['用户数据', ($userData !== null && $userData !== '') ? '已设置' : '无'],
             ]
         );
 
@@ -126,11 +127,11 @@ class InstanceCreateCommand extends Command
                 'tags' => $tags,
             ];
 
-            if ($keyPairName) {
+            if ($keyPairName !== null && $keyPairName !== '') {
                 $params['keyPairName'] = $keyPairName;
             }
 
-            if ($userData) {
+            if ($userData !== null && $userData !== '') {
                 $params['userData'] = $userData;
             }
 
@@ -150,9 +151,9 @@ class InstanceCreateCommand extends Command
     private function getCredential(InputInterface $input, OutputInterface $output, SymfonyStyle $io, $helper): ?AwsCredential
     {
         $credentialId = $input->getOption('credential-id');
-        if ($credentialId) {
+        if ($credentialId !== null && $credentialId !== '') {
             $credential = $this->credentialRepository->find($credentialId);
-            if (!$credential) {
+            if ($credential === null) {
                 $io->error('未找到指定的 AWS 凭证 (ID: ' . $credentialId . ')');
                 return null;
             }
@@ -173,7 +174,7 @@ class InstanceCreateCommand extends Command
 
         // 如果有默认凭证，使用默认凭证
         $defaultCredential = $this->credentialRepository->findDefault();
-        if ($defaultCredential) {
+        if ($defaultCredential !== null) {
             $io->note('使用默认凭证: ' . $defaultCredential->getName());
             return $defaultCredential;
         }
@@ -195,7 +196,7 @@ class InstanceCreateCommand extends Command
     private function getRegion(InputInterface $input, OutputInterface $output, AwsCredential $credential, $helper): string
     {
         $region = $input->getOption('region');
-        if ($region) {
+        if ($region !== null && $region !== '') {
             return $region;
         }
 
@@ -218,7 +219,7 @@ class InstanceCreateCommand extends Command
     private function getBlueprint(InputInterface $input, OutputInterface $output, $helper): string
     {
         $blueprint = $input->getOption('blueprint');
-        if ($blueprint) {
+        if ($blueprint !== null && $blueprint !== '') {
             return $blueprint;
         }
 
@@ -239,7 +240,7 @@ class InstanceCreateCommand extends Command
     private function getBundle(InputInterface $input, OutputInterface $output, $helper): string
     {
         $bundle = $input->getOption('bundle');
-        if ($bundle) {
+        if ($bundle !== null && $bundle !== '') {
             return $bundle;
         }
 

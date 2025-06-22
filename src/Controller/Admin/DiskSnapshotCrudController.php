@@ -5,12 +5,10 @@ namespace AwsLightsailBundle\Controller\Admin;
 use AwsLightsailBundle\Entity\AwsCredential;
 use AwsLightsailBundle\Entity\Disk;
 use AwsLightsailBundle\Entity\DiskSnapshot;
-use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
-use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
@@ -22,21 +20,12 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\BooleanFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\TextFilter;
-use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
 
 /**
  * Lightsail 磁盘快照管理控制器
  */
 class DiskSnapshotCrudController extends AbstractCrudController
 {
-    public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly AdminUrlGenerator $adminUrlGenerator
-    ) {
-    }
-
     public static function getEntityFqcn(): string
     {
         return DiskSnapshot::class;
@@ -177,67 +166,4 @@ class DiskSnapshotCrudController extends AbstractCrudController
             ->add(EntityFilter::new('credential', 'AWS 凭证'));
     }
     
-    /**
-     * 同步磁盘快照状态
-     */
-    #[Route('admin/disk-snapshot/{entityId}/sync', name: 'sync_disk_snapshot')]
-    public function syncDiskSnapshot(AdminContext $context): Response
-    {
-        $snapshot = $context->getEntity()->getInstance();
-        
-        $this->addFlash('info', sprintf('磁盘快照 %s 同步指令已发送', $snapshot->getName()));
-        
-        return $this->redirect($this->adminUrlGenerator
-            ->setAction(Action::INDEX)
-            ->setEntityId(null)
-            ->generateUrl());
-    }
-    
-    /**
-     * 从快照还原磁盘
-     */
-    #[Route('admin/disk-snapshot/{entityId}/restore', name: 'restore_disk_snapshot')]
-    public function restoreDiskSnapshot(AdminContext $context): Response
-    {
-        $snapshot = $context->getEntity()->getInstance();
-        
-        $this->addFlash('warning', sprintf('从磁盘快照 %s 还原指令已发送', $snapshot->getName()));
-        
-        return $this->redirect($this->adminUrlGenerator
-            ->setAction(Action::INDEX)
-            ->setEntityId(null)
-            ->generateUrl());
-    }
-    
-    /**
-     * 导出磁盘快照
-     */
-    #[Route('admin/disk-snapshot/{entityId}/export', name: 'export_disk_snapshot')]
-    public function exportDiskSnapshot(AdminContext $context): Response
-    {
-        $snapshot = $context->getEntity()->getInstance();
-        
-        $this->addFlash('success', sprintf('磁盘快照 %s 导出指令已发送', $snapshot->getName()));
-        
-        return $this->redirect($this->adminUrlGenerator
-            ->setAction(Action::INDEX)
-            ->setEntityId(null)
-            ->generateUrl());
-    }
-    
-    /**
-     * 复制磁盘快照到其他区域
-     */
-    #[Route('admin/disk-snapshot/{entityId}/copy', name: 'copy_disk_snapshot')]
-    public function copyDiskSnapshot(AdminContext $context): Response
-    {
-        $snapshot = $context->getEntity()->getInstance();
-        
-        $this->addFlash('info', sprintf('磁盘快照 %s 复制指令已发送', $snapshot->getName()));
-        
-        return $this->redirect($this->adminUrlGenerator
-            ->setAction(Action::INDEX)
-            ->setEntityId(null)
-            ->generateUrl());
-    }
 } 

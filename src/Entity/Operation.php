@@ -5,10 +5,8 @@ namespace AwsLightsailBundle\Entity;
 use AwsLightsailBundle\Enum\OperationStatusEnum;
 use AwsLightsailBundle\Enum\OperationTypeEnum;
 use AwsLightsailBundle\Repository\OperationRepository;
-use Carbon\Carbon;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 #[ORM\Entity(repositoryClass: OperationRepository::class)]
@@ -19,50 +17,46 @@ class Operation implements \Stringable
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER, options: ['comment' => '主键ID'])]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => '操作ID'])]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '操作ID'])]
     private string $operationId;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true, options: ['comment' => '资源名称'])]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '资源名称'])]
     private ?string $resourceName = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true, options: ['comment' => '资源类型'])]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '资源类型'])]
     private ?string $resourceType = null;
 
-    #[ORM\Column(type: 'string', length: 100, enumType: OperationTypeEnum::class, options: ['comment' => '操作类型'])]
+    #[ORM\Column(type: Types::STRING, length: 100, enumType: OperationTypeEnum::class, options: ['comment' => '操作类型'])]
     private OperationTypeEnum $type;
 
-    #[ORM\Column(type: 'string', length: 50, enumType: OperationStatusEnum::class, options: ['comment' => '操作状态'])]
+    #[ORM\Column(type: Types::STRING, length: 50, enumType: OperationStatusEnum::class, options: ['comment' => '操作状态'])]
     private OperationStatusEnum $status;
 
-    #[ORM\Column(type: 'string', length: 50, options: ['comment' => 'AWS 区域'])]
+    #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => 'AWS 区域'])]
     private string $region;
 
-    #[ORM\Column(type: 'text', nullable: true, options: ['comment' => '错误代码'])]
+    #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '错误代码'])]
     private ?string $errorCode = null;
 
-    #[ORM\Column(type: 'text', nullable: true, options: ['comment' => '错误详情'])]
+    #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '错误详情'])]
     private ?string $errorDetails = null;
 
-    #[CreateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, options: ['comment' => '创建时间'])]
-    private \DateTimeInterface $createTime;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '完成时间'])]
-    private ?\DateTimeInterface $completeTime = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '完成时间'])]
+    private ?\DateTimeImmutable $completeTime = null;
 
     #[ORM\ManyToOne(targetEntity: AwsCredential::class)]
     #[ORM\JoinColumn(nullable: false)]
     private AwsCredential $credential;
 
-    #[ORM\Column(type: 'json', nullable: true, options: ['comment' => '元数据'])]
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '元数据'])]
     private ?array $metadata = null;
 
     public function __construct()
     {
-        $this->createTime = Carbon::now();
         $this->status = OperationStatusEnum::UNKNOWN;
         $this->type = OperationTypeEnum::OTHER;
     }
@@ -165,13 +159,16 @@ class Operation implements \Stringable
         return $this;
     }
 
-    public function getCompleteTime(): ?\DateTimeInterface
+    public function getCompleteTime(): ?\DateTimeImmutable
     {
         return $this->completeTime;
     }
 
     public function setCompleteTime(?\DateTimeInterface $completeTime): self
     {
+        if ($completeTime !== null && !$completeTime instanceof \DateTimeImmutable) {
+            $completeTime = \DateTimeImmutable::createFromInterface($completeTime);
+        }
         $this->completeTime = $completeTime;
         return $this;
     }

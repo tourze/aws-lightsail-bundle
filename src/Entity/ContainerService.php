@@ -4,7 +4,7 @@ namespace AwsLightsailBundle\Entity;
 
 use AwsLightsailBundle\Enum\ContainerServicePowerEnum;
 use AwsLightsailBundle\Enum\ContainerServiceStateEnum;
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
@@ -18,72 +18,72 @@ class ContainerService implements \Stringable
     use TimestampableAware;
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER, options: ['comment' => '主键ID'])]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => '容器服务名称'])]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '容器服务名称'])]
     private string $name;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => 'AWS ARN'])]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => 'AWS ARN'])]
     private string $arn;
 
-    #[ORM\Column(type: 'string', length: 50, enumType: ContainerServicePowerEnum::class, options: ['comment' => '容器服务计算能力'])]
+    #[ORM\Column(type: Types::STRING, length: 50, enumType: ContainerServicePowerEnum::class, options: ['comment' => '容器服务计算能力'])]
     private ContainerServicePowerEnum $power;
 
-    #[ORM\Column(type: 'integer', options: ['comment' => '缩放数量'])]
+    #[ORM\Column(type: Types::INTEGER, options: ['comment' => '缩放数量'])]
     private int $scale;
 
-    #[ORM\Column(type: 'string', length: 50, enumType: ContainerServiceStateEnum::class, options: ['comment' => '服务状态'])]
+    #[ORM\Column(type: Types::STRING, length: 50, enumType: ContainerServiceStateEnum::class, options: ['comment' => '服务状态'])]
     private ContainerServiceStateEnum $state;
 
-    #[ORM\Column(type: 'string', length: 50, options: ['comment' => 'AWS 区域'])]
+    #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => 'AWS 区域'])]
     private string $region;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true, options: ['comment' => '服务 URL'])]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '服务 URL'])]
     private ?string $url = null;
 
-    #[ORM\Column(type: 'json', nullable: true, options: ['comment' => '当前部署配置'])]
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '当前部署配置'])]
     private ?array $currentDeployment = null;
 
-    #[ORM\Column(type: 'json', nullable: true, options: ['comment' => '下一次部署配置'])]
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '下一次部署配置'])]
     private ?array $nextDeployment = null;
 
-    #[ORM\Column(type: 'boolean', options: ['comment' => '是否启用公共域名'])]
+    #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否启用公共域名'])]
     private bool $isPublicDomainEnabled = false;
 
-    #[ORM\Column(type: 'boolean', options: ['comment' => '是否启用私有域名'])]
+    #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否启用私有域名'])]
     private bool $isPrivateDomainEnabled = false;
 
-    #[ORM\Column(type: 'json', nullable: true, options: ['comment' => '私有域名'])]
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '私有域名'])]
     private ?array $privateDomainName = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true, options: ['comment' => '公共域名'])]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '公共域名'])]
     private ?string $publicDomainNames = null;
 
-    #[ORM\Column(type: 'json', nullable: true, options: ['comment' => '容器镜像'])]
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '容器镜像'])]
     private ?array $containerImages = null;
 
-    #[ORM\Column(type: 'json', nullable: true, options: ['comment' => '标签'])]
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '标签'])]
     private ?array $tags = null;
 
     #[CreateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, options: ['comment' => '创建时间'])]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, options: ['comment' => '创建时间'])]
     private \DateTimeInterface $createdAt;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '同步时间'])]
-    private ?\DateTimeInterface $syncedAt = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '同步时间'])]
+    private ?\DateTimeImmutable $syncedAt = null;
 
     #[ORM\ManyToOne(targetEntity: AwsCredential::class)]
     #[ORM\JoinColumn(nullable: false)]
     private AwsCredential $credential;
 
     #[UpdateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]
-    private ?\DateTimeInterface $updatedAt = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '更新时间'])]
+    private ?\DateTimeImmutable $updatedAt = null;
 
     public function __construct()
     {
-        $this->createdAt = Carbon::now();
+        $this->createdAt = CarbonImmutable::now();
         $this->state = ContainerServiceStateEnum::UNKNOWN;
         $this->power = ContainerServicePowerEnum::NANO;
         $this->scale = 1;
@@ -269,13 +269,16 @@ class ContainerService implements \Stringable
         return $this->createdAt;
     }
 
-    public function getSyncedAt(): ?\DateTimeInterface
+    public function getSyncedAt(): ?\DateTimeImmutable
     {
         return $this->syncedAt;
     }
 
     public function setSyncedAt(?\DateTimeInterface $syncedAt): self
     {
+        if ($syncedAt !== null && !$syncedAt instanceof \DateTimeImmutable) {
+            $syncedAt = \DateTimeImmutable::createFromInterface($syncedAt);
+        }
         $this->syncedAt = $syncedAt;
         return $this;
     }
@@ -291,13 +294,16 @@ class ContainerService implements \Stringable
         return $this;
     }
 
-    public function getUpdatedAt(): ?\DateTimeInterface
+    public function getUpdatedAt(): ?\DateTimeImmutable
     {
         return $this->updatedAt;
     }
 
     public function setUpdatedAt(?\DateTimeInterface $updatedAt): self
     {
+        if ($updatedAt !== null && !$updatedAt instanceof \DateTimeImmutable) {
+            $updatedAt = \DateTimeImmutable::createFromInterface($updatedAt);
+        }
         $this->updatedAt = $updatedAt;
         return $this;
     }

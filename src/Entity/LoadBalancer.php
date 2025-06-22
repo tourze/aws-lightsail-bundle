@@ -4,10 +4,8 @@ namespace AwsLightsailBundle\Entity;
 
 use AwsLightsailBundle\Enum\LoadBalancerStatusEnum;
 use AwsLightsailBundle\Repository\LoadBalancerRepository;
-use Carbon\Carbon;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 #[ORM\Entity(repositoryClass: LoadBalancerRepository::class)]
@@ -18,77 +16,73 @@ class LoadBalancer implements \Stringable
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER, options: ['comment' => '主键ID'])]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => '负载均衡器名称'])]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '负载均衡器名称'])]
     private string $name;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => 'AWS ARN'])]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => 'AWS ARN'])]
     private string $arn;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => 'DNS 名称'])]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => 'DNS 名称'])]
     private string $dnsName;
 
-    #[ORM\Column(type: 'string', length: 50, options: ['comment' => 'AWS 区域'])]
+    #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => 'AWS 区域'])]
     private string $region;
 
-    #[ORM\Column(type: 'integer', options: ['comment' => '健康检查端口'])]
+    #[ORM\Column(type: Types::INTEGER, options: ['comment' => '健康检查端口'])]
     private int $healthCheckPort;
 
-    #[ORM\Column(type: 'string', length: 50, options: ['comment' => '健康检查协议'])]
+    #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => '健康检查协议'])]
     private string $healthCheckProtocol;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => '健康检查路径'])]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '健康检查路径'])]
     private string $healthCheckPath;
 
-    #[ORM\Column(type: 'integer', options: ['comment' => '健康检查时间间隔（秒）'])]
+    #[ORM\Column(type: Types::INTEGER, options: ['comment' => '健康检查时间间隔（秒）'])]
     private int $healthCheckIntervalSeconds;
 
-    #[ORM\Column(type: 'integer', options: ['comment' => '健康检查超时（秒）'])]
+    #[ORM\Column(type: Types::INTEGER, options: ['comment' => '健康检查超时（秒）'])]
     private int $healthCheckTimeoutSeconds;
 
-    #[ORM\Column(type: 'integer', options: ['comment' => '健康阈值'])]
+    #[ORM\Column(type: Types::INTEGER, options: ['comment' => '健康阈值'])]
     private int $healthyThreshold;
 
-    #[ORM\Column(type: 'integer', options: ['comment' => '不健康阈值'])]
+    #[ORM\Column(type: Types::INTEGER, options: ['comment' => '不健康阈值'])]
     private int $unhealthyThreshold;
 
-    #[ORM\Column(type: 'string', length: 50, enumType: LoadBalancerStatusEnum::class, options: ['comment' => '状态'])]
+    #[ORM\Column(type: Types::STRING, length: 50, enumType: LoadBalancerStatusEnum::class, options: ['comment' => '状态'])]
     private LoadBalancerStatusEnum $status;
 
-    #[ORM\Column(type: 'boolean', options: ['comment' => 'TLS策略是否启用'])]
+    #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => 'TLS策略是否启用'])]
     private bool $tlsPolicyEnabled = false;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true, options: ['comment' => 'TLS证书名称'])]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => 'TLS证书名称'])]
     private ?string $tlsCertificateName = null;
 
-    #[ORM\Column(type: 'json', nullable: true, options: ['comment' => '实例健康状态摘要'])]
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '实例健康状态摘要'])]
     private ?array $instanceHealthSummary = null;
 
-    #[ORM\Column(type: 'json', nullable: true, options: ['comment' => '标签'])]
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '标签'])]
     private ?array $tags = null;
 
-    #[ORM\Column(type: 'boolean', options: ['comment' => '配置选项'])]
+    #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '配置选项'])]
     private bool $configurationOptions = false;
 
-    #[CreateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, options: ['comment' => '创建时间'])]
-    private \DateTimeInterface $createTime;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '同步时间'])]
-    private ?\DateTimeInterface $syncTime = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '同步时间'])]
+    private ?\DateTimeImmutable $syncTime = null;
 
     #[ORM\ManyToOne(targetEntity: AwsCredential::class)]
     #[ORM\JoinColumn(nullable: false)]
     private AwsCredential $credential;
 
-    #[ORM\Column(type: 'json', options: ['comment' => '已附加的实例'])]
+    #[ORM\Column(type: Types::JSON, options: ['comment' => '已附加的实例'])]
     private array $attachedInstances = [];
 
     public function __construct()
     {
-        $this->createTime = Carbon::now();
         $this->status = LoadBalancerStatusEnum::UNKNOWN;
     }
 
@@ -289,13 +283,16 @@ class LoadBalancer implements \Stringable
         return $this;
     }
 
-    public function getSyncTime(): ?\DateTimeInterface
+    public function getSyncTime(): ?\DateTimeImmutable
     {
         return $this->syncTime;
     }
 
     public function setSyncTime(?\DateTimeInterface $syncTime): self
     {
+        if ($syncTime !== null && !$syncTime instanceof \DateTimeImmutable) {
+            $syncTime = \DateTimeImmutable::createFromInterface($syncTime);
+        }
         $this->syncTime = $syncTime;
         return $this;
     }

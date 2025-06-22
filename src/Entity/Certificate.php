@@ -4,10 +4,8 @@ namespace AwsLightsailBundle\Entity;
 
 use AwsLightsailBundle\Enum\CertificateStatusEnum;
 use AwsLightsailBundle\Repository\CertificateRepository;
-use Carbon\Carbon;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 #[ORM\Entity(repositoryClass: CertificateRepository::class)]
@@ -18,68 +16,64 @@ class Certificate implements \Stringable
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER, options: ['comment' => '主键ID'])]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => '证书名称'])]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '证书名称'])]
     private string $name;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => 'AWS ARN'])]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => 'AWS ARN'])]
     private string $arn;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => '域名'])]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '域名'])]
     private string $domainName;
 
-    #[ORM\Column(type: 'json', options: ['comment' => '备用域名'])]
+    #[ORM\Column(type: Types::JSON, options: ['comment' => '备用域名'])]
     private array $subjectAlternativeNames = [];
 
-    #[ORM\Column(type: 'json', nullable: true, options: ['comment' => '域名验证记录'])]
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '域名验证记录'])]
     private ?array $domainValidationRecords = null;
 
-    #[ORM\Column(type: 'string', length: 50, enumType: CertificateStatusEnum::class, options: ['comment' => '证书状态'])]
+    #[ORM\Column(type: Types::STRING, length: 50, enumType: CertificateStatusEnum::class, options: ['comment' => '证书状态'])]
     private CertificateStatusEnum $status;
 
-    #[ORM\Column(type: 'string', length: 50, options: ['comment' => 'AWS 区域'])]
+    #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => 'AWS 区域'])]
     private string $region;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '证书生效日期'])]
-    private ?\DateTimeInterface $notBefore = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '证书生效日期'])]
+    private ?\DateTimeImmutable $notBefore = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '证书过期日期'])]
-    private ?\DateTimeInterface $notAfter = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '证书过期日期'])]
+    private ?\DateTimeImmutable $notAfter = null;
 
-    #[ORM\Column(type: 'json', nullable: true, options: ['comment' => '标签'])]
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '标签'])]
     private ?array $tags = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true, options: ['comment' => '序列号'])]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '序列号'])]
     private ?string $serialNumber = null;
 
-    #[ORM\Column(type: 'json', nullable: true, options: ['comment' => '密钥算法'])]
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '密钥算法'])]
     private ?array $keyAlgorithm = null;
 
-    #[ORM\Column(type: 'boolean', options: ['comment' => '是否由 Lightsail 管理'])]
+    #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否由 Lightsail 管理'])]
     private bool $isManaged = true;
 
-    #[ORM\Column(type: 'boolean', options: ['comment' => '是否正在使用'])]
+    #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否正在使用'])]
     private bool $inUse = false;
 
-    #[CreateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, options: ['comment' => '创建时间'])]
-    private \DateTimeInterface $createTime;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '同步时间'])]
-    private ?\DateTimeInterface $syncTime = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '同步时间'])]
+    private ?\DateTimeImmutable $syncTime = null;
 
     #[ORM\ManyToOne(targetEntity: AwsCredential::class)]
     #[ORM\JoinColumn(nullable: false)]
     private AwsCredential $credential;
 
-    #[ORM\Column(type: 'json', nullable: true, options: ['comment' => '支持的资源'])]
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '支持的资源'])]
     private ?array $supportedOnResources = null;
 
     public function __construct()
     {
-        $this->createTime = Carbon::now();
         $this->status = CertificateStatusEnum::UNKNOWN;
     }
 
@@ -170,24 +164,30 @@ class Certificate implements \Stringable
         return $this;
     }
 
-    public function getNotBefore(): ?\DateTimeInterface
+    public function getNotBefore(): ?\DateTimeImmutable
     {
         return $this->notBefore;
     }
 
     public function setNotBefore(?\DateTimeInterface $notBefore): self
     {
+        if ($notBefore !== null && !$notBefore instanceof \DateTimeImmutable) {
+            $notBefore = \DateTimeImmutable::createFromInterface($notBefore);
+        }
         $this->notBefore = $notBefore;
         return $this;
     }
 
-    public function getNotAfter(): ?\DateTimeInterface
+    public function getNotAfter(): ?\DateTimeImmutable
     {
         return $this->notAfter;
     }
 
     public function setNotAfter(?\DateTimeInterface $notAfter): self
     {
+        if ($notAfter !== null && !$notAfter instanceof \DateTimeImmutable) {
+            $notAfter = \DateTimeImmutable::createFromInterface($notAfter);
+        }
         $this->notAfter = $notAfter;
         return $this;
     }
@@ -247,13 +247,16 @@ class Certificate implements \Stringable
         return $this;
     }
 
-    public function getSyncTime(): ?\DateTimeInterface
+    public function getSyncTime(): ?\DateTimeImmutable
     {
         return $this->syncTime;
     }
 
     public function setSyncTime(?\DateTimeInterface $syncTime): self
     {
+        if ($syncTime !== null && !$syncTime instanceof \DateTimeImmutable) {
+            $syncTime = \DateTimeImmutable::createFromInterface($syncTime);
+        }
         $this->syncTime = $syncTime;
         return $this;
     }

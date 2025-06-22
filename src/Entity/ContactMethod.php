@@ -4,7 +4,7 @@ namespace AwsLightsailBundle\Entity;
 
 use AwsLightsailBundle\Enum\ContactMethodStatusEnum;
 use AwsLightsailBundle\Enum\ContactMethodTypeEnum;
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
@@ -18,51 +18,51 @@ class ContactMethod implements \Stringable
     use TimestampableAware;
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER, options: ['comment' => '主键ID'])]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => '联系方式名称'])]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '联系方式名称'])]
     private string $name;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => 'AWS ARN'])]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => 'AWS ARN'])]
     private string $arn;
 
-    #[ORM\Column(type: 'string', length: 50, enumType: ContactMethodTypeEnum::class, options: ['comment' => '联系方式类型'])]
+    #[ORM\Column(type: Types::STRING, length: 50, enumType: ContactMethodTypeEnum::class, options: ['comment' => '联系方式类型'])]
     private ContactMethodTypeEnum $type;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => '联系方式终端点（邮箱或手机）'])]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '联系方式终端点（邮箱或手机）'])]
     private string $contactEndpoint;
 
-    #[ORM\Column(type: 'string', length: 50, enumType: ContactMethodStatusEnum::class, options: ['comment' => '联系方式状态'])]
+    #[ORM\Column(type: Types::STRING, length: 50, enumType: ContactMethodStatusEnum::class, options: ['comment' => '联系方式状态'])]
     private ContactMethodStatusEnum $status = ContactMethodStatusEnum::PENDING;
 
-    #[ORM\Column(type: 'string', length: 50, options: ['comment' => 'AWS 区域'])]
+    #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => 'AWS 区域'])]
     private string $region;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true, options: ['comment' => '协议'])]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '协议'])]
     private ?string $protocol = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '最后验证时间'])]
-    private ?\DateTimeInterface $lastVerifiedTime = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '最后验证时间'])]
+    private ?\DateTimeImmutable $lastVerifiedTime = null;
 
     #[CreateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, options: ['comment' => '创建时间'])]
-    private \DateTimeInterface $createdAt;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, options: ['comment' => '创建时间'])]
+    private \DateTimeImmutable $createdAt;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '同步时间'])]
-    private ?\DateTimeInterface $syncedAt = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '同步时间'])]
+    private ?\DateTimeImmutable $syncedAt = null;
 
     #[ORM\ManyToOne(targetEntity: AwsCredential::class)]
     #[ORM\JoinColumn(nullable: false)]
     private AwsCredential $credential;
 
     #[UpdateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]
-    private ?\DateTimeInterface $updatedAt = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '更新时间'])]
+    private ?\DateTimeImmutable $updatedAt = null;
 
     public function __construct()
     {
-        $this->createdAt = Carbon::now();
+        $this->createdAt = CarbonImmutable::now();
     }
 
     public function __toString(): string
@@ -152,29 +152,35 @@ class ContactMethod implements \Stringable
         return $this;
     }
 
-    public function getLastVerifiedTime(): ?\DateTimeInterface
+    public function getLastVerifiedTime(): ?\DateTimeImmutable
     {
         return $this->lastVerifiedTime;
     }
 
     public function setLastVerifiedTime(?\DateTimeInterface $lastVerifiedTime): self
     {
+        if ($lastVerifiedTime !== null && !$lastVerifiedTime instanceof \DateTimeImmutable) {
+            $lastVerifiedTime = \DateTimeImmutable::createFromInterface($lastVerifiedTime);
+        }
         $this->lastVerifiedTime = $lastVerifiedTime;
         return $this;
     }
 
-    public function getCreatedAt(): \DateTimeInterface
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function getSyncedAt(): ?\DateTimeInterface
+    public function getSyncedAt(): ?\DateTimeImmutable
     {
         return $this->syncedAt;
     }
 
     public function setSyncedAt(?\DateTimeInterface $syncedAt): self
     {
+        if ($syncedAt !== null && !$syncedAt instanceof \DateTimeImmutable) {
+            $syncedAt = \DateTimeImmutable::createFromInterface($syncedAt);
+        }
         $this->syncedAt = $syncedAt;
         return $this;
     }
@@ -190,13 +196,16 @@ class ContactMethod implements \Stringable
         return $this;
     }
 
-    public function getUpdatedAt(): ?\DateTimeInterface
+    public function getUpdatedAt(): ?\DateTimeImmutable
     {
         return $this->updatedAt;
     }
 
     public function setUpdatedAt(?\DateTimeInterface $updatedAt): self
     {
+        if ($updatedAt !== null && !$updatedAt instanceof \DateTimeImmutable) {
+            $updatedAt = \DateTimeImmutable::createFromInterface($updatedAt);
+        }
         $this->updatedAt = $updatedAt;
         return $this;
     }

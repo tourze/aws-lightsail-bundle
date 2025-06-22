@@ -8,7 +8,7 @@ use AwsLightsailBundle\Enum\InstanceBlueprintEnum;
 use AwsLightsailBundle\Enum\InstanceBundleEnum;
 use AwsLightsailBundle\Enum\InstanceStateEnum;
 use AwsLightsailBundle\Repository\InstanceRepository;
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 
@@ -50,7 +50,7 @@ class InstanceSyncService
         $instance = $this->instanceRepository->findOneByNameAndCredential($instanceName, $credential);
 
         // 如果不存在则创建新实例
-        if (!$instance) {
+        if ($instance === null) {
             $instance = new Instance();
             $instance->setName($instanceName);
             $instance->setCredential($credential);
@@ -81,7 +81,7 @@ class InstanceSyncService
         $this->updateTimestampFields($instance, $data);
 
         // 设置同步时间
-        $instance->setSyncedAt(Carbon::now());
+        $instance->setSyncedAt(CarbonImmutable::now());
 
         // 保存实例到持久化上下文
         $this->entityManager->persist($instance);
@@ -278,15 +278,15 @@ class InstanceSyncService
         if (isset($data['createdAt'])) {
             try {
                 if ($data['createdAt'] instanceof \DateTime) {
-                    $instance->setAwsCreatedAt(Carbon::parse($data['createdAt']));
+                    $instance->setAwsCreatedAt(CarbonImmutable::parse($data['createdAt']));
                 } elseif ($data['createdAt'] instanceof \DateTimeImmutable) {
                     $instance->setAwsCreatedAt($data['createdAt']);
                 } elseif (is_string($data['createdAt'])) {
-                    $instance->setAwsCreatedAt(Carbon::parse($data['createdAt']));
+                    $instance->setAwsCreatedAt(CarbonImmutable::parse($data['createdAt']));
                 } elseif (is_object($data['createdAt']) && method_exists($data['createdAt'], 'format')) {
                     // 处理 AWS SDK 的 DateTimeResult 对象
                     $dateString = $data['createdAt']->format('c');
-                    $instance->setAwsCreatedAt(Carbon::parse($dateString));
+                    $instance->setAwsCreatedAt(CarbonImmutable::parse($dateString));
                 }
             } catch (\Throwable $e) {
                 $this->logger->warning('无法解析 AWS 创建时间', [
@@ -324,7 +324,7 @@ class InstanceSyncService
                 // 不立即刷新，等批量处理完成后统一刷新
                 $instance = $this->updateInstanceFromData($credential, $instanceData, false);
 
-                if ($existingId) {
+                if ($existingId !== null) {
                     $stats['updated']++;
                 } else {
                     $stats['new']++;

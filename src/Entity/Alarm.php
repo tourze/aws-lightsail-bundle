@@ -5,10 +5,8 @@ namespace AwsLightsailBundle\Entity;
 use AwsLightsailBundle\Enum\AlarmMetricEnum;
 use AwsLightsailBundle\Enum\AlarmStateEnum;
 use AwsLightsailBundle\Repository\AlarmRepository;
-use Carbon\Carbon;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 #[ORM\Entity(repositoryClass: AlarmRepository::class)]
@@ -19,63 +17,60 @@ class Alarm implements \Stringable
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER, options: ['comment' => '主键ID'])]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => '告警名称'])]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '告警名称'])]
     private string $name;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => 'AWS ARN'])]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => 'AWS ARN'])]
     private string $arn;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => '关联资源名称'])]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '关联资源名称'])]
     private string $resourceName;
 
-    #[ORM\Column(type: 'string', length: 50, options: ['comment' => '资源类型'])]
+    #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => '资源类型'])]
     private string $resourceType;
 
-    #[ORM\Column(type: 'string', length: 100, enumType: AlarmMetricEnum::class, options: ['comment' => '指标名称'])]
+    #[ORM\Column(type: Types::STRING, length: 100, enumType: AlarmMetricEnum::class, options: ['comment' => '指标名称'])]
     private AlarmMetricEnum $metricName;
 
-    #[ORM\Column(type: 'string', length: 50, enumType: AlarmStateEnum::class, options: ['comment' => '告警状态'])]
+    #[ORM\Column(type: Types::STRING, length: 50, enumType: AlarmStateEnum::class, options: ['comment' => '告警状态'])]
     private AlarmStateEnum $state;
 
-    #[ORM\Column(type: 'string', length: 50, options: ['comment' => 'AWS 区域'])]
+    #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => 'AWS 区域'])]
     private string $region;
 
-    #[ORM\Column(type: 'string', length: 50, options: ['comment' => '比较运算符'])]
+    #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => '比较运算符'])]
     private string $comparisonOperator;
 
-    #[ORM\Column(type: 'string', length: 50, options: ['comment' => '评估周期'])]
+    #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => '评估周期'])]
     private string $evaluationPeriods;
 
-    #[ORM\Column(type: 'float', options: ['comment' => '阈值'])]
+    #[ORM\Column(type: Types::FLOAT, options: ['comment' => '阈值'])]
     private float $threshold;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true, options: ['comment' => '缺失数据处理方式'])]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '缺失数据处理方式'])]
     private ?string $treatMissingData = null;
 
-    #[ORM\Column(type: 'json', nullable: true, options: ['comment' => '通知协议'])]
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '通知协议'])]
     private ?array $contactProtocols = null;
 
-    #[ORM\Column(type: 'json', nullable: true, options: ['comment' => '监控资源信息'])]
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '监控资源信息'])]
     private ?array $monitoredResourceInfo = null;
 
-    #[ORM\Column(type: 'json', nullable: true, options: ['comment' => '触发告警需要的数据点'])]
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '触发告警需要的数据点'])]
     private ?array $datapointsToAlarm = null;
 
-    #[ORM\Column(type: 'boolean', options: ['comment' => '是否启用通知'])]
+    #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否启用通知'])]
     private bool $notificationEnabled = true;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '通知触发时间'])]
-    private ?\DateTimeInterface $notificationTriggeredTime = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '通知触发时间'])]
+    private ?\DateTimeImmutable $notificationTriggeredTime = null;
 
-    #[CreateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, options: ['comment' => '创建时间'])]
-    private \DateTimeInterface $createTime;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '同步时间'])]
-    private ?\DateTimeInterface $syncTime = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '同步时间'])]
+    private ?\DateTimeImmutable $syncTime = null;
 
     #[ORM\ManyToOne(targetEntity: AwsCredential::class)]
     #[ORM\JoinColumn(nullable: false)]
@@ -83,7 +78,6 @@ class Alarm implements \Stringable
 
     public function __construct()
     {
-        $this->createTime = Carbon::now();
         $this->state = AlarmStateEnum::UNKNOWN;
     }
 
@@ -262,24 +256,30 @@ class Alarm implements \Stringable
         return $this;
     }
 
-    public function getNotificationTriggeredTime(): ?\DateTimeInterface
+    public function getNotificationTriggeredTime(): ?\DateTimeImmutable
     {
         return $this->notificationTriggeredTime;
     }
 
     public function setNotificationTriggeredTime(?\DateTimeInterface $notificationTriggeredTime): self
     {
+        if ($notificationTriggeredTime !== null && !$notificationTriggeredTime instanceof \DateTimeImmutable) {
+            $notificationTriggeredTime = \DateTimeImmutable::createFromInterface($notificationTriggeredTime);
+        }
         $this->notificationTriggeredTime = $notificationTriggeredTime;
         return $this;
     }
 
-    public function getSyncTime(): ?\DateTimeInterface
+    public function getSyncTime(): ?\DateTimeImmutable
     {
         return $this->syncTime;
     }
 
     public function setSyncTime(?\DateTimeInterface $syncTime): self
     {
+        if ($syncTime !== null && !$syncTime instanceof \DateTimeImmutable) {
+            $syncTime = \DateTimeImmutable::createFromInterface($syncTime);
+        }
         $this->syncTime = $syncTime;
         return $this;
     }

@@ -5,12 +5,10 @@ namespace AwsLightsailBundle\Controller\Admin;
 use AwsLightsailBundle\Entity\AwsCredential;
 use AwsLightsailBundle\Entity\Disk;
 use AwsLightsailBundle\Enum\DiskStateEnum;
-use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
-use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
@@ -24,21 +22,13 @@ use EasyCorp\Bundle\EasyAdminBundle\Filter\BooleanFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\TextFilter;
-use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
 
 /**
  * Lightsail 磁盘管理控制器
  */
 class DiskCrudController extends AbstractCrudController
 {
-    public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly AdminUrlGenerator $adminUrlGenerator
-    ) {
-    }
 
     public static function getEntityFqcn(): string
     {
@@ -188,69 +178,5 @@ class DiskCrudController extends AbstractCrudController
             ->add(BooleanFilter::new('isSystemDisk', '系统磁盘'))
             ->add(BooleanFilter::new('isAutoSnapshotConfigured', '已配置自动快照'))
             ->add(EntityFilter::new('credential', 'AWS 凭证'));
-    }
-    
-    /**
-     * 同步磁盘状态
-     */
-    #[Route('admin/disk/{entityId}/sync', name: 'sync_disk')]
-    public function syncDisk(AdminContext $context): Response
-    {
-        $disk = $context->getEntity()->getInstance();
-        
-        $this->addFlash('info', sprintf('磁盘 %s 同步指令已发送', $disk->getName()));
-        
-        return $this->redirect($this->adminUrlGenerator
-            ->setAction(Action::INDEX)
-            ->setEntityId(null)
-            ->generateUrl());
-    }
-    
-    /**
-     * 挂载磁盘到实例
-     */
-    #[Route('admin/disk/{entityId}/attach', name: 'attach_disk')]
-    public function attachDisk(AdminContext $context): Response
-    {
-        $disk = $context->getEntity()->getInstance();
-        
-        $this->addFlash('warning', sprintf('磁盘 %s 挂载指令已发送', $disk->getName()));
-        
-        return $this->redirect($this->adminUrlGenerator
-            ->setAction(Action::INDEX)
-            ->setEntityId(null)
-            ->generateUrl());
-    }
-    
-    /**
-     * 从实例分离磁盘
-     */
-    #[Route('admin/disk/{entityId}/detach', name: 'detach_disk')]
-    public function detachDisk(AdminContext $context): Response
-    {
-        $disk = $context->getEntity()->getInstance();
-        
-        $this->addFlash('warning', sprintf('磁盘 %s 分离指令已发送', $disk->getName()));
-        
-        return $this->redirect($this->adminUrlGenerator
-            ->setAction(Action::INDEX)
-            ->setEntityId(null)
-            ->generateUrl());
-    }
-    
-    /**
-     * 创建磁盘快照
-     */
-    #[Route('admin/disk/{entityId}/create-snapshot', name: 'create_disk_snapshot')]
-    public function createDiskSnapshot(AdminContext $context): Response
-    {
-        $disk = $context->getEntity()->getInstance();
-        
-        $this->addFlash('success', sprintf('磁盘 %s 创建快照指令已发送', $disk->getName()));
-        
-        return $this->redirect($this->adminUrlGenerator
-            ->setAction(Action::INDEX)
-            ->setEntityId(null)
-            ->generateUrl());
     }
 } 

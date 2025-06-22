@@ -96,7 +96,6 @@ final class DiskStateEnumTest extends TestCase
     {
         foreach (DiskStateEnum::cases() as $enum) {
             $label = $enum->getLabel();
-            $this->assertIsString($label);
             $this->assertNotEmpty($label);
         }
     }
@@ -151,7 +150,6 @@ final class DiskStateEnumTest extends TestCase
         $enum = DiskStateEnum::AVAILABLE;
         
         $this->assertInstanceOf(\BackedEnum::class, $enum);
-        $this->assertTrue(method_exists($enum, 'getLabel'));
     }
 
     public function testStringRepresentation(): void

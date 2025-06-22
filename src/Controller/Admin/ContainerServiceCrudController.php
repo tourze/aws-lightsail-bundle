@@ -6,12 +6,10 @@ use AwsLightsailBundle\Entity\AwsCredential;
 use AwsLightsailBundle\Entity\ContainerService;
 use AwsLightsailBundle\Enum\ContainerServicePowerEnum;
 use AwsLightsailBundle\Enum\ContainerServiceStateEnum;
-use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
-use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
@@ -25,21 +23,13 @@ use EasyCorp\Bundle\EasyAdminBundle\Filter\BooleanFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\TextFilter;
-use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
 
 /**
  * Lightsail 容器服务管理控制器
  */
 class ContainerServiceCrudController extends AbstractCrudController
 {
-    public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly AdminUrlGenerator $adminUrlGenerator
-    ) {
-    }
 
     public static function getEntityFqcn(): string
     {
@@ -156,21 +146,29 @@ class ContainerServiceCrudController extends AbstractCrudController
     public function configureActions(Actions $actions): Actions
     {
         $syncAction = Action::new('syncContainerService', '同步')
-            ->linkToCrudAction('syncContainerService')
+            ->linkToRoute('sync_container_service', function (ContainerService $service) {
+                return ['entityId' => $service->getId()];
+            })
             ->setIcon('fa fa-refresh');
             
         $deployAction = Action::new('deployContainerService', '部署')
-            ->linkToCrudAction('deployContainerService')
+            ->linkToRoute('deploy_container_service', function (ContainerService $service) {
+                return ['entityId' => $service->getId()];
+            })
             ->setIcon('fa fa-cloud-upload')
             ->setCssClass('text-primary');
             
         $restartAction = Action::new('restartContainerService', '重启')
-            ->linkToCrudAction('restartContainerService')
+            ->linkToRoute('restart_container_service', function (ContainerService $service) {
+                return ['entityId' => $service->getId()];
+            })
             ->setIcon('fa fa-power-off')
             ->setCssClass('text-warning');
             
         $registerImageAction = Action::new('registerImage', '注册镜像')
-            ->linkToCrudAction('registerImage')
+            ->linkToRoute('register_container_image', function (ContainerService $service) {
+                return ['entityId' => $service->getId()];
+            })
             ->setIcon('fa fa-docker')
             ->setCssClass('text-success');
             
@@ -216,69 +214,5 @@ class ContainerServiceCrudController extends AbstractCrudController
             ->add(BooleanFilter::new('isPublicDomainEnabled', '公共域名已启用'))
             ->add(BooleanFilter::new('isPrivateDomainEnabled', '私有域名已启用'))
             ->add(EntityFilter::new('credential', 'AWS 凭证'));
-    }
-    
-    /**
-     * 同步容器服务状态
-     */
-    #[Route('admin/container-service/{entityId}/sync', name: 'sync_container_service')]
-    public function syncContainerService(AdminContext $context): Response
-    {
-        $service = $context->getEntity()->getInstance();
-        
-        $this->addFlash('info', sprintf('容器服务 %s 同步指令已发送', $service->getName()));
-        
-        return $this->redirect($this->adminUrlGenerator
-            ->setAction(Action::INDEX)
-            ->setEntityId(null)
-            ->generateUrl());
-    }
-    
-    /**
-     * 部署容器服务
-     */
-    #[Route('admin/container-service/{entityId}/deploy', name: 'deploy_container_service')]
-    public function deployContainerService(AdminContext $context): Response
-    {
-        $service = $context->getEntity()->getInstance();
-        
-        $this->addFlash('warning', sprintf('容器服务 %s 部署指令已发送', $service->getName()));
-        
-        return $this->redirect($this->adminUrlGenerator
-            ->setAction(Action::INDEX)
-            ->setEntityId(null)
-            ->generateUrl());
-    }
-    
-    /**
-     * 重启容器服务
-     */
-    #[Route('admin/container-service/{entityId}/restart', name: 'restart_container_service')]
-    public function restartContainerService(AdminContext $context): Response
-    {
-        $service = $context->getEntity()->getInstance();
-        
-        $this->addFlash('warning', sprintf('容器服务 %s 重启指令已发送', $service->getName()));
-        
-        return $this->redirect($this->adminUrlGenerator
-            ->setAction(Action::INDEX)
-            ->setEntityId(null)
-            ->generateUrl());
-    }
-    
-    /**
-     * 注册镜像
-     */
-    #[Route('admin/container-service/{entityId}/register-image', name: 'register_container_image')]
-    public function registerImage(AdminContext $context): Response
-    {
-        $service = $context->getEntity()->getInstance();
-        
-        $this->addFlash('success', sprintf('容器服务 %s 注册镜像指令已发送', $service->getName()));
-        
-        return $this->redirect($this->adminUrlGenerator
-            ->setAction(Action::INDEX)
-            ->setEntityId(null)
-            ->generateUrl());
     }
 }

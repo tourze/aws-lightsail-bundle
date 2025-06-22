@@ -4,12 +4,10 @@ namespace AwsLightsailBundle\Controller\Admin;
 
 use AwsLightsailBundle\Entity\AwsCredential;
 use AwsLightsailBundle\Entity\Domain;
-use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
-use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
@@ -20,20 +18,12 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\BooleanFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\TextFilter;
-use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
 
 /**
  * Lightsail 域名管理控制器
  */
 class DomainCrudController extends AbstractCrudController
 {
-    public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly AdminUrlGenerator $adminUrlGenerator
-    ) {
-    }
 
     public static function getEntityFqcn(): string
     {
@@ -128,37 +118,5 @@ class DomainCrudController extends AbstractCrudController
             ->add(TextFilter::new('region', '区域'))
             ->add(BooleanFilter::new('isManaged', '是否托管'))
             ->add(EntityFilter::new('credential', 'AWS 凭证'));
-    }
-    
-    /**
-     * 同步域名状态
-     */
-    #[Route('admin/domain/{entityId}/sync', name: 'sync_domain')]
-    public function syncDomain(AdminContext $context): Response
-    {
-        $domain = $context->getEntity()->getInstance();
-        
-        $this->addFlash('info', sprintf('域名 %s 同步指令已发送', $domain->getName()));
-        
-        return $this->redirect($this->adminUrlGenerator
-            ->setAction(Action::INDEX)
-            ->setEntityId(null)
-            ->generateUrl());
-    }
-    
-    /**
-     * 添加域名记录
-     */
-    #[Route('admin/domain/{entityId}/add-entry', name: 'add_domain_entry')]
-    public function addDomainEntry(AdminContext $context): Response
-    {
-        $domain = $context->getEntity()->getInstance();
-        
-        // 重定向到域名记录的创建页面，并预填域名
-        return $this->redirect($this->adminUrlGenerator
-            ->setController(DomainEntryCrudController::class)
-            ->setAction(Action::NEW)
-            ->set('domain_id', $domain->getId())
-            ->generateUrl());
     }
 } 

@@ -4,12 +4,10 @@ namespace AwsLightsailBundle\Controller\Admin;
 
 use AwsLightsailBundle\Entity\AwsCredential;
 use AwsLightsailBundle\Entity\StaticIp;
-use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
-use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
@@ -19,20 +17,12 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\BooleanFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\TextFilter;
-use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
 
 /**
  * Lightsail 静态 IP 管理控制器
  */
 class StaticIpCrudController extends AbstractCrudController
 {
-    public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly AdminUrlGenerator $adminUrlGenerator
-    ) {
-    }
 
     public static function getEntityFqcn(): string
     {
@@ -136,71 +126,5 @@ class StaticIpCrudController extends AbstractCrudController
             ->add(TextFilter::new('region', '区域'))
             ->add(BooleanFilter::new('isAttached', '是否已附加'))
             ->add(EntityFilter::new('credential', 'AWS 凭证'));
-    }
-    
-    /**
-     * 同步静态 IP 状态
-     */
-    #[Route('admin/static-ip/{entityId}/sync', name: 'sync_static_ip')]
-    public function syncStaticIp(AdminContext $context): Response
-    {
-        $staticIp = $context->getEntity()->getInstance();
-        
-        $this->addFlash('info', sprintf('静态 IP %s 同步指令已发送', $staticIp->getName()));
-        
-        return $this->redirect($this->adminUrlGenerator
-            ->setAction(Action::INDEX)
-            ->setEntityId(null)
-            ->generateUrl());
-    }
-    
-    /**
-     * 附加静态 IP 到实例
-     */
-    #[Route('admin/static-ip/{entityId}/attach', name: 'attach_static_ip')]
-    public function attachStaticIp(AdminContext $context): Response
-    {
-        $staticIp = $context->getEntity()->getInstance();
-        
-        if ($staticIp->isAttached()) {
-            $this->addFlash('warning', sprintf('静态 IP %s 已经附加到实例 %s', $staticIp->getName(), $staticIp->getAttachedTo()));
-            
-            return $this->redirect($this->adminUrlGenerator
-                ->setAction(Action::INDEX)
-                ->setEntityId(null)
-                ->generateUrl());
-        }
-        
-        $this->addFlash('success', sprintf('静态 IP %s 附加指令已发送', $staticIp->getName()));
-        
-        return $this->redirect($this->adminUrlGenerator
-            ->setAction(Action::INDEX)
-            ->setEntityId(null)
-            ->generateUrl());
-    }
-    
-    /**
-     * 分离静态 IP
-     */
-    #[Route('admin/static-ip/{entityId}/detach', name: 'detach_static_ip')]
-    public function detachStaticIp(AdminContext $context): Response
-    {
-        $staticIp = $context->getEntity()->getInstance();
-        
-        if (!$staticIp->isAttached()) {
-            $this->addFlash('warning', sprintf('静态 IP %s 当前未附加到任何实例', $staticIp->getName()));
-            
-            return $this->redirect($this->adminUrlGenerator
-                ->setAction(Action::INDEX)
-                ->setEntityId(null)
-                ->generateUrl());
-        }
-        
-        $this->addFlash('warning', sprintf('静态 IP %s 分离指令已发送', $staticIp->getName()));
-        
-        return $this->redirect($this->adminUrlGenerator
-            ->setAction(Action::INDEX)
-            ->setEntityId(null)
-            ->generateUrl());
     }
 } 

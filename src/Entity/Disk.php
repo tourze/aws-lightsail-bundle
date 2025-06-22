@@ -3,10 +3,8 @@
 namespace AwsLightsailBundle\Entity;
 
 use AwsLightsailBundle\Enum\DiskStateEnum;
-use Carbon\Carbon;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 #[ORM\Entity]
@@ -17,54 +15,51 @@ class Disk implements \Stringable
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER, options: ['comment' => '主键ID'])]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => '磁盘名称'])]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '磁盘名称'])]
     private string $name;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => 'AWS ARN'])]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => 'AWS ARN'])]
     private string $arn;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true, options: ['comment' => '挂载到的实例'])]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '挂载到的实例'])]
     private ?string $attachedTo = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true, options: ['comment' => '挂载状态'])]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '挂载状态'])]
     private ?string $attachmentState = null;
 
-    #[ORM\Column(type: 'boolean', options: ['comment' => '是否为系统磁盘'])]
+    #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否为系统磁盘'])]
     private bool $isSystemDisk = false;
 
-    #[ORM\Column(type: 'string', length: 50, enumType: DiskStateEnum::class, options: ['comment' => '磁盘状态'])]
+    #[ORM\Column(type: Types::STRING, length: 50, enumType: DiskStateEnum::class, options: ['comment' => '磁盘状态'])]
     private DiskStateEnum $state;
 
-    #[ORM\Column(type: 'string', length: 50, options: ['comment' => 'AWS 区域'])]
+    #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => 'AWS 区域'])]
     private string $region;
 
-    #[ORM\Column(type: 'bigint', options: ['comment' => '大小(GB)'])]
+    #[ORM\Column(type: Types::BIGINT, options: ['comment' => '大小(GB)'])]
     private int $sizeInGb;
 
-    #[ORM\Column(type: 'integer', nullable: true, options: ['comment' => 'IOPS'])]
+    #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['comment' => 'IOPS'])]
     private ?int $iops = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true, options: ['comment' => '路径'])]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '路径'])]
     private ?string $path = null;
 
-    #[ORM\Column(type: 'json', nullable: true, options: ['comment' => '标签'])]
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '标签'])]
     private ?array $tags = null;
 
-    #[ORM\Column(type: 'boolean', options: ['comment' => '是否配置自动快照'])]
+    #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否配置自动快照'])]
     private bool $isAutoSnapshotConfigured = false;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true, options: ['comment' => '支持代码'])]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '支持代码'])]
     private ?string $supportCode = null;
 
-    #[CreateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, options: ['comment' => '创建时间'])]
-    private \DateTimeInterface $createTime;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '同步时间'])]
-    private ?\DateTimeInterface $syncTime = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '同步时间'])]
+    private ?\DateTimeImmutable $syncTime = null;
 
     #[ORM\ManyToOne(targetEntity: AwsCredential::class)]
     #[ORM\JoinColumn(nullable: false)]
@@ -72,7 +67,6 @@ class Disk implements \Stringable
 
     public function __construct()
     {
-        $this->createTime = Carbon::now();
         $this->state = DiskStateEnum::UNKNOWN;
     }
 
@@ -229,13 +223,16 @@ class Disk implements \Stringable
         return $this;
     }
 
-    public function getSyncTime(): ?\DateTimeInterface
+    public function getSyncTime(): ?\DateTimeImmutable
     {
         return $this->syncTime;
     }
 
     public function setSyncTime(?\DateTimeInterface $syncTime): self
     {
+        if ($syncTime !== null && !$syncTime instanceof \DateTimeImmutable) {
+            $syncTime = \DateTimeImmutable::createFromInterface($syncTime);
+        }
         $this->syncTime = $syncTime;
         return $this;
     }

@@ -6,7 +6,7 @@ use AwsLightsailBundle\Enum\InstanceBlueprintEnum;
 use AwsLightsailBundle\Enum\InstanceBundleEnum;
 use AwsLightsailBundle\Enum\InstanceStateEnum;
 use AwsLightsailBundle\Repository\InstanceRepository;
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
@@ -20,100 +20,100 @@ class Instance implements \Stringable
     use TimestampableAware;
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER, options: ['comment' => '主键ID'])]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => '实例名称'])]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '实例名称'])]
     private string $name;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => 'AWS ARN'])]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => 'AWS ARN'])]
     private string $arn;
 
-    #[ORM\Column(type: 'string', length: 100, enumType: InstanceStateEnum::class, options: ['comment' => '实例状态'])]
+    #[ORM\Column(type: Types::STRING, length: 100, enumType: InstanceStateEnum::class, options: ['comment' => '实例状态'])]
     private InstanceStateEnum $state = InstanceStateEnum::UNKNOWN;
 
-    #[ORM\Column(type: 'integer', nullable: true, options: ['comment' => '实例状态代码'])]
+    #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['comment' => '实例状态代码'])]
     private ?int $stateCode = null;
 
-    #[ORM\Column(type: 'string', length: 100, enumType: InstanceBlueprintEnum::class, options: ['comment' => '蓝图类型'])]
+    #[ORM\Column(type: Types::STRING, length: 100, enumType: InstanceBlueprintEnum::class, options: ['comment' => '蓝图类型'])]
     private InstanceBlueprintEnum $blueprint;
 
-    #[ORM\Column(type: 'string', length: 100, nullable: true, options: ['comment' => '蓝图名称'])]
+    #[ORM\Column(type: Types::STRING, length: 100, nullable: true, options: ['comment' => '蓝图名称'])]
     private ?string $blueprintName = null;
 
-    #[ORM\Column(type: 'string', length: 100, enumType: InstanceBundleEnum::class, options: ['comment' => '实例套餐'])]
+    #[ORM\Column(type: Types::STRING, length: 100, enumType: InstanceBundleEnum::class, options: ['comment' => '实例套餐'])]
     private InstanceBundleEnum $bundle;
 
-    #[ORM\Column(type: 'string', length: 50, options: ['comment' => 'AWS 区域'])]
+    #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => 'AWS 区域'])]
     private string $region;
 
-    #[ORM\Column(type: 'string', length: 50, nullable: true, options: ['comment' => '可用区'])]
+    #[ORM\Column(type: Types::STRING, length: 50, nullable: true, options: ['comment' => '可用区'])]
     private ?string $availabilityZone = null;
 
-    #[ORM\Column(type: 'string', length: 50, nullable: true, options: ['comment' => '资源类型'])]
+    #[ORM\Column(type: Types::STRING, length: 50, nullable: true, options: ['comment' => '资源类型'])]
     private ?string $resourceType = null;
 
-    #[ORM\Column(type: 'string', length: 20, nullable: true, options: ['comment' => '公网 IP 地址'])]
+    #[ORM\Column(type: Types::STRING, length: 20, nullable: true, options: ['comment' => '公网 IP 地址'])]
     private ?string $publicIpAddress = null;
 
-    #[ORM\Column(type: 'string', length: 20, nullable: true, options: ['comment' => '私网 IP 地址'])]
+    #[ORM\Column(type: Types::STRING, length: 20, nullable: true, options: ['comment' => '私网 IP 地址'])]
     private ?string $privateIpAddress = null;
 
-    #[ORM\Column(type: 'json', nullable: true, options: ['comment' => 'IPv6 地址列表'])]
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => 'IPv6 地址列表'])]
     private ?array $ipv6Addresses = null;
 
-    #[ORM\Column(type: 'string', length: 20, nullable: true, options: ['comment' => 'IP 地址类型（ipv4/ipv6/dualstack）'])]
+    #[ORM\Column(type: Types::STRING, length: 20, nullable: true, options: ['comment' => 'IP 地址类型（ipv4/ipv6/dualstack）'])]
     private ?string $ipAddressType = null;
 
-    #[ORM\Column(type: 'boolean', options: ['comment' => '是否为静态 IP'])]
+    #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否为静态 IP'])]
     private bool $isStaticIp = false;
 
     #[ORM\ManyToOne(targetEntity: KeyPair::class)]
     #[ORM\JoinColumn(nullable: true)]
     private ?KeyPair $keyPair = null;
 
-    #[ORM\Column(type: 'json', nullable: true, options: ['comment' => '标签'])]
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '标签'])]
     private ?array $tags = null;
 
-    #[ORM\Column(type: 'json', nullable: true, options: ['comment' => '硬件配置'])]
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '硬件配置'])]
     private ?array $hardware = null;
 
-    #[ORM\Column(type: 'json', nullable: true, options: ['comment' => '网络配置'])]
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '网络配置'])]
     private ?array $networking = null;
 
-    #[ORM\Column(type: 'json', nullable: true, options: ['comment' => '元数据选项'])]
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '元数据选项'])]
     private ?array $metadataOptions = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => 'AWS 创建时间'])]
-    private ?\DateTimeInterface $awsCreatedAt = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => 'AWS 创建时间'])]
+    private ?\DateTimeImmutable $awsCreatedAt = null;
 
     #[CreateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, options: ['comment' => '创建时间'])]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, options: ['comment' => '创建时间'])]
     private \DateTimeInterface $createdAt;
 
     #[ORM\ManyToOne(targetEntity: AwsCredential::class)]
     #[ORM\JoinColumn(nullable: false)]
     private AwsCredential $credential;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '同步时间'])]
-    private ?\DateTimeInterface $syncedAt = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '同步时间'])]
+    private ?\DateTimeImmutable $syncedAt = null;
 
-    #[ORM\Column(type: 'text', nullable: true, options: ['comment' => '用户名'])]
+    #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '用户名'])]
     private ?string $username = null;
 
-    #[ORM\Column(type: 'boolean', options: ['comment' => '是否启用监控'])]
+    #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否启用监控'])]
     private bool $isMonitoring = false;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true, options: ['comment' => '支持代码'])]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '支持代码'])]
     private ?string $supportCode = null;
 
     #[UpdateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]
-    private ?\DateTimeInterface $updatedAt = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '更新时间'])]
+    private ?\DateTimeImmutable $updatedAt = null;
 
     public function __construct()
     {
-        $this->createdAt = Carbon::now();
+        $this->createdAt = CarbonImmutable::now();
     }
 
     public function __toString(): string
@@ -346,13 +346,16 @@ class Instance implements \Stringable
         return $this;
     }
 
-    public function getAwsCreatedAt(): ?\DateTimeInterface
+    public function getAwsCreatedAt(): ?\DateTimeImmutable
     {
         return $this->awsCreatedAt;
     }
 
     public function setAwsCreatedAt(?\DateTimeInterface $awsCreatedAt): self
     {
+        if ($awsCreatedAt !== null && !$awsCreatedAt instanceof \DateTimeImmutable) {
+            $awsCreatedAt = \DateTimeImmutable::createFromInterface($awsCreatedAt);
+        }
         $this->awsCreatedAt = $awsCreatedAt;
         return $this;
     }
@@ -373,13 +376,16 @@ class Instance implements \Stringable
         return $this;
     }
 
-    public function getSyncedAt(): ?\DateTimeInterface
+    public function getSyncedAt(): ?\DateTimeImmutable
     {
         return $this->syncedAt;
     }
 
     public function setSyncedAt(?\DateTimeInterface $syncedAt): self
     {
+        if ($syncedAt !== null && !$syncedAt instanceof \DateTimeImmutable) {
+            $syncedAt = \DateTimeImmutable::createFromInterface($syncedAt);
+        }
         $this->syncedAt = $syncedAt;
         return $this;
     }
@@ -417,13 +423,16 @@ class Instance implements \Stringable
         return $this;
     }
 
-    public function getUpdatedAt(): ?\DateTimeInterface
+    public function getUpdatedAt(): ?\DateTimeImmutable
     {
         return $this->updatedAt;
     }
 
     public function setUpdatedAt(?\DateTimeInterface $updatedAt): self
     {
+        if ($updatedAt !== null && !$updatedAt instanceof \DateTimeImmutable) {
+            $updatedAt = \DateTimeImmutable::createFromInterface($updatedAt);
+        }
         $this->updatedAt = $updatedAt;
         return $this;
     }

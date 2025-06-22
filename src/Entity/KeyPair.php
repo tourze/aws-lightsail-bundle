@@ -15,45 +15,45 @@ class KeyPair implements \Stringable
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER, options: ['comment' => '主键ID'])]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => '密钥对名称'])]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '密钥对名称'])]
     private string $name;
 
-    #[ORM\Column(type: 'string', length: 255, options: ['comment' => 'AWS ARN'])]
+    #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => 'AWS ARN'])]
     private string $arn;
 
-    #[ORM\Column(type: 'text', nullable: true, options: ['comment' => '指纹'])]
+    #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '指纹'])]
     private ?string $fingerprint = null;
 
-    #[ORM\Column(type: 'text', nullable: true, options: ['comment' => '公钥'])]
+    #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '公钥'])]
     private ?string $publicKey = null;
 
-    #[ORM\Column(type: 'text', nullable: true, options: ['comment' => '私钥'])]
+    #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '私钥'])]
     private ?string $privateKey = null;
 
-    #[ORM\Column(type: 'boolean', options: ['comment' => '是否加密'])]
+    #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否加密'])]
     private bool $isEncrypted = false;
 
-    #[ORM\Column(type: 'string', length: 50, options: ['comment' => 'AWS 区域'])]
+    #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => 'AWS 区域'])]
     private string $region;
 
-    #[ORM\Column(type: 'string', length: 50, nullable: true, options: ['comment' => '资源类型'])]
+    #[ORM\Column(type: Types::STRING, length: 50, nullable: true, options: ['comment' => '资源类型'])]
     private ?string $resourceType = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true, options: ['comment' => '支持代码'])]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '支持代码'])]
     private ?string $supportCode = null;
 
-    #[ORM\Column(type: 'json', nullable: true, options: ['comment' => '标签'])]
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '标签'])]
     private ?array $tags = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => 'AWS 创建时间'])]
-    private ?\DateTimeInterface $awsCreatedAt = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => 'AWS 创建时间'])]
+    private ?\DateTimeImmutable $awsCreatedAt = null;
 
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '同步时间'])]
-    private ?\DateTimeInterface $syncTime = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '同步时间'])]
+    private ?\DateTimeImmutable $syncTime = null;
 
     #[ORM\ManyToOne(targetEntity: AwsCredential::class)]
     #[ORM\JoinColumn(nullable: false)]
@@ -180,24 +180,30 @@ class KeyPair implements \Stringable
         return $this;
     }
 
-    public function getAwsCreatedAt(): ?\DateTimeInterface
+    public function getAwsCreatedAt(): ?\DateTimeImmutable
     {
         return $this->awsCreatedAt;
     }
 
     public function setAwsCreatedAt(?\DateTimeInterface $awsCreatedAt): self
     {
+        if ($awsCreatedAt !== null && !$awsCreatedAt instanceof \DateTimeImmutable) {
+            $awsCreatedAt = \DateTimeImmutable::createFromInterface($awsCreatedAt);
+        }
         $this->awsCreatedAt = $awsCreatedAt;
         return $this;
     }
 
-    public function getSyncTime(): ?\DateTimeInterface
+    public function getSyncTime(): ?\DateTimeImmutable
     {
         return $this->syncTime;
     }
 
     public function setSyncTime(?\DateTimeInterface $syncTime): self
     {
+        if ($syncTime !== null && !$syncTime instanceof \DateTimeImmutable) {
+            $syncTime = \DateTimeImmutable::createFromInterface($syncTime);
+        }
         $this->syncTime = $syncTime;
         return $this;
     }

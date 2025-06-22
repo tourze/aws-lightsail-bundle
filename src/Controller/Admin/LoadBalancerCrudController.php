@@ -5,12 +5,10 @@ namespace AwsLightsailBundle\Controller\Admin;
 use AwsLightsailBundle\Entity\AwsCredential;
 use AwsLightsailBundle\Entity\LoadBalancer;
 use AwsLightsailBundle\Enum\LoadBalancerStatusEnum;
-use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
-use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
@@ -24,21 +22,13 @@ use EasyCorp\Bundle\EasyAdminBundle\Filter\BooleanFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\TextFilter;
-use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
 
 /**
  * Lightsail 负载均衡器管理控制器
  */
 class LoadBalancerCrudController extends AbstractCrudController
 {
-    public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly AdminUrlGenerator $adminUrlGenerator
-    ) {
-    }
 
     public static function getEntityFqcn(): string
     {
@@ -205,69 +195,5 @@ class LoadBalancerCrudController extends AbstractCrudController
             ->add(BooleanFilter::new('tlsPolicyEnabled', 'TLS 策略启用'))
             ->add(TextFilter::new('tlsCertificateName', 'TLS 证书名称'))
             ->add(EntityFilter::new('credential', 'AWS 凭证'));
-    }
-    
-    /**
-     * 同步负载均衡器状态
-     */
-    #[Route('admin/load-balancer/{entityId}/sync', name: 'sync_load_balancer')]
-    public function syncLoadBalancer(AdminContext $context): Response
-    {
-        $loadBalancer = $context->getEntity()->getInstance();
-        
-        $this->addFlash('info', sprintf('负载均衡器 %s 同步指令已发送', $loadBalancer->getName()));
-        
-        return $this->redirect($this->adminUrlGenerator
-            ->setAction(Action::INDEX)
-            ->setEntityId(null)
-            ->generateUrl());
-    }
-    
-    /**
-     * 附加实例到负载均衡器
-     */
-    #[Route('admin/load-balancer/{entityId}/attach-instance', name: 'attach_load_balancer_instance')]
-    public function attachInstance(AdminContext $context): Response
-    {
-        $loadBalancer = $context->getEntity()->getInstance();
-        
-        $this->addFlash('success', sprintf('负载均衡器 %s 附加实例指令已发送', $loadBalancer->getName()));
-        
-        return $this->redirect($this->adminUrlGenerator
-            ->setAction(Action::INDEX)
-            ->setEntityId(null)
-            ->generateUrl());
-    }
-    
-    /**
-     * 从负载均衡器分离实例
-     */
-    #[Route('admin/load-balancer/{entityId}/detach-instance', name: 'detach_load_balancer_instance')]
-    public function detachInstance(AdminContext $context): Response
-    {
-        $loadBalancer = $context->getEntity()->getInstance();
-        
-        $this->addFlash('warning', sprintf('负载均衡器 %s 分离实例指令已发送', $loadBalancer->getName()));
-        
-        return $this->redirect($this->adminUrlGenerator
-            ->setAction(Action::INDEX)
-            ->setEntityId(null)
-            ->generateUrl());
-    }
-    
-    /**
-     * 更新负载均衡器证书
-     */
-    #[Route('admin/load-balancer/{entityId}/update-certificate', name: 'update_load_balancer_certificate')]
-    public function updateCertificate(AdminContext $context): Response
-    {
-        $loadBalancer = $context->getEntity()->getInstance();
-        
-        $this->addFlash('info', sprintf('负载均衡器 %s 更新证书指令已发送', $loadBalancer->getName()));
-        
-        return $this->redirect($this->adminUrlGenerator
-            ->setAction(Action::INDEX)
-            ->setEntityId(null)
-            ->generateUrl());
     }
 } 

@@ -4,7 +4,7 @@ namespace AwsLightsailBundle\Repository;
 
 use AwsLightsailBundle\Entity\Certificate;
 use AwsLightsailBundle\Enum\CertificateStatusEnum;
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -69,7 +69,7 @@ class CertificateRepository extends ServiceEntityRepository
             ->andWhere('c.notAfter <= :expiryDate')
             ->andWhere('c.notAfter > :now')
             ->setParameter('expiryDate', $expiryDate)
-            ->setParameter('now', Carbon::now())
+            ->setParameter('now', CarbonImmutable::now())
             ->orderBy('c.notAfter', 'ASC')
             ->getQuery()
             ->getResult();

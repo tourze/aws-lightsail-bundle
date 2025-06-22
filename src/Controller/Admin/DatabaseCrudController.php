@@ -6,12 +6,10 @@ use AwsLightsailBundle\Entity\AwsCredential;
 use AwsLightsailBundle\Entity\Database;
 use AwsLightsailBundle\Enum\DatabaseEngineEnum;
 use AwsLightsailBundle\Enum\DatabaseStatusEnum;
-use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
-use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
@@ -25,21 +23,13 @@ use EasyCorp\Bundle\EasyAdminBundle\Filter\BooleanFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\TextFilter;
-use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
 
 /**
  * Lightsail 数据库管理控制器
  */
 class DatabaseCrudController extends AbstractCrudController
 {
-    public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly AdminUrlGenerator $adminUrlGenerator
-    ) {
-    }
 
     public static function getEntityFqcn(): string
     {
@@ -154,26 +144,36 @@ class DatabaseCrudController extends AbstractCrudController
     public function configureActions(Actions $actions): Actions
     {
         $syncAction = Action::new('syncDatabase', '同步')
-            ->linkToCrudAction('syncDatabase')
+            ->linkToRoute('sync_database', function (Database $database) {
+                return ['entityId' => $database->getId()];
+            })
             ->setIcon('fa fa-refresh');
             
         $startAction = Action::new('startDatabase', '启动')
-            ->linkToCrudAction('startDatabase')
+            ->linkToRoute('start_database', function (Database $database) {
+                return ['entityId' => $database->getId()];
+            })
             ->setIcon('fa fa-play')
             ->setCssClass('text-success');
             
         $stopAction = Action::new('stopDatabase', '停止')
-            ->linkToCrudAction('stopDatabase')
+            ->linkToRoute('stop_database', function (Database $database) {
+                return ['entityId' => $database->getId()];
+            })
             ->setIcon('fa fa-stop')
             ->setCssClass('text-danger');
             
         $rebootAction = Action::new('rebootDatabase', '重启')
-            ->linkToCrudAction('rebootDatabase')
+            ->linkToRoute('reboot_database', function (Database $database) {
+                return ['entityId' => $database->getId()];
+            })
             ->setIcon('fa fa-power-off')
             ->setCssClass('text-warning');
             
         $createSnapshotAction = Action::new('createSnapshot', '创建快照')
-            ->linkToCrudAction('createSnapshot')
+            ->linkToRoute('create_database_snapshot', function (Database $database) {
+                return ['entityId' => $database->getId()];
+            })
             ->setIcon('fa fa-camera')
             ->setCssClass('text-primary');
             
@@ -222,85 +222,5 @@ class DatabaseCrudController extends AbstractCrudController
             ->add(BooleanFilter::new('backupRetentionEnabled', '备份保留'))
             ->add(BooleanFilter::new('autoMinorVersionUpgrade', '自动次要版本升级'))
             ->add(EntityFilter::new('credential', 'AWS 凭证'));
-    }
-    
-    /**
-     * 同步数据库状态
-     */
-    #[Route('admin/database/{entityId}/sync', name: 'sync_database')]
-    public function syncDatabase(AdminContext $context): Response
-    {
-        $database = $context->getEntity()->getInstance();
-        
-        $this->addFlash('info', sprintf('数据库 %s 同步指令已发送', $database->getName()));
-        
-        return $this->redirect($this->adminUrlGenerator
-            ->setAction(Action::INDEX)
-            ->setEntityId(null)
-            ->generateUrl());
-    }
-    
-    /**
-     * 启动数据库
-     */
-    #[Route('admin/database/{entityId}/start', name: 'start_database')]
-    public function startDatabase(AdminContext $context): Response
-    {
-        $database = $context->getEntity()->getInstance();
-        
-        $this->addFlash('success', sprintf('数据库 %s 启动指令已发送', $database->getName()));
-        
-        return $this->redirect($this->adminUrlGenerator
-            ->setAction(Action::INDEX)
-            ->setEntityId(null)
-            ->generateUrl());
-    }
-    
-    /**
-     * 停止数据库
-     */
-    #[Route('admin/database/{entityId}/stop', name: 'stop_database')]
-    public function stopDatabase(AdminContext $context): Response
-    {
-        $database = $context->getEntity()->getInstance();
-        
-        $this->addFlash('warning', sprintf('数据库 %s 停止指令已发送', $database->getName()));
-        
-        return $this->redirect($this->adminUrlGenerator
-            ->setAction(Action::INDEX)
-            ->setEntityId(null)
-            ->generateUrl());
-    }
-    
-    /**
-     * 重启数据库
-     */
-    #[Route('admin/database/{entityId}/reboot', name: 'reboot_database')]
-    public function rebootDatabase(AdminContext $context): Response
-    {
-        $database = $context->getEntity()->getInstance();
-        
-        $this->addFlash('warning', sprintf('数据库 %s 重启指令已发送', $database->getName()));
-        
-        return $this->redirect($this->adminUrlGenerator
-            ->setAction(Action::INDEX)
-            ->setEntityId(null)
-            ->generateUrl());
-    }
-    
-    /**
-     * 创建数据库快照
-     */
-    #[Route('admin/database/{entityId}/create-snapshot', name: 'create_database_snapshot')]
-    public function createSnapshot(AdminContext $context): Response
-    {
-        $database = $context->getEntity()->getInstance();
-        
-        $this->addFlash('info', sprintf('数据库 %s 创建快照指令已发送', $database->getName()));
-        
-        return $this->redirect($this->adminUrlGenerator
-            ->setAction(Action::INDEX)
-            ->setEntityId(null)
-            ->generateUrl());
     }
 } 

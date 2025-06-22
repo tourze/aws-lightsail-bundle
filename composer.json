@@ -21,9 +21,11 @@
     "symfony/dependency-injection": "^6.4",
     "symfony/doctrine-bridge": "^6.4",
     "symfony/form": "^6.4",
+    "symfony/framework-bundle": "^6.4",
     "symfony/http-foundation": "^6.4",
     "symfony/http-kernel": "^6.4",
     "symfony/routing": "^6.4",
+    "symfony/yaml": "^6.4 || ^7.1",
     "tourze/doctrine-timestamp-bundle": "0.0.*",
     "tourze/easy-admin-menu-bundle": "0.1.*",
     "tourze/enum-extra": "0.1.*"

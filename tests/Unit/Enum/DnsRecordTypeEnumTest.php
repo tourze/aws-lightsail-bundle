@@ -208,7 +208,6 @@ final class DnsRecordTypeEnumTest extends TestCase
     {
         foreach (DnsRecordTypeEnum::cases() as $enum) {
             $label = $enum->getLabel();
-            $this->assertIsString($label);
             $this->assertNotEmpty($label);
         }
     }
