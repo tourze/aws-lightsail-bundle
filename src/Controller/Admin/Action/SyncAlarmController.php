@@ -17,7 +17,7 @@ class SyncAlarmController extends AbstractController
     ) {
     }
 
-    #[Route('/admin/alarm/{entityId}/sync', name: 'sync_alarm')]
+    #[Route(path: '/admin/alarm/{entityId}/sync', name: 'sync_alarm')]
     public function __invoke(AdminContext $context): Response
     {
         /** @var Alarm $alarm */

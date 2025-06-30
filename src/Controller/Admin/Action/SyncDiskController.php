@@ -16,7 +16,7 @@ class SyncDiskController extends AbstractController
         private readonly AdminUrlGenerator $adminUrlGenerator
     ) {}
 
-    #[Route('/admin/disk/{entityId}/sync', name: 'sync_disk')]
+    #[Route(path: '/admin/disk/{entityId}/sync', name: 'sync_disk')]
     public function __invoke(AdminContext $context): Response
     {
         /** @var Disk $disk */

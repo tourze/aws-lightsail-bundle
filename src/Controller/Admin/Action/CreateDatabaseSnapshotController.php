@@ -17,7 +17,7 @@ class CreateDatabaseSnapshotController extends AbstractController
     ) {
     }
 
-    #[Route('/admin/database/{entityId}/create-snapshot', name: 'create_database_snapshot')]
+    #[Route(path: '/admin/database/{entityId}/create-snapshot', name: 'create_database_snapshot')]
     public function __invoke(AdminContext $context): Response
     {
         /** @var Database $database */

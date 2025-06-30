@@ -17,7 +17,7 @@ class BackToDomainController extends AbstractController
         private readonly AdminUrlGenerator $adminUrlGenerator
     ) {}
 
-    #[Route('/admin/domain-entry/back-to-domain', name: 'back_to_domain_entry')]
+    #[Route(path: '/admin/domain-entry/back-to-domain', name: 'back_to_domain_entry')]
     public function __invoke(AdminContext $context): Response
     {
         // 如果是实体上下文，获取关联的域名

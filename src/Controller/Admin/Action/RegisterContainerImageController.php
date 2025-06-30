@@ -17,7 +17,7 @@ class RegisterContainerImageController extends AbstractController
     ) {
     }
 
-    #[Route('/admin/container-service/{entityId}/register-image', name: 'register_container_image')]
+    #[Route(path: '/admin/container-service/{entityId}/register-image', name: 'register_container_image')]
     public function __invoke(AdminContext $context): Response
     {
         /** @var ContainerService $service */

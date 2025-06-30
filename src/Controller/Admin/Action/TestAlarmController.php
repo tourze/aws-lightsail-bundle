@@ -17,7 +17,7 @@ class TestAlarmController extends AbstractController
     ) {
     }
 
-    #[Route('/admin/alarm/{entityId}/test', name: 'test_alarm')]
+    #[Route(path: '/admin/alarm/{entityId}/test', name: 'test_alarm')]
     public function __invoke(AdminContext $context): Response
     {
         /** @var Alarm $alarm */

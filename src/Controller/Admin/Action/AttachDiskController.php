@@ -16,7 +16,7 @@ class AttachDiskController extends AbstractController
         private readonly AdminUrlGenerator $adminUrlGenerator
     ) {}
 
-    #[Route('/admin/disk/{entityId}/attach', name: 'attach_disk')]
+    #[Route(path: '/admin/disk/{entityId}/attach', name: 'attach_disk')]
     public function __invoke(AdminContext $context): Response
     {
         /** @var Disk $disk */

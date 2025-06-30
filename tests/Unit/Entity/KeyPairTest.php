@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ChubbyphpTest\AwsLightsailBundle\Unit\Entity;
+namespace AwsLightsailBundle\Tests\Unit\Entity;
 
 use AwsLightsailBundle\Entity\AwsCredential;
 use AwsLightsailBundle\Entity\KeyPair;

@@ -7,6 +7,7 @@ use AwsLightsailBundle\Entity\Instance;
 use AwsLightsailBundle\Enum\InstanceBlueprintEnum;
 use AwsLightsailBundle\Enum\InstanceBundleEnum;
 use AwsLightsailBundle\Enum\InstanceStateEnum;
+use AwsLightsailBundle\Exception\InvalidInstanceDataException;
 use AwsLightsailBundle\Repository\InstanceRepository;
 use Carbon\CarbonImmutable;
 use Doctrine\ORM\EntityManagerInterface;
@@ -22,8 +23,7 @@ class InstanceSyncService
         private readonly InstanceRepository $instanceRepository,
         private readonly KeyPairSyncService $keyPairSyncService,
         private readonly LoggerInterface $logger,
-    ) {
-    }
+    ) {}
 
     /**
      * 从 AWS API 数据更新或创建实例
@@ -37,13 +37,13 @@ class InstanceSyncService
     {
         $instanceName = $data['name'] ?? '';
         if (empty($instanceName)) {
-            throw new \InvalidArgumentException('实例名称不能为空');
+            throw new InvalidInstanceDataException('实例名称不能为空');
         }
 
         // 获取区域信息
         $region = $data['location']['regionName'] ?? '';
         if (empty($region)) {
-            throw new \InvalidArgumentException('实例区域不能为空');
+            throw new InvalidInstanceDataException('实例区域不能为空');
         }
 
         // 查找是否已存在此实例
@@ -208,12 +208,12 @@ class InstanceSyncService
     {
         // 公网 IP 地址
         if (isset($data['publicIpAddress'])) {
-            $instance->setPublicIpAddress($data['publicIpAddress'] ?: null);
+            $instance->setPublicIpAddress($data['publicIpAddress']);
         }
 
         // 私网 IP 地址
         if (isset($data['privateIpAddress'])) {
-            $instance->setPrivateIpAddress($data['privateIpAddress'] ?: null);
+            $instance->setPrivateIpAddress($data['privateIpAddress']);
         }
 
         // IPv6 地址

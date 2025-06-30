@@ -17,7 +17,7 @@ class ExportDatabaseSnapshotController extends AbstractController
     ) {
     }
 
-    #[Route('/admin/database-snapshot/{entityId}/export', name: 'export_database_snapshot')]
+    #[Route(path: '/admin/database-snapshot/{entityId}/export', name: 'export_database_snapshot')]
     public function __invoke(AdminContext $context): Response
     {
         /** @var DatabaseSnapshot $snapshot */

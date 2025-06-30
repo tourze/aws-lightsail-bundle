@@ -17,7 +17,7 @@ class SyncContainerServiceController extends AbstractController
     ) {
     }
 
-    #[Route('/admin/container-service/{entityId}/sync', name: 'sync_container_service')]
+    #[Route(path: '/admin/container-service/{entityId}/sync', name: 'sync_container_service')]
     public function __invoke(AdminContext $context): Response
     {
         /** @var ContainerService $service */

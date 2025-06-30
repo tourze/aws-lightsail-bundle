@@ -4,6 +4,7 @@ namespace AwsLightsailBundle\Service;
 
 use AwsLightsailBundle\Entity\AwsCredential;
 use AwsLightsailBundle\Entity\KeyPair;
+use AwsLightsailBundle\Exception\InvalidKeyPairDataException;
 use AwsLightsailBundle\Repository\KeyPairRepository;
 use Carbon\CarbonImmutable;
 use Doctrine\ORM\EntityManagerInterface;
@@ -33,13 +34,13 @@ class KeyPairSyncService
     {
         $keyPairName = $data['name'] ?? '';
         if (empty($keyPairName)) {
-            throw new \InvalidArgumentException('密钥对名称不能为空');
+            throw new InvalidKeyPairDataException('密钥对名称不能为空');
         }
 
         // 从 location 获取区域信息
         $region = $data['location']['regionName'] ?? '';
         if (empty($region)) {
-            throw new \InvalidArgumentException('密钥对区域不能为空');
+            throw new InvalidKeyPairDataException('密钥对区域不能为空');
         }
 
         // 查找是否已存在此密钥对

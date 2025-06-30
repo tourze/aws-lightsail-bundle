@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ChubbyphpTest\AwsLightsailBundle\Unit\Enum;
+namespace AwsLightsailBundle\Tests\Unit\Enum;
 
 use AwsLightsailBundle\Enum\InstanceBundleEnum;
 use PHPUnit\Framework\TestCase;

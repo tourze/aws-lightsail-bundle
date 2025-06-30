@@ -17,7 +17,7 @@ class ExportCertificateController extends AbstractController
     ) {
     }
 
-    #[Route('/admin/certificate/{entityId}/export', name: 'export_certificate')]
+    #[Route(path: '/admin/certificate/{entityId}/export', name: 'export_certificate')]
     public function __invoke(AdminContext $context): Response
     {
         /** @var Certificate $certificate */

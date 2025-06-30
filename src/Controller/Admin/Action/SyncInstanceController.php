@@ -16,7 +16,7 @@ class SyncInstanceController extends AbstractController
         private readonly AdminUrlGenerator $adminUrlGenerator
     ) {}
 
-    #[Route('/admin/instance/{entityId}/sync', name: 'sync_instance')]
+    #[Route(path: '/admin/instance/{entityId}/sync', name: 'sync_instance')]
     public function __invoke(AdminContext $context): Response
     {
         /** @var Instance $instance */

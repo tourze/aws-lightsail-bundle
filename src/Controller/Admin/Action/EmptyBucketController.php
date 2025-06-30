@@ -17,7 +17,7 @@ class EmptyBucketController extends AbstractController
     ) {
     }
 
-    #[Route('/admin/bucket/{entityId}/empty', name: 'empty_bucket')]
+    #[Route(path: '/admin/bucket/{entityId}/empty', name: 'empty_bucket')]
     public function __invoke(AdminContext $context): Response
     {
         /** @var Bucket $bucket */

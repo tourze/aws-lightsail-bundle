@@ -16,7 +16,7 @@ class SyncDomainEntryController extends AbstractController
         private readonly AdminUrlGenerator $adminUrlGenerator
     ) {}
 
-    #[Route('/admin/domain-entry/{entityId}/sync', name: 'sync_domain_entry')]
+    #[Route(path: '/admin/domain-entry/{entityId}/sync', name: 'sync_domain_entry')]
     public function __invoke(AdminContext $context): Response
     {
         /** @var DomainEntry $entry */

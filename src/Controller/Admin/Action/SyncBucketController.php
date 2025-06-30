@@ -17,7 +17,7 @@ class SyncBucketController extends AbstractController
     ) {
     }
 
-    #[Route('/admin/bucket/{entityId}/sync', name: 'sync_bucket')]
+    #[Route(path: '/admin/bucket/{entityId}/sync', name: 'sync_bucket')]
     public function __invoke(AdminContext $context): Response
     {
         /** @var Bucket $bucket */

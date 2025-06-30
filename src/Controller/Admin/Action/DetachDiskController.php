@@ -16,7 +16,7 @@ class DetachDiskController extends AbstractController
         private readonly AdminUrlGenerator $adminUrlGenerator
     ) {}
 
-    #[Route('/admin/disk/{entityId}/detach', name: 'detach_disk')]
+    #[Route(path: '/admin/disk/{entityId}/detach', name: 'detach_disk')]
     public function __invoke(AdminContext $context): Response
     {
         /** @var Disk $disk */

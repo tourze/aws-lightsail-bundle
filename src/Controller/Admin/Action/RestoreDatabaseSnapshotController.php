@@ -17,7 +17,7 @@ class RestoreDatabaseSnapshotController extends AbstractController
     ) {
     }
 
-    #[Route('/admin/database-snapshot/{entityId}/restore', name: 'restore_database_snapshot')]
+    #[Route(path: '/admin/database-snapshot/{entityId}/restore', name: 'restore_database_snapshot')]
     public function __invoke(AdminContext $context): Response
     {
         /** @var DatabaseSnapshot $snapshot */

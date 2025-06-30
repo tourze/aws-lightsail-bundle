@@ -17,7 +17,7 @@ class SyncDatabaseSnapshotController extends AbstractController
     ) {
     }
 
-    #[Route('/admin/database-snapshot/{entityId}/sync', name: 'sync_database_snapshot')]
+    #[Route(path: '/admin/database-snapshot/{entityId}/sync', name: 'sync_database_snapshot')]
     public function __invoke(AdminContext $context): Response
     {
         /** @var DatabaseSnapshot $snapshot */

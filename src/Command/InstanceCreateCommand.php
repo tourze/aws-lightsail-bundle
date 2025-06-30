@@ -95,8 +95,8 @@ class InstanceCreateCommand extends Command
                 ['区域', $region],
                 ['蓝图', $blueprint],
                 ['套餐', $bundle],
-                ['可用区', $availabilityZone ?: '默认'],
-                ['密钥对', $keyPairName ?: '无'],
+                ['可用区', $availabilityZone ?? '默认'],
+                ['密钥对', $keyPairName ?? '无'],
                 ['标签', !empty($tags) ? json_encode($tags) : '无'],
                 ['用户数据', ($userData !== null && $userData !== '') ? '已设置' : '无'],
             ]

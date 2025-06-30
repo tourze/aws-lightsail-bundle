@@ -17,7 +17,7 @@ class RebootDatabaseController extends AbstractController
     ) {
     }
 
-    #[Route('/admin/database/{entityId}/reboot', name: 'reboot_database')]
+    #[Route(path: '/admin/database/{entityId}/reboot', name: 'reboot_database')]
     public function __invoke(AdminContext $context): Response
     {
         /** @var Database $database */

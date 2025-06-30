@@ -17,7 +17,7 @@ class SyncDatabaseController extends AbstractController
     ) {
     }
 
-    #[Route('/admin/database/{entityId}/sync', name: 'sync_database')]
+    #[Route(path: '/admin/database/{entityId}/sync', name: 'sync_database')]
     public function __invoke(AdminContext $context): Response
     {
         /** @var Database $database */

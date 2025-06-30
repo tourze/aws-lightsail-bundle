@@ -17,7 +17,7 @@ class SyncContactMethodController extends AbstractController
     ) {
     }
 
-    #[Route('/admin/contact-method/{entityId}/sync', name: 'sync_contact_method')]
+    #[Route(path: '/admin/contact-method/{entityId}/sync', name: 'sync_contact_method')]
     public function __invoke(AdminContext $context): Response
     {
         /** @var ContactMethod $contactMethod */

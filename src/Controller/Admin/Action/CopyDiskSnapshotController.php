@@ -16,7 +16,7 @@ class CopyDiskSnapshotController extends AbstractController
         private readonly AdminUrlGenerator $adminUrlGenerator
     ) {}
 
-    #[Route('/admin/disk-snapshot/{entityId}/copy', name: 'copy_disk_snapshot')]
+    #[Route(path: '/admin/disk-snapshot/{entityId}/copy', name: 'copy_disk_snapshot')]
     public function __invoke(AdminContext $context): Response
     {
         /** @var DiskSnapshot $snapshot */

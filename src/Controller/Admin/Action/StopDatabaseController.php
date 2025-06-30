@@ -17,7 +17,7 @@ class StopDatabaseController extends AbstractController
     ) {
     }
 
-    #[Route('/admin/database/{entityId}/stop', name: 'stop_database')]
+    #[Route(path: '/admin/database/{entityId}/stop', name: 'stop_database')]
     public function __invoke(AdminContext $context): Response
     {
         /** @var Database $database */

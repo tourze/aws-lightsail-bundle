@@ -17,7 +17,7 @@ class VerifyContactMethodController extends AbstractController
     ) {
     }
 
-    #[Route('/admin/contact-method/{entityId}/verify', name: 'verify_contact_method')]
+    #[Route(path: '/admin/contact-method/{entityId}/verify', name: 'verify_contact_method')]
     public function __invoke(AdminContext $context): Response
     {
         /** @var ContactMethod $contactMethod */

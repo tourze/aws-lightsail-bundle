@@ -19,7 +19,7 @@ class ToggleAlarmNotificationController extends AbstractController
     ) {
     }
 
-    #[Route('/admin/alarm/{entityId}/toggle-notification', name: 'toggle_alarm_notification')]
+    #[Route(path: '/admin/alarm/{entityId}/toggle-notification', name: 'toggle_alarm_notification')]
     public function __invoke(AdminContext $context): Response
     {
         /** @var Alarm $alarm */

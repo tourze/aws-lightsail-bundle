@@ -17,7 +17,7 @@ class DeployContainerServiceController extends AbstractController
     ) {
     }
 
-    #[Route('/admin/container-service/{entityId}/deploy', name: 'deploy_container_service')]
+    #[Route(path: '/admin/container-service/{entityId}/deploy', name: 'deploy_container_service')]
     public function __invoke(AdminContext $context): Response
     {
         /** @var ContainerService $service */

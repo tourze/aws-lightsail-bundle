@@ -17,7 +17,7 @@ class RestartContainerServiceController extends AbstractController
     ) {
     }
 
-    #[Route('/admin/container-service/{entityId}/restart', name: 'restart_container_service')]
+    #[Route(path: '/admin/container-service/{entityId}/restart', name: 'restart_container_service')]
     public function __invoke(AdminContext $context): Response
     {
         /** @var ContainerService $service */

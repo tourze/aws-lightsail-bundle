@@ -17,7 +17,7 @@ class SyncCertificateController extends AbstractController
     ) {
     }
 
-    #[Route('/admin/certificate/{entityId}/sync', name: 'sync_certificate')]
+    #[Route(path: '/admin/certificate/{entityId}/sync', name: 'sync_certificate')]
     public function __invoke(AdminContext $context): Response
     {
         /** @var Certificate $certificate */

@@ -17,7 +17,7 @@ class ValidateCertificateController extends AbstractController
     ) {
     }
 
-    #[Route('/admin/certificate/{entityId}/validate', name: 'validate_certificate')]
+    #[Route(path: '/admin/certificate/{entityId}/validate', name: 'validate_certificate')]
     public function __invoke(AdminContext $context): Response
     {
         /** @var Certificate $certificate */
