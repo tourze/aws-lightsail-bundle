@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Service;
 
 use AwsLightsailBundle\Entity\Alarm;
@@ -14,6 +16,7 @@ use AwsLightsailBundle\Entity\Disk;
 use AwsLightsailBundle\Entity\DiskSnapshot;
 use AwsLightsailBundle\Entity\Distribution;
 use AwsLightsailBundle\Entity\Domain;
+use AwsLightsailBundle\Entity\DomainEntry;
 use AwsLightsailBundle\Entity\Instance;
 use AwsLightsailBundle\Entity\KeyPair;
 use AwsLightsailBundle\Entity\LoadBalancer;
@@ -27,22 +30,26 @@ use Tourze\EasyAdminMenuBundle\Service\MenuProviderInterface;
 /**
  * AWS Lightsail 菜单服务
  */
-class AdminMenu implements MenuProviderInterface
+readonly class AdminMenu implements MenuProviderInterface
 {
     public function __construct(
-        private readonly LinkGeneratorInterface $linkGenerator,
+        private LinkGeneratorInterface $linkGenerator,
     ) {
     }
 
     public function __invoke(ItemInterface $item): void
     {
         // 创建主菜单项 AWS Lightsail
-        if ($item->getChild('AWS Lightsail') === null) {
+        if (null === $item->getChild('AWS Lightsail')) {
             $item->addChild('AWS Lightsail')
-                ->setAttribute('icon', 'fa fa-cloud');
+                ->setAttribute('icon', 'fa fa-cloud')
+            ;
         }
 
         $awsMenu = $item->getChild('AWS Lightsail');
+        if (null === $awsMenu) {
+            return;
+        }
 
         $awsMenu->addChild('AWS 凭证')->setUri($this->linkGenerator->getCurdListPage(AwsCredential::class))->setAttribute('icon', 'fa fa-key');
         $awsMenu->addChild('实例')->setUri($this->linkGenerator->getCurdListPage(Instance::class))->setAttribute('icon', 'fa fa-server');
@@ -53,6 +60,7 @@ class AdminMenu implements MenuProviderInterface
         $awsMenu->addChild('磁盘快照')->setUri($this->linkGenerator->getCurdListPage(DiskSnapshot::class))->setAttribute('icon', 'fa fa-camera');
         $awsMenu->addChild('存储桶')->setUri($this->linkGenerator->getCurdListPage(Bucket::class))->setAttribute('icon', 'fa fa-database');
         $awsMenu->addChild('域名')->setUri($this->linkGenerator->getCurdListPage(Domain::class))->setAttribute('icon', 'fa fa-globe');
+        $awsMenu->addChild('域名条目')->setUri($this->linkGenerator->getCurdListPage(DomainEntry::class))->setAttribute('icon', 'fa fa-dns');
         $awsMenu->addChild('CDN分发')->setUri($this->linkGenerator->getCurdListPage(Distribution::class))->setAttribute('icon', 'fa fa-sitemap');
         $awsMenu->addChild('负载均衡器')->setUri($this->linkGenerator->getCurdListPage(LoadBalancer::class))->setAttribute('icon', 'fa fa-balance-scale');
         $awsMenu->addChild('证书')->setUri($this->linkGenerator->getCurdListPage(Certificate::class))->setAttribute('icon', 'fa fa-certificate');

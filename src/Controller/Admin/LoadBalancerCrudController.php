@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Controller\Admin;
 
 use AwsLightsailBundle\Entity\AwsCredential;
 use AwsLightsailBundle\Entity\LoadBalancer;
 use AwsLightsailBundle\Enum\LoadBalancerStatusEnum;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminCrud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
@@ -26,10 +29,15 @@ use Symfony\Component\Form\Extension\Core\Type\EnumType;
 
 /**
  * Lightsail 负载均衡器管理控制器
+ *
+ * @extends AbstractCrudController<LoadBalancer>
  */
-class LoadBalancerCrudController extends AbstractCrudController
+#[AdminCrud(
+    routePath: '/aws-lightsail/load-balancer',
+    routeName: 'aws_lightsail_load_balancer'
+)]
+final class LoadBalancerCrudController extends AbstractCrudController
 {
-
     public static function getEntityFqcn(): string
     {
         return LoadBalancer::class;
@@ -42,125 +50,151 @@ class LoadBalancerCrudController extends AbstractCrudController
             ->setEntityLabelInPlural('负载均衡器列表')
             ->setPageTitle('index', 'Lightsail 负载均衡器管理')
             ->setPageTitle('new', '创建负载均衡器')
-            ->setPageTitle('edit', fn (LoadBalancer $loadBalancer) => sprintf('编辑负载均衡器: %s', $loadBalancer->getName()))
-            ->setPageTitle('detail', fn (LoadBalancer $loadBalancer) => sprintf('负载均衡器详情: %s', $loadBalancer->getName()))
+            ->setPageTitle('edit', fn (LoadBalancer $loadBalancer) => \sprintf('编辑负载均衡器: %s', $loadBalancer->getName()))
+            ->setPageTitle('detail', fn (LoadBalancer $loadBalancer) => \sprintf('负载均衡器详情: %s', $loadBalancer->getName()))
             ->setSearchFields(['name', 'dnsName', 'region'])
-            ->setDefaultSort(['name' => 'ASC']);
+            ->setDefaultSort(['name' => 'ASC'])
+        ;
     }
 
     public function configureFields(string $pageName): iterable
     {
         yield IdField::new('id', 'ID')
             ->hideOnForm()
-            ->setMaxLength(9999);
-            
+            ->setMaxLength(9999)
+        ;
+
         yield TextField::new('name', '负载均衡器名称');
-            
+
         yield TextField::new('arn', 'AWS ARN')
             ->hideOnForm()
-            ->hideOnIndex();
-            
+            ->hideOnIndex()
+        ;
+
         yield TextField::new('dnsName', 'DNS 名称')
-            ->setHelp('负载均衡器的 DNS 名称');
-            
+            ->setHelp('负载均衡器的 DNS 名称')
+        ;
+
         yield TextField::new('region', '区域');
-            
+
         yield IntegerField::new('healthCheckPort', '健康检查端口');
-            
+
         yield TextField::new('healthCheckProtocol', '健康检查协议')
-            ->hideOnIndex();
-            
+            ->hideOnIndex()
+        ;
+
         yield TextField::new('healthCheckPath', '健康检查路径')
-            ->hideOnIndex();
-            
+            ->hideOnIndex()
+        ;
+
         yield IntegerField::new('healthCheckIntervalSeconds', '健康检查间隔(秒)')
-            ->hideOnIndex();
-            
+            ->hideOnIndex()
+        ;
+
         yield IntegerField::new('healthCheckTimeoutSeconds', '健康检查超时(秒)')
-            ->hideOnIndex();
-            
+            ->hideOnIndex()
+        ;
+
         yield IntegerField::new('healthyThreshold', '健康阈值')
-            ->hideOnIndex();
-            
+            ->hideOnIndex()
+        ;
+
         yield IntegerField::new('unhealthyThreshold', '不健康阈值')
-            ->hideOnIndex();
-            
+            ->hideOnIndex()
+        ;
+
         yield ChoiceField::new('status', '状态')
             ->setFormType(EnumType::class)
             ->setFormTypeOptions([
-                'class' => LoadBalancerStatusEnum::class
+                'class' => LoadBalancerStatusEnum::class,
             ])
             ->formatValue(function ($value) {
                 return $value instanceof LoadBalancerStatusEnum ? $value->getLabel() : '';
-            });
-            
+            })
+        ;
+
         yield BooleanField::new('tlsPolicyEnabled', 'TLS 策略启用')
-            ->renderAsSwitch(true);
-            
+            ->renderAsSwitch(true)
+        ;
+
         yield TextField::new('tlsCertificateName', 'TLS 证书名称')
-            ->hideOnIndex();
-            
+            ->hideOnIndex()
+        ;
+
         yield CodeEditorField::new('instanceHealthSummary', '实例健康摘要')
             ->hideOnIndex()
             ->formatValue(function ($value) {
-                return $value ? json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : '[]';
-            });
-            
+                return $value ? \json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : '[]';
+            })
+        ;
+
         yield CodeEditorField::new('tags', '标签')
             ->hideOnForm()
             ->hideOnIndex()
             ->formatValue(function ($value) {
-                return $value ? json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : '{}';
-            });
-            
+                return $value ? \json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : '{}';
+            })
+        ;
+
         yield CodeEditorField::new('attachedInstances', '已附加实例')
             ->hideOnIndex()
             ->formatValue(function ($value) {
-                return json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-            });
-            
+                return \json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+            })
+        ;
+
         yield BooleanField::new('configurationOptions', '配置选项')
-            ->renderAsSwitch(true);
-            
+            ->renderAsSwitch(true)
+        ;
+
         yield AssociationField::new('credential', 'AWS 凭证')
-            ->setFormTypeOption('disabled', $pageName !== Crud::PAGE_NEW)
+            ->setFormTypeOption('disabled', Crud::PAGE_NEW !== $pageName)
             ->formatValue(function ($value) {
                 return $value instanceof AwsCredential ? $value->getName() : '';
-            });
-            
+            })
+        ;
+
         yield DateTimeField::new('createTime', '创建时间')
-            ->hideOnForm();
-            
+            ->hideOnForm()
+        ;
+
         yield DateTimeField::new('syncTime', '同步时间')
-            ->hideOnForm();
-            
+            ->hideOnForm()
+        ;
+
         yield DateTimeField::new('updateTime', '更新时间')
-            ->hideOnForm();
+            ->hideOnForm()
+        ;
     }
 
     public function configureActions(Actions $actions): Actions
     {
         $syncAction = Action::new('syncLoadBalancer', '同步')
             ->linkToCrudAction('syncLoadBalancer')
-            ->setIcon('fa fa-refresh');
-            
+            ->setIcon('fa fa-refresh')
+        ;
+
         $attachAction = Action::new('attachInstance', '附加实例')
             ->linkToCrudAction('attachInstance')
             ->setIcon('fa fa-link')
-            ->setCssClass('text-success');
-            
+            ->setCssClass('text-success')
+        ;
+
         $detachAction = Action::new('detachInstance', '分离实例')
             ->linkToCrudAction('detachInstance')
             ->setIcon('fa fa-unlink')
-            ->setCssClass('text-danger');
-            
+            ->setCssClass('text-danger')
+        ;
+
         $updateCertAction = Action::new('updateCertificate', '更新证书')
             ->linkToCrudAction('updateCertificate')
             ->setIcon('fa fa-certificate')
-            ->setCssClass('text-primary');
-            
+            ->setCssClass('text-primary')
+        ;
+
         return $actions
-            ->add(Crud::PAGE_INDEX, Action::DETAIL)
+            ->set(Crud::PAGE_INDEX, Action::DELETE)
+            ->set(Crud::PAGE_INDEX, Action::DETAIL)
             ->add(Crud::PAGE_INDEX, $syncAction)
             ->add(Crud::PAGE_INDEX, $attachAction)
             ->add(Crud::PAGE_INDEX, $detachAction)
@@ -177,16 +211,17 @@ class LoadBalancerCrudController extends AbstractCrudController
             })
             ->update(Crud::PAGE_INDEX, Action::DETAIL, function (Action $action) {
                 return $action->setIcon('fa fa-eye')->setLabel('查看');
-            });
+            })
+        ;
     }
-    
+
     public function configureFilters(Filters $filters): Filters
     {
         $statusChoices = [];
         foreach (LoadBalancerStatusEnum::cases() as $case) {
             $statusChoices[$case->getLabel()] = $case->value;
         }
-        
+
         return $filters
             ->add(TextFilter::new('name', '负载均衡器名称'))
             ->add(TextFilter::new('dnsName', 'DNS 名称'))
@@ -194,6 +229,7 @@ class LoadBalancerCrudController extends AbstractCrudController
             ->add(ChoiceFilter::new('status', '状态')->setChoices($statusChoices))
             ->add(BooleanFilter::new('tlsPolicyEnabled', 'TLS 策略启用'))
             ->add(TextFilter::new('tlsCertificateName', 'TLS 证书名称'))
-            ->add(EntityFilter::new('credential', 'AWS 凭证'));
+            ->add(EntityFilter::new('credential', 'AWS 凭证'))
+        ;
     }
-} 
+}

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Enum;
 
 use Tourze\EnumExtra\Itemable;
@@ -17,16 +19,15 @@ enum SnapshotTypeEnum: string implements Labelable, Itemable, Selectable
 {
     use ItemTrait;
     use SelectTrait;
-
     case INSTANCE = 'instance';
-    case DISK = 'disk';
+    case DISK     = 'disk';
     case DATABASE = 'database';
 
     public function getLabel(): string
     {
         return match ($this) {
             self::INSTANCE => '实例快照',
-            self::DISK => '磁盘快照',
+            self::DISK     => '磁盘快照',
             self::DATABASE => '数据库快照',
         };
     }

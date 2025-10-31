@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Controller\Admin\Action;
 
 use AwsLightsailBundle\Entity\Disk;
@@ -7,22 +9,25 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-class SyncDiskController extends AbstractController
+#[Autoconfigure(public: true)]
+final class SyncDiskController extends AbstractController
 {
     public function __construct(
-        private readonly AdminUrlGenerator $adminUrlGenerator
-    ) {}
+        private readonly AdminUrlGenerator $adminUrlGenerator,
+    ) {
+    }
 
-    #[Route(path: '/admin/disk/{entityId}/sync', name: 'sync_disk')]
+    #[Route(path: '/admin/disk/{entityId}/sync', name: 'sync_disk', methods: ['POST'])]
     public function __invoke(AdminContext $context): Response
     {
-        /** @var Disk $disk */
         $disk = $context->getEntity()->getInstance();
+        \assert($disk instanceof Disk);
 
-        $this->addFlash('info', sprintf('磁盘 %s 同步指令已发送', $disk->getName()));
+        $this->addFlash('info', \sprintf('磁盘 %s 同步指令已发送', $disk->getName()));
 
         return $this->redirect($this->adminUrlGenerator
             ->setAction(Action::INDEX)

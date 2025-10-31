@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Entity;
 
 use AwsLightsailBundle\Enum\DnsRecordTypeEnum;
 use AwsLightsailBundle\Repository\DomainEntryRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 #[ORM\Entity(repositoryClass: DomainEntryRepository::class)]
@@ -20,35 +23,45 @@ class DomainEntry implements \Stringable
     private ?int $id = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '记录名称'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $name;
 
     #[ORM\Column(type: Types::STRING, length: 50, enumType: DnsRecordTypeEnum::class, options: ['comment' => '记录类型'])]
+    #[Assert\Choice(callback: [DnsRecordTypeEnum::class, 'cases'])]
+    #[Assert\NotBlank]
     private DnsRecordTypeEnum $type;
 
     #[ORM\Column(type: Types::TEXT, options: ['comment' => '记录值'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 65535)]
     private string $value;
 
     #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['comment' => 'TTL'])]
+    #[Assert\Type(type: 'int')]
+    #[Assert\PositiveOrZero]
     private ?int $ttl = null;
 
     #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否为别名'])]
+    #[Assert\Type(type: 'bool')]
     private bool $isAlias = false;
 
     #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['comment' => '优先级'])]
+    #[Assert\Type(type: 'int')]
+    #[Assert\PositiveOrZero]
     private ?int $priority = null;
 
     #[ORM\ManyToOne(targetEntity: Domain::class, inversedBy: 'entries')]
     #[ORM\JoinColumn(nullable: false)]
     private Domain $domain;
 
-
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '同步时间'])]
+    #[Assert\Type(type: '\DateTimeInterface')]
     private ?\DateTimeImmutable $syncTime = null;
-
 
     public function __toString(): string
     {
-        return sprintf('DomainEntry %s (%s)', $this->name, $this->type->value);
+        return \sprintf('DomainEntry %s (%s)', $this->name, $this->type->value);
     }
 
     public function getId(): ?int
@@ -61,10 +74,9 @@ class DomainEntry implements \Stringable
         return $this->name;
     }
 
-    public function setName(string $name): self
+    public function setName(string $name): void
     {
         $this->name = $name;
-        return $this;
     }
 
     public function getType(): DnsRecordTypeEnum
@@ -72,10 +84,9 @@ class DomainEntry implements \Stringable
         return $this->type;
     }
 
-    public function setType(DnsRecordTypeEnum $type): self
+    public function setType(DnsRecordTypeEnum $type): void
     {
         $this->type = $type;
-        return $this;
     }
 
     public function getValue(): string
@@ -83,10 +94,9 @@ class DomainEntry implements \Stringable
         return $this->value;
     }
 
-    public function setValue(string $value): self
+    public function setValue(string $value): void
     {
         $this->value = $value;
-        return $this;
     }
 
     public function getTtl(): ?int
@@ -94,10 +104,9 @@ class DomainEntry implements \Stringable
         return $this->ttl;
     }
 
-    public function setTtl(?int $ttl): self
+    public function setTtl(?int $ttl): void
     {
         $this->ttl = $ttl;
-        return $this;
     }
 
     public function isAlias(): bool
@@ -105,10 +114,9 @@ class DomainEntry implements \Stringable
         return $this->isAlias;
     }
 
-    public function setIsAlias(bool $isAlias): self
+    public function setIsAlias(bool $isAlias): void
     {
         $this->isAlias = $isAlias;
-        return $this;
     }
 
     public function getPriority(): ?int
@@ -116,10 +124,9 @@ class DomainEntry implements \Stringable
         return $this->priority;
     }
 
-    public function setPriority(?int $priority): self
+    public function setPriority(?int $priority): void
     {
         $this->priority = $priority;
-        return $this;
     }
 
     public function getDomain(): Domain
@@ -127,10 +134,9 @@ class DomainEntry implements \Stringable
         return $this->domain;
     }
 
-    public function setDomain(?Domain $domain): self
+    public function setDomain(Domain $domain): void
     {
         $this->domain = $domain;
-        return $this;
     }
 
     public function getSyncTime(): ?\DateTimeImmutable
@@ -138,12 +144,11 @@ class DomainEntry implements \Stringable
         return $this->syncTime;
     }
 
-    public function setSyncTime(?\DateTimeInterface $syncTime): self
+    public function setSyncTime(?\DateTimeInterface $syncTime): void
     {
-        if ($syncTime !== null && !$syncTime instanceof \DateTimeImmutable) {
+        if (null !== $syncTime && !$syncTime instanceof \DateTimeImmutable) {
             $syncTime = \DateTimeImmutable::createFromInterface($syncTime);
         }
         $this->syncTime = $syncTime;
-        return $this;
     }
 }

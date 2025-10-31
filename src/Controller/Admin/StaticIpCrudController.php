@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Controller\Admin;
 
 use AwsLightsailBundle\Entity\AwsCredential;
 use AwsLightsailBundle\Entity\StaticIp;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminCrud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
@@ -20,10 +23,15 @@ use EasyCorp\Bundle\EasyAdminBundle\Filter\TextFilter;
 
 /**
  * Lightsail 静态 IP 管理控制器
+ *
+ * @extends AbstractCrudController<StaticIp>
  */
-class StaticIpCrudController extends AbstractCrudController
+#[AdminCrud(
+    routePath: '/aws-lightsail/static-ip',
+    routeName: 'aws_lightsail_static_ip'
+)]
+final class StaticIpCrudController extends AbstractCrudController
 {
-
     public static function getEntityFqcn(): string
     {
         return StaticIp::class;
@@ -36,70 +44,83 @@ class StaticIpCrudController extends AbstractCrudController
             ->setEntityLabelInPlural('静态 IP 列表')
             ->setPageTitle('index', 'Lightsail 静态 IP 管理')
             ->setPageTitle('new', '创建静态 IP')
-            ->setPageTitle('edit', fn (StaticIp $staticIp) => sprintf('编辑静态 IP: %s', $staticIp->getName()))
-            ->setPageTitle('detail', fn (StaticIp $staticIp) => sprintf('静态 IP 详情: %s', $staticIp->getName()))
+            ->setPageTitle('edit', fn (StaticIp $staticIp) => \sprintf('编辑静态 IP: %s', $staticIp->getName()))
+            ->setPageTitle('detail', fn (StaticIp $staticIp) => \sprintf('静态 IP 详情: %s', $staticIp->getName()))
             ->setSearchFields(['name', 'ipAddress', 'attachedTo', 'region'])
-            ->setDefaultSort(['name' => 'ASC']);
+            ->setDefaultSort(['name' => 'ASC'])
+        ;
     }
 
     public function configureFields(string $pageName): iterable
     {
         yield IdField::new('id', 'ID')
             ->hideOnForm()
-            ->setMaxLength(9999);
-            
+            ->setMaxLength(9999)
+        ;
+
         yield TextField::new('name', '名称');
-            
+
         yield TextField::new('arn', 'AWS ARN')
             ->hideOnForm()
-            ->hideOnIndex();
-            
+            ->hideOnIndex()
+        ;
+
         yield TextField::new('ipAddress', 'IP 地址');
-            
+
         yield TextField::new('attachedTo', '附加到')
             ->setHelp('静态 IP 附加到的实例名称')
-            ->setFormTypeOption('disabled', true);
-            
+            ->setFormTypeOption('disabled', true)
+        ;
+
         yield BooleanField::new('isAttached', '是否已附加')
             ->renderAsSwitch(false)
-            ->setFormTypeOption('disabled', true);
-            
+            ->setFormTypeOption('disabled', true)
+        ;
+
         yield TextField::new('region', '区域');
-            
+
         yield AssociationField::new('credential', 'AWS 凭证')
-            ->setFormTypeOption('disabled', $pageName !== Crud::PAGE_NEW)
+            ->setFormTypeOption('disabled', Crud::PAGE_NEW !== $pageName)
             ->formatValue(function ($value) {
                 return $value instanceof AwsCredential ? $value->getName() : '';
-            });
-            
+            })
+        ;
+
         yield DateTimeField::new('createTime', '创建时间')
-            ->hideOnForm();
-            
+            ->hideOnForm()
+        ;
+
         yield DateTimeField::new('syncTime', '同步时间')
-            ->hideOnForm();
-            
+            ->hideOnForm()
+        ;
+
         yield DateTimeField::new('updateTime', '更新时间')
-            ->hideOnForm();
+            ->hideOnForm()
+        ;
     }
 
     public function configureActions(Actions $actions): Actions
     {
         $syncAction = Action::new('syncStaticIp', '同步')
             ->linkToCrudAction('syncStaticIp')
-            ->setIcon('fa fa-refresh');
-            
+            ->setIcon('fa fa-refresh')
+        ;
+
         $attachAction = Action::new('attachStaticIp', '附加到实例')
             ->linkToCrudAction('attachStaticIp')
             ->setIcon('fa fa-link')
-            ->setCssClass('text-success');
-            
+            ->setCssClass('text-success')
+        ;
+
         $detachAction = Action::new('detachStaticIp', '分离')
             ->linkToCrudAction('detachStaticIp')
             ->setIcon('fa fa-unlink')
-            ->setCssClass('text-warning');
-            
+            ->setCssClass('text-warning')
+        ;
+
         return $actions
-            ->add(Crud::PAGE_INDEX, Action::DETAIL)
+            ->set(Crud::PAGE_INDEX, Action::DELETE)
+            ->set(Crud::PAGE_INDEX, Action::DETAIL)
             ->add(Crud::PAGE_INDEX, $syncAction)
             ->add(Crud::PAGE_INDEX, $attachAction)
             ->add(Crud::PAGE_INDEX, $detachAction)
@@ -114,9 +135,10 @@ class StaticIpCrudController extends AbstractCrudController
             })
             ->update(Crud::PAGE_INDEX, Action::DETAIL, function (Action $action) {
                 return $action->setIcon('fa fa-eye')->setLabel('查看');
-            });
+            })
+        ;
     }
-    
+
     public function configureFilters(Filters $filters): Filters
     {
         return $filters
@@ -125,6 +147,7 @@ class StaticIpCrudController extends AbstractCrudController
             ->add(TextFilter::new('attachedTo', '附加到'))
             ->add(TextFilter::new('region', '区域'))
             ->add(BooleanFilter::new('isAttached', '是否已附加'))
-            ->add(EntityFilter::new('credential', 'AWS 凭证'));
+            ->add(EntityFilter::new('credential', 'AWS 凭证'))
+        ;
     }
-} 
+}

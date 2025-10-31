@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Enum;
 
 use Tourze\EnumExtra\Itemable;
@@ -17,17 +19,16 @@ enum ContactMethodStatusEnum: string implements Labelable, Itemable, Selectable
 {
     use ItemTrait;
     use SelectTrait;
-
     case VERIFIED = 'Verified';
-    case PENDING = 'Pending';
-    case FAILED = 'Failed';
+    case PENDING  = 'Pending';
+    case FAILED   = 'Failed';
 
     public function getLabel(): string
     {
         return match ($this) {
             self::VERIFIED => '已验证',
-            self::PENDING => '等待验证',
-            self::FAILED => '验证失败',
+            self::PENDING  => '等待验证',
+            self::FAILED   => '验证失败',
         };
     }
 }

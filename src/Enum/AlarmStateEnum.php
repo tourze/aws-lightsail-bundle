@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Enum;
 
 use Tourze\EnumExtra\Itemable;
@@ -17,19 +19,18 @@ enum AlarmStateEnum: string implements Labelable, Itemable, Selectable
 {
     use ItemTrait;
     use SelectTrait;
-
-    case OK = 'OK';
-    case ALARM = 'ALARM';
+    case OK                = 'OK';
+    case ALARM             = 'ALARM';
     case INSUFFICIENT_DATA = 'INSUFFICIENT_DATA';
-    case UNKNOWN = 'UNKNOWN';
+    case UNKNOWN           = 'UNKNOWN';
 
     public function getLabel(): string
     {
         return match ($this) {
-            self::OK => '正常',
-            self::ALARM => '告警',
+            self::OK                => '正常',
+            self::ALARM             => '告警',
             self::INSUFFICIENT_DATA => '数据不足',
-            self::UNKNOWN => '未知',
+            self::UNKNOWN           => '未知',
         };
     }
 }

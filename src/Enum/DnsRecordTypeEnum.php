@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Enum;
 
 use Tourze\EnumExtra\Itemable;
@@ -17,29 +19,28 @@ enum DnsRecordTypeEnum: string implements Labelable, Itemable, Selectable
 {
     use ItemTrait;
     use SelectTrait;
-
-    case A = 'A';
-    case AAAA = 'AAAA';
+    case A     = 'A';
+    case AAAA  = 'AAAA';
     case CNAME = 'CNAME';
-    case MX = 'MX';
-    case NS = 'NS';
-    case SOA = 'SOA';
-    case SRV = 'SRV';
-    case TXT = 'TXT';
-    case CAA = 'CAA';
+    case MX    = 'MX';
+    case NS    = 'NS';
+    case SOA   = 'SOA';
+    case SRV   = 'SRV';
+    case TXT   = 'TXT';
+    case CAA   = 'CAA';
 
     public function getLabel(): string
     {
         return match ($this) {
-            self::A => 'A 记录 (IPv4)',
-            self::AAAA => 'AAAA 记录 (IPv6)',
+            self::A     => 'A 记录 (IPv4)',
+            self::AAAA  => 'AAAA 记录 (IPv6)',
             self::CNAME => 'CNAME 记录',
-            self::MX => 'MX 记录 (邮件)',
-            self::NS => 'NS 记录 (域名服务器)',
-            self::SOA => 'SOA 记录 (授权起始)',
-            self::SRV => 'SRV 记录 (服务)',
-            self::TXT => 'TXT 记录 (文本)',
-            self::CAA => 'CAA 记录 (证书授权)',
+            self::MX    => 'MX 记录 (邮件)',
+            self::NS    => 'NS 记录 (域名服务器)',
+            self::SOA   => 'SOA 记录 (授权起始)',
+            self::SRV   => 'SRV 记录 (服务)',
+            self::TXT   => 'TXT 记录 (文本)',
+            self::CAA   => 'CAA 记录 (证书授权)',
         };
     }
 }

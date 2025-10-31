@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Entity;
 
 use AwsLightsailBundle\Enum\CertificateStatusEnum;
 use AwsLightsailBundle\Repository\CertificateRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 #[ORM\Entity(repositoryClass: CertificateRepository::class)]
@@ -20,56 +23,90 @@ class Certificate implements \Stringable
     private ?int $id = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '证书名称'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $name;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => 'AWS ARN'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $arn;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '域名'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $domainName;
 
+    /**
+     * @var array<string>
+     */
     #[ORM\Column(type: Types::JSON, options: ['comment' => '备用域名'])]
+    #[Assert\Type(type: 'array')]
     private array $subjectAlternativeNames = [];
 
+    /**
+     * @var array<int, array{domainName: string, resourceRecord: array{name: string, type: string, value: string}}>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '域名验证记录'])]
+    #[Assert\Type(type: 'array')]
     private ?array $domainValidationRecords = null;
 
     #[ORM\Column(type: Types::STRING, length: 50, enumType: CertificateStatusEnum::class, options: ['comment' => '证书状态'])]
+    #[Assert\Choice(callback: [CertificateStatusEnum::class, 'cases'])]
     private CertificateStatusEnum $status;
 
     #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => 'AWS 区域'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 50)]
     private string $region;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '证书生效日期'])]
-    private ?\DateTimeImmutable $notBefore = null;
+    #[Assert\DateTime]
+    private ?\DateTimeImmutable $validFromTime = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '证书过期日期'])]
-    private ?\DateTimeImmutable $notAfter = null;
+    #[Assert\DateTime]
+    private ?\DateTimeImmutable $validToTime = null;
 
+    /**
+     * @var array<string, mixed>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '标签'])]
+    #[Assert\Type(type: 'array')]
     private ?array $tags = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '序列号'])]
+    #[Assert\Length(max: 255)]
     private ?string $serialNumber = null;
 
+    /**
+     * @var array<string, mixed>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '密钥算法'])]
+    #[Assert\Type(type: 'array')]
     private ?array $keyAlgorithm = null;
 
     #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否由 Lightsail 管理'])]
+    #[Assert\Type(type: 'bool')]
     private bool $isManaged = true;
 
     #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否正在使用'])]
+    #[Assert\Type(type: 'bool')]
     private bool $inUse = false;
 
-
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '同步时间'])]
+    #[Assert\DateTime]
     private ?\DateTimeImmutable $syncTime = null;
 
-    #[ORM\ManyToOne(targetEntity: AwsCredential::class)]
+    #[ORM\ManyToOne(targetEntity: AwsCredential::class, cascade: ['persist'])]
     #[ORM\JoinColumn(nullable: false)]
     private AwsCredential $credential;
 
+    /**
+     * @var array<string, mixed>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '支持的资源'])]
+    #[Assert\Type(type: 'array')]
     private ?array $supportedOnResources = null;
 
     public function __construct()
@@ -79,7 +116,7 @@ class Certificate implements \Stringable
 
     public function __toString(): string
     {
-        return sprintf('Certificate %s (%s)', $this->name, $this->domainName);
+        return \sprintf('Certificate %s (%s)', $this->name, $this->domainName);
     }
 
     public function getId(): ?int
@@ -92,10 +129,9 @@ class Certificate implements \Stringable
         return $this->name;
     }
 
-    public function setName(string $name): self
+    public function setName(string $name): void
     {
         $this->name = $name;
-        return $this;
     }
 
     public function getArn(): string
@@ -103,10 +139,9 @@ class Certificate implements \Stringable
         return $this->arn;
     }
 
-    public function setArn(string $arn): self
+    public function setArn(string $arn): void
     {
         $this->arn = $arn;
-        return $this;
     }
 
     public function getDomainName(): string
@@ -114,32 +149,41 @@ class Certificate implements \Stringable
         return $this->domainName;
     }
 
-    public function setDomainName(string $domainName): self
+    public function setDomainName(string $domainName): void
     {
         $this->domainName = $domainName;
-        return $this;
     }
 
+    /**
+     * @return string[]
+     */
     public function getSubjectAlternativeNames(): array
     {
         return $this->subjectAlternativeNames;
     }
 
-    public function setSubjectAlternativeNames(array $subjectAlternativeNames): self
+    /**
+     * @param string[] $subjectAlternativeNames
+     */
+    public function setSubjectAlternativeNames(array $subjectAlternativeNames): void
     {
         $this->subjectAlternativeNames = $subjectAlternativeNames;
-        return $this;
     }
 
+    /**
+     * @return array<int, array{domainName: string, resourceRecord: array{name: string, type: string, value: string}}>|null
+     */
     public function getDomainValidationRecords(): ?array
     {
         return $this->domainValidationRecords;
     }
 
-    public function setDomainValidationRecords(?array $domainValidationRecords): self
+    /**
+     * @param array<int, array{domainName: string, resourceRecord: array{name: string, type: string, value: string}}>|null $domainValidationRecords
+     */
+    public function setDomainValidationRecords(?array $domainValidationRecords): void
     {
         $this->domainValidationRecords = $domainValidationRecords;
-        return $this;
     }
 
     public function getStatus(): CertificateStatusEnum
@@ -147,10 +191,9 @@ class Certificate implements \Stringable
         return $this->status;
     }
 
-    public function setStatus(CertificateStatusEnum $status): self
+    public function setStatus(CertificateStatusEnum $status): void
     {
         $this->status = $status;
-        return $this;
     }
 
     public function getRegion(): string
@@ -158,49 +201,51 @@ class Certificate implements \Stringable
         return $this->region;
     }
 
-    public function setRegion(string $region): self
+    public function setRegion(string $region): void
     {
         $this->region = $region;
-        return $this;
     }
 
-    public function getNotBefore(): ?\DateTimeImmutable
+    public function getValidFromTime(): ?\DateTimeImmutable
     {
-        return $this->notBefore;
+        return $this->validFromTime;
     }
 
-    public function setNotBefore(?\DateTimeInterface $notBefore): self
+    public function setValidFromTime(?\DateTimeInterface $validFromTime): void
     {
-        if ($notBefore !== null && !$notBefore instanceof \DateTimeImmutable) {
-            $notBefore = \DateTimeImmutable::createFromInterface($notBefore);
+        if (null !== $validFromTime && !$validFromTime instanceof \DateTimeImmutable) {
+            $validFromTime = \DateTimeImmutable::createFromInterface($validFromTime);
         }
-        $this->notBefore = $notBefore;
-        return $this;
+        $this->validFromTime = $validFromTime;
     }
 
-    public function getNotAfter(): ?\DateTimeImmutable
+    public function getValidToTime(): ?\DateTimeImmutable
     {
-        return $this->notAfter;
+        return $this->validToTime;
     }
 
-    public function setNotAfter(?\DateTimeInterface $notAfter): self
+    public function setValidToTime(?\DateTimeInterface $validToTime): void
     {
-        if ($notAfter !== null && !$notAfter instanceof \DateTimeImmutable) {
-            $notAfter = \DateTimeImmutable::createFromInterface($notAfter);
+        if (null !== $validToTime && !$validToTime instanceof \DateTimeImmutable) {
+            $validToTime = \DateTimeImmutable::createFromInterface($validToTime);
         }
-        $this->notAfter = $notAfter;
-        return $this;
+        $this->validToTime = $validToTime;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getTags(): ?array
     {
         return $this->tags;
     }
 
-    public function setTags(?array $tags): self
+    /**
+     * @param array<string, mixed>|null $tags
+     */
+    public function setTags(?array $tags): void
     {
         $this->tags = $tags;
-        return $this;
     }
 
     public function getSerialNumber(): ?string
@@ -208,21 +253,25 @@ class Certificate implements \Stringable
         return $this->serialNumber;
     }
 
-    public function setSerialNumber(?string $serialNumber): self
+    public function setSerialNumber(?string $serialNumber): void
     {
         $this->serialNumber = $serialNumber;
-        return $this;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getKeyAlgorithm(): ?array
     {
         return $this->keyAlgorithm;
     }
 
-    public function setKeyAlgorithm(?array $keyAlgorithm): self
+    /**
+     * @param array<string, mixed>|null $keyAlgorithm
+     */
+    public function setKeyAlgorithm(?array $keyAlgorithm): void
     {
         $this->keyAlgorithm = $keyAlgorithm;
-        return $this;
     }
 
     public function isManaged(): bool
@@ -230,10 +279,9 @@ class Certificate implements \Stringable
         return $this->isManaged;
     }
 
-    public function setIsManaged(bool $isManaged): self
+    public function setIsManaged(bool $isManaged): void
     {
         $this->isManaged = $isManaged;
-        return $this;
     }
 
     public function isInUse(): bool
@@ -241,10 +289,9 @@ class Certificate implements \Stringable
         return $this->inUse;
     }
 
-    public function setInUse(bool $inUse): self
+    public function setInUse(bool $inUse): void
     {
         $this->inUse = $inUse;
-        return $this;
     }
 
     public function getSyncTime(): ?\DateTimeImmutable
@@ -252,13 +299,12 @@ class Certificate implements \Stringable
         return $this->syncTime;
     }
 
-    public function setSyncTime(?\DateTimeInterface $syncTime): self
+    public function setSyncTime(?\DateTimeInterface $syncTime): void
     {
-        if ($syncTime !== null && !$syncTime instanceof \DateTimeImmutable) {
+        if (null !== $syncTime && !$syncTime instanceof \DateTimeImmutable) {
             $syncTime = \DateTimeImmutable::createFromInterface($syncTime);
         }
         $this->syncTime = $syncTime;
-        return $this;
     }
 
     public function getCredential(): AwsCredential
@@ -266,20 +312,24 @@ class Certificate implements \Stringable
         return $this->credential;
     }
 
-    public function setCredential(AwsCredential $credential): self
+    public function setCredential(AwsCredential $credential): void
     {
         $this->credential = $credential;
-        return $this;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getSupportedOnResources(): ?array
     {
         return $this->supportedOnResources;
     }
 
-    public function setSupportedOnResources(?array $supportedOnResources): self
+    /**
+     * @param array<string, mixed>|null $supportedOnResources
+     */
+    public function setSupportedOnResources(?array $supportedOnResources): void
     {
         $this->supportedOnResources = $supportedOnResources;
-        return $this;
     }
 }

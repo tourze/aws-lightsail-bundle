@@ -1,0 +1,15 @@
+services:
+  # default configuration for services in *this* file
+  _defaults:
+    autowire: true      # Automatically injects dependencies in your services.
+    autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+    public: true
+
+  # Auto-configure all DataFixtures
+  AwsLightsailBundle\DataFixtures\:
+    resource: '../../DataFixtures/'
+    tags: ['doctrine.fixture.orm']
+
+  # Fixtures for creating missing tables
+  AwsLightsailBundle\DataFixtures\CreateMissingTablesFixtures:
+    tags: ['doctrine.fixture.orm']

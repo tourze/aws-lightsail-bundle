@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Controller\Admin;
 
 use AwsLightsailBundle\Entity\AwsCredential;
 use AwsLightsailBundle\Entity\Bucket;
 use AwsLightsailBundle\Enum\BucketAccessRuleEnum;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminCrud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
@@ -27,10 +30,15 @@ use Symfony\Component\Form\Extension\Core\Type\EnumType;
 
 /**
  * Lightsail 存储桶管理控制器
+ *
+ * @extends AbstractCrudController<Bucket>
  */
-class BucketCrudController extends AbstractCrudController
+#[AdminCrud(
+    routePath: '/aws-lightsail/bucket',
+    routeName: 'aws_lightsail_bucket'
+)]
+final class BucketCrudController extends AbstractCrudController
 {
-
     public static function getEntityFqcn(): string
     {
         return Bucket::class;
@@ -43,91 +51,109 @@ class BucketCrudController extends AbstractCrudController
             ->setEntityLabelInPlural('存储桶列表')
             ->setPageTitle('index', 'Lightsail 存储桶管理')
             ->setPageTitle('new', '创建存储桶')
-            ->setPageTitle('edit', fn (Bucket $bucket) => sprintf('编辑存储桶: %s', $bucket->getName()))
-            ->setPageTitle('detail', fn (Bucket $bucket) => sprintf('存储桶详情: %s', $bucket->getName()))
+            ->setPageTitle('edit', fn (Bucket $bucket) => \sprintf('编辑存储桶: %s', $bucket->getName()))
+            ->setPageTitle('detail', fn (Bucket $bucket) => \sprintf('存储桶详情: %s', $bucket->getName()))
             ->setSearchFields(['name', 'region', 'url'])
-            ->setDefaultSort(['name' => 'ASC']);
+            ->setDefaultSort(['name' => 'ASC'])
+        ;
     }
 
     public function configureFields(string $pageName): iterable
     {
         yield IdField::new('id', 'ID')
             ->hideOnForm()
-            ->setMaxLength(9999);
-            
+            ->setMaxLength(9999)
+        ;
+
         yield TextField::new('name', '存储桶名称');
-            
+
         yield TextField::new('arn', 'AWS ARN')
             ->hideOnForm()
-            ->hideOnIndex();
-            
+            ->hideOnIndex()
+        ;
+
         yield UrlField::new('url', 'URL')
-            ->hideOnForm();
-            
+            ->hideOnForm()
+        ;
+
         yield TextField::new('bundleId', '套餐ID')
-            ->hideOnForm();
-            
+            ->hideOnForm()
+        ;
+
         yield TextField::new('region', '区域');
-            
+
         yield ChoiceField::new('accessRules', '访问规则')
             ->setFormType(EnumType::class)
             ->setFormTypeOptions([
-                'class' => BucketAccessRuleEnum::class
+                'class' => BucketAccessRuleEnum::class,
             ])
             ->formatValue(function ($value) {
                 return $value instanceof BucketAccessRuleEnum ? $value->getLabel() : '';
-            });
-            
+            })
+        ;
+
         yield CodeEditorField::new('readonlyAccessAccounts', '只读访问账户')
             ->hideOnForm()
             ->hideOnIndex()
             ->formatValue(function ($value) {
-                return json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-            });
-            
+                return \json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+            })
+        ;
+
         yield BooleanField::new('isVersioning', '版本控制')
-            ->renderAsSwitch(true);
-            
+            ->renderAsSwitch(true)
+        ;
+
         yield BooleanField::new('objectVersioning', '对象版本控制')
-            ->renderAsSwitch(true);
-            
+            ->renderAsSwitch(true)
+        ;
+
         yield BooleanField::new('isResourceType', '资源类型')
-            ->hideOnForm();
-            
+            ->hideOnForm()
+        ;
+
         yield IntegerField::new('sizeInMb', '大小(MB)')
-            ->hideOnForm();
-            
+            ->hideOnForm()
+        ;
+
         yield IntegerField::new('objectCount', '对象数量')
-            ->hideOnForm();
-            
+            ->hideOnForm()
+        ;
+
         yield CodeEditorField::new('tags', '标签')
             ->hideOnForm()
             ->hideOnIndex()
             ->formatValue(function ($value) {
-                return json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-            });
-            
+                return \json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+            })
+        ;
+
         yield CodeEditorField::new('corsRules', 'CORS规则')
             ->hideOnForm()
             ->hideOnIndex()
             ->formatValue(function ($value) {
-                return json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-            });
-            
+                return \json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+            })
+        ;
+
         yield AssociationField::new('credential', 'AWS 凭证')
-            ->setFormTypeOption('disabled', $pageName !== Crud::PAGE_NEW)
+            ->setFormTypeOption('disabled', Crud::PAGE_NEW !== $pageName)
             ->formatValue(function ($value) {
                 return $value instanceof AwsCredential ? $value->getName() : '';
-            });
-            
+            })
+        ;
+
         yield DateTimeField::new('createTime', '创建时间')
-            ->hideOnForm();
-            
+            ->hideOnForm()
+        ;
+
         yield DateTimeField::new('syncTime', '同步时间')
-            ->hideOnForm();
-            
+            ->hideOnForm()
+        ;
+
         yield DateTimeField::new('updateTime', '更新时间')
-            ->hideOnForm();
+            ->hideOnForm()
+        ;
     }
 
     public function configureActions(Actions $actions): Actions
@@ -136,45 +162,40 @@ class BucketCrudController extends AbstractCrudController
             ->linkToRoute('sync_bucket', function (Bucket $bucket) {
                 return ['entityId' => $bucket->getId()];
             })
-            ->setIcon('fa fa-refresh');
-            
+            ->setIcon('fa fa-refresh')
+        ;
+
         $emptyAction = Action::new('emptyBucket', '清空')
             ->linkToRoute('empty_bucket', function (Bucket $bucket) {
                 return ['entityId' => $bucket->getId()];
             })
             ->setIcon('fa fa-trash')
-            ->setCssClass('text-warning');
-            
+            ->setCssClass('text-warning')
+        ;
+
         return $actions
-            ->add(Crud::PAGE_INDEX, Action::DETAIL)
+            ->set(Crud::PAGE_INDEX, Action::DETAIL)
             ->add(Crud::PAGE_INDEX, $syncAction)
             ->add(Crud::PAGE_INDEX, $emptyAction)
             ->add(Crud::PAGE_DETAIL, $syncAction)
             ->add(Crud::PAGE_DETAIL, $emptyAction)
-            ->update(Crud::PAGE_INDEX, Action::DELETE, function (Action $action) {
-                return $action->setIcon('fa fa-trash')->setLabel('删除');
-            })
-            ->update(Crud::PAGE_INDEX, Action::EDIT, function (Action $action) {
-                return $action->setIcon('fa fa-edit')->setLabel('编辑');
-            })
-            ->update(Crud::PAGE_INDEX, Action::DETAIL, function (Action $action) {
-                return $action->setIcon('fa fa-eye')->setLabel('查看');
-            });
+        ;
     }
-    
+
     public function configureFilters(Filters $filters): Filters
     {
         $accessRuleChoices = [];
         foreach (BucketAccessRuleEnum::cases() as $case) {
             $accessRuleChoices[$case->getLabel()] = $case->value;
         }
-        
+
         return $filters
             ->add(TextFilter::new('name', '存储桶名称'))
             ->add(TextFilter::new('region', '区域'))
             ->add(BooleanFilter::new('isVersioning', '版本控制'))
             ->add(BooleanFilter::new('objectVersioning', '对象版本控制'))
             ->add(ChoiceFilter::new('accessRules', '访问规则')->setChoices($accessRuleChoices))
-            ->add(EntityFilter::new('credential', 'AWS 凭证'));
+            ->add(EntityFilter::new('credential', 'AWS 凭证'))
+        ;
     }
 }

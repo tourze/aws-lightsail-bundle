@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Entity;
 
 use AwsLightsailBundle\Enum\DatabaseEngineEnum;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 #[ORM\Entity]
@@ -19,40 +22,58 @@ class DatabaseSnapshot implements \Stringable
     private ?int $id = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '快照名称'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $name;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => 'AWS ARN'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $arn;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '数据库名称'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $databaseName;
 
     #[ORM\Column(type: Types::STRING, length: 50, enumType: DatabaseEngineEnum::class, options: ['comment' => '数据库引擎'])]
+    #[Assert\Choice(callback: [DatabaseEngineEnum::class, 'cases'])]
     private DatabaseEngineEnum $engine;
 
     #[ORM\Column(type: Types::STRING, length: 20, options: ['comment' => '引擎版本'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 20)]
     private string $engineVersion;
 
     #[ORM\Column(type: Types::BIGINT, nullable: true, options: ['comment' => '大小(GB)'])]
+    #[Assert\PositiveOrZero]
     private ?int $sizeInGb = null;
 
     #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => 'AWS 区域'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 50)]
     private string $region;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '状态'])]
+    #[Assert\Length(max: 255)]
     private ?string $state = null;
 
     #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否来自自动快照'])]
+    #[Assert\Type(type: 'bool')]
     private bool $isFromAutoSnapshot = false;
 
+    /**
+     * @var array<string, mixed>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '标签'])]
+    #[Assert\Type(type: 'array')]
     private ?array $tags = null;
 
-
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '同步时间'])]
+    #[Assert\DateTime]
     private ?\DateTimeImmutable $syncTime = null;
 
-    #[ORM\ManyToOne(targetEntity: AwsCredential::class)]
+    #[ORM\ManyToOne(targetEntity: AwsCredential::class, cascade: ['persist'])]
     #[ORM\JoinColumn(nullable: false)]
     private AwsCredential $credential;
 
@@ -66,7 +87,7 @@ class DatabaseSnapshot implements \Stringable
 
     public function __toString(): string
     {
-        return sprintf('DatabaseSnapshot %s (%s)', $this->name, $this->databaseName);
+        return \sprintf('DatabaseSnapshot %s (%s)', $this->name, $this->databaseName);
     }
 
     public function getId(): ?int
@@ -79,10 +100,9 @@ class DatabaseSnapshot implements \Stringable
         return $this->name;
     }
 
-    public function setName(string $name): self
+    public function setName(string $name): void
     {
         $this->name = $name;
-        return $this;
     }
 
     public function getArn(): string
@@ -90,10 +110,9 @@ class DatabaseSnapshot implements \Stringable
         return $this->arn;
     }
 
-    public function setArn(string $arn): self
+    public function setArn(string $arn): void
     {
         $this->arn = $arn;
-        return $this;
     }
 
     public function getDatabaseName(): string
@@ -101,10 +120,9 @@ class DatabaseSnapshot implements \Stringable
         return $this->databaseName;
     }
 
-    public function setDatabaseName(string $databaseName): self
+    public function setDatabaseName(string $databaseName): void
     {
         $this->databaseName = $databaseName;
-        return $this;
     }
 
     public function getEngine(): DatabaseEngineEnum
@@ -112,10 +130,9 @@ class DatabaseSnapshot implements \Stringable
         return $this->engine;
     }
 
-    public function setEngine(DatabaseEngineEnum $engine): self
+    public function setEngine(DatabaseEngineEnum $engine): void
     {
         $this->engine = $engine;
-        return $this;
     }
 
     public function getEngineVersion(): string
@@ -123,10 +140,9 @@ class DatabaseSnapshot implements \Stringable
         return $this->engineVersion;
     }
 
-    public function setEngineVersion(string $engineVersion): self
+    public function setEngineVersion(string $engineVersion): void
     {
         $this->engineVersion = $engineVersion;
-        return $this;
     }
 
     public function getSizeInGb(): ?int
@@ -134,10 +150,9 @@ class DatabaseSnapshot implements \Stringable
         return $this->sizeInGb;
     }
 
-    public function setSizeInGb(?int $sizeInGb): self
+    public function setSizeInGb(?int $sizeInGb): void
     {
         $this->sizeInGb = $sizeInGb;
-        return $this;
     }
 
     public function getRegion(): string
@@ -145,10 +160,9 @@ class DatabaseSnapshot implements \Stringable
         return $this->region;
     }
 
-    public function setRegion(string $region): self
+    public function setRegion(string $region): void
     {
         $this->region = $region;
-        return $this;
     }
 
     public function getState(): ?string
@@ -156,10 +170,9 @@ class DatabaseSnapshot implements \Stringable
         return $this->state;
     }
 
-    public function setState(?string $state): self
+    public function setState(?string $state): void
     {
         $this->state = $state;
-        return $this;
     }
 
     public function isFromAutoSnapshot(): bool
@@ -167,21 +180,25 @@ class DatabaseSnapshot implements \Stringable
         return $this->isFromAutoSnapshot;
     }
 
-    public function setIsFromAutoSnapshot(bool $isFromAutoSnapshot): self
+    public function setIsFromAutoSnapshot(bool $isFromAutoSnapshot): void
     {
         $this->isFromAutoSnapshot = $isFromAutoSnapshot;
-        return $this;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getTags(): ?array
     {
         return $this->tags;
     }
 
-    public function setTags(?array $tags): self
+    /**
+     * @param array<string, mixed>|null $tags
+     */
+    public function setTags(?array $tags): void
     {
         $this->tags = $tags;
-        return $this;
     }
 
     public function getSyncTime(): ?\DateTimeImmutable
@@ -189,13 +206,12 @@ class DatabaseSnapshot implements \Stringable
         return $this->syncTime;
     }
 
-    public function setSyncTime(?\DateTimeInterface $syncTime): self
+    public function setSyncTime(?\DateTimeInterface $syncTime): void
     {
-        if ($syncTime !== null && !$syncTime instanceof \DateTimeImmutable) {
+        if (null !== $syncTime && !$syncTime instanceof \DateTimeImmutable) {
             $syncTime = \DateTimeImmutable::createFromInterface($syncTime);
         }
         $this->syncTime = $syncTime;
-        return $this;
     }
 
     public function getCredential(): AwsCredential
@@ -203,10 +219,9 @@ class DatabaseSnapshot implements \Stringable
         return $this->credential;
     }
 
-    public function setCredential(AwsCredential $credential): self
+    public function setCredential(AwsCredential $credential): void
     {
         $this->credential = $credential;
-        return $this;
     }
 
     public function getDatabase(): ?Database
@@ -214,9 +229,8 @@ class DatabaseSnapshot implements \Stringable
         return $this->database;
     }
 
-    public function setDatabase(?Database $database): self
+    public function setDatabase(?Database $database): void
     {
         $this->database = $database;
-        return $this;
     }
 }

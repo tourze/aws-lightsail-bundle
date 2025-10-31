@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Controller\Admin;
 
 use AwsLightsailBundle\Entity\AwsCredential;
 use AwsLightsailBundle\Entity\Certificate;
 use AwsLightsailBundle\Enum\CertificateStatusEnum;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminCrud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
@@ -25,10 +28,15 @@ use Symfony\Component\Form\Extension\Core\Type\EnumType;
 
 /**
  * Lightsail 证书管理控制器
+ *
+ * @extends AbstractCrudController<Certificate>
  */
-class CertificateCrudController extends AbstractCrudController
+#[AdminCrud(
+    routePath: '/aws-lightsail/certificate',
+    routeName: 'aws_lightsail_certificate'
+)]
+final class CertificateCrudController extends AbstractCrudController
 {
-
     public static function getEntityFqcn(): string
     {
         return Certificate::class;
@@ -41,100 +49,119 @@ class CertificateCrudController extends AbstractCrudController
             ->setEntityLabelInPlural('证书列表')
             ->setPageTitle('index', 'Lightsail 证书管理')
             ->setPageTitle('new', '创建证书')
-            ->setPageTitle('edit', fn (Certificate $certificate) => sprintf('编辑证书: %s', $certificate->getName()))
-            ->setPageTitle('detail', fn (Certificate $certificate) => sprintf('证书详情: %s', $certificate->getName()))
+            ->setPageTitle('edit', fn (Certificate $certificate) => \sprintf('编辑证书: %s', $certificate->getName()))
+            ->setPageTitle('detail', fn (Certificate $certificate) => \sprintf('证书详情: %s', $certificate->getName()))
             ->setSearchFields(['name', 'domainName', 'serialNumber', 'region'])
-            ->setDefaultSort(['name' => 'ASC']);
+            ->setDefaultSort(['name' => 'ASC'])
+        ;
     }
 
     public function configureFields(string $pageName): iterable
     {
         yield IdField::new('id', 'ID')
             ->hideOnForm()
-            ->setMaxLength(9999);
-            
+            ->setMaxLength(9999)
+        ;
+
         yield TextField::new('name', '证书名称');
-            
+
         yield TextField::new('arn', 'AWS ARN')
             ->hideOnForm()
-            ->hideOnIndex();
-            
+            ->hideOnIndex()
+        ;
+
         yield TextField::new('domainName', '域名')
-            ->setHelp('证书的主域名');
-            
+            ->setHelp('证书的主域名')
+        ;
+
         yield CodeEditorField::new('subjectAlternativeNames', '备用域名')
             ->hideOnIndex()
             ->formatValue(function ($value) {
-                return $value ? json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : '[]';
-            });
-            
+                return $value ? \json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : '[]';
+            })
+        ;
+
         yield CodeEditorField::new('domainValidationRecords', '域名验证记录')
             ->hideOnIndex()
             ->formatValue(function ($value) {
-                return $value ? json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : '[]';
-            });
-            
+                return $value ? \json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : '[]';
+            })
+        ;
+
         yield ChoiceField::new('status', '状态')
             ->setFormType(EnumType::class)
             ->setFormTypeOptions([
-                'class' => CertificateStatusEnum::class
+                'class' => CertificateStatusEnum::class,
             ])
             ->formatValue(function ($value) {
                 return $value instanceof CertificateStatusEnum ? $value->getLabel() : '';
-            });
-            
+            })
+        ;
+
         yield TextField::new('region', '区域');
-            
+
         yield DateTimeField::new('notBefore', '生效时间')
-            ->hideOnForm();
-            
+            ->hideOnForm()
+        ;
+
         yield DateTimeField::new('notAfter', '过期时间')
-            ->hideOnForm();
-            
+            ->hideOnForm()
+        ;
+
         yield TextField::new('serialNumber', '序列号')
-            ->hideOnIndex();
-            
+            ->hideOnIndex()
+        ;
+
         yield CodeEditorField::new('keyAlgorithm', '密钥算法')
             ->hideOnIndex()
             ->formatValue(function ($value) {
-                return $value ? json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : '{}';
-            });
-            
+                return $value ? \json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : '{}';
+            })
+        ;
+
         yield BooleanField::new('isManaged', '由 AWS 管理')
             ->renderAsSwitch(false)
-            ->setFormTypeOption('disabled', true);
-            
+            ->setFormTypeOption('disabled', true)
+        ;
+
         yield BooleanField::new('inUse', '正在使用')
             ->renderAsSwitch(false)
-            ->setFormTypeOption('disabled', true);
-            
+            ->setFormTypeOption('disabled', true)
+        ;
+
         yield CodeEditorField::new('supportedOnResources', '支持的资源')
             ->hideOnIndex()
             ->formatValue(function ($value) {
-                return $value ? json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : '[]';
-            });
-            
+                return $value ? \json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : '[]';
+            })
+        ;
+
         yield CodeEditorField::new('tags', '标签')
             ->hideOnForm()
             ->hideOnIndex()
             ->formatValue(function ($value) {
-                return $value ? json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : '{}';
-            });
-            
+                return $value ? \json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : '{}';
+            })
+        ;
+
         yield AssociationField::new('credential', 'AWS 凭证')
-            ->setFormTypeOption('disabled', $pageName !== Crud::PAGE_NEW)
+            ->setFormTypeOption('disabled', Crud::PAGE_NEW !== $pageName)
             ->formatValue(function ($value) {
                 return $value instanceof AwsCredential ? $value->getName() : '';
-            });
-            
+            })
+        ;
+
         yield DateTimeField::new('createTime', '创建时间')
-            ->hideOnForm();
-            
+            ->hideOnForm()
+        ;
+
         yield DateTimeField::new('syncTime', '同步时间')
-            ->hideOnForm();
-            
+            ->hideOnForm()
+        ;
+
         yield DateTimeField::new('updateTime', '更新时间')
-            ->hideOnForm();
+            ->hideOnForm()
+        ;
     }
 
     public function configureActions(Actions $actions): Actions
@@ -143,24 +170,28 @@ class CertificateCrudController extends AbstractCrudController
             ->linkToRoute('sync_certificate', function (Certificate $certificate) {
                 return ['entityId' => $certificate->getId()];
             })
-            ->setIcon('fa fa-refresh');
-            
+            ->setIcon('fa fa-refresh')
+        ;
+
         $validateAction = Action::new('validateCertificate', '验证证书')
             ->linkToRoute('validate_certificate', function (Certificate $certificate) {
                 return ['entityId' => $certificate->getId()];
             })
             ->setIcon('fa fa-check')
-            ->setCssClass('text-success');
-            
+            ->setCssClass('text-success')
+        ;
+
         $exportAction = Action::new('exportCertificate', '导出证书')
             ->linkToRoute('export_certificate', function (Certificate $certificate) {
                 return ['entityId' => $certificate->getId()];
             })
             ->setIcon('fa fa-download')
-            ->setCssClass('text-primary');
-            
+            ->setCssClass('text-primary')
+        ;
+
         return $actions
-            ->add(Crud::PAGE_INDEX, Action::DETAIL)
+            ->set(Crud::PAGE_INDEX, Action::DELETE)
+            ->set(Crud::PAGE_INDEX, Action::DETAIL)
             ->add(Crud::PAGE_INDEX, $syncAction)
             ->add(Crud::PAGE_INDEX, $validateAction)
             ->add(Crud::PAGE_INDEX, $exportAction)
@@ -175,16 +206,17 @@ class CertificateCrudController extends AbstractCrudController
             })
             ->update(Crud::PAGE_INDEX, Action::DETAIL, function (Action $action) {
                 return $action->setIcon('fa fa-eye')->setLabel('查看');
-            });
+            })
+        ;
     }
-    
+
     public function configureFilters(Filters $filters): Filters
     {
         $statusChoices = [];
         foreach (CertificateStatusEnum::cases() as $case) {
             $statusChoices[$case->getLabel()] = $case->value;
         }
-        
+
         return $filters
             ->add(TextFilter::new('name', '证书名称'))
             ->add(TextFilter::new('domainName', '域名'))
@@ -192,6 +224,7 @@ class CertificateCrudController extends AbstractCrudController
             ->add(ChoiceFilter::new('status', '状态')->setChoices($statusChoices))
             ->add(BooleanFilter::new('isManaged', '由 AWS 管理'))
             ->add(BooleanFilter::new('inUse', '正在使用'))
-            ->add(EntityFilter::new('credential', 'AWS 凭证'));
+            ->add(EntityFilter::new('credential', 'AWS 凭证'))
+        ;
     }
-} 
+}

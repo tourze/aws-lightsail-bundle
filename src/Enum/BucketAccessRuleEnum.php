@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Enum;
 
 use Tourze\EnumExtra\Itemable;
@@ -17,15 +19,14 @@ enum BucketAccessRuleEnum: string implements Labelable, Itemable, Selectable
 {
     use ItemTrait;
     use SelectTrait;
-
     case PUBLIC_READ = 'public_read';
-    case PRIVATE = 'private';
+    case PRIVATE     = 'private';
 
     public function getLabel(): string
     {
         return match ($this) {
             self::PUBLIC_READ => '公开读取',
-            self::PRIVATE => '私有',
+            self::PRIVATE     => '私有',
         };
     }
 }

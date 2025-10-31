@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Enum;
 
 use Tourze\EnumExtra\Itemable;
@@ -17,29 +19,28 @@ enum ContainerServiceStateEnum: string implements Labelable, Itemable, Selectabl
 {
     use ItemTrait;
     use SelectTrait;
-
-    case PENDING = 'PENDING';
-    case READY = 'READY';
-    case RUNNING = 'RUNNING';
-    case UPDATING = 'UPDATING';
-    case DELETING = 'DELETING';
-    case DISABLED = 'DISABLED';
+    case PENDING   = 'PENDING';
+    case READY     = 'READY';
+    case RUNNING   = 'RUNNING';
+    case UPDATING  = 'UPDATING';
+    case DELETING  = 'DELETING';
+    case DISABLED  = 'DISABLED';
     case DEPLOYING = 'DEPLOYING';
-    case FAILED = 'FAILED';
-    case UNKNOWN = 'UNKNOWN';
+    case FAILED    = 'FAILED';
+    case UNKNOWN   = 'UNKNOWN';
 
     public function getLabel(): string
     {
         return match ($this) {
-            self::PENDING => '等待中',
-            self::READY => '就绪',
-            self::RUNNING => '运行中',
-            self::UPDATING => '更新中',
-            self::DELETING => '删除中',
-            self::DISABLED => '已禁用',
+            self::PENDING   => '等待中',
+            self::READY     => '就绪',
+            self::RUNNING   => '运行中',
+            self::UPDATING  => '更新中',
+            self::DELETING  => '删除中',
+            self::DISABLED  => '已禁用',
             self::DEPLOYING => '部署中',
-            self::FAILED => '失败',
-            self::UNKNOWN => '未知',
+            self::FAILED    => '失败',
+            self::UNKNOWN   => '未知',
         };
     }
 }

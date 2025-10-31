@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Controller\Admin;
 
 use AwsLightsailBundle\Entity\AwsCredential;
 use AwsLightsailBundle\Entity\Snapshot;
 use AwsLightsailBundle\Enum\SnapshotTypeEnum;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminCrud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
@@ -27,10 +30,15 @@ use Symfony\Component\Form\Extension\Core\Type\EnumType;
 
 /**
  * Lightsail 实例快照管理控制器
+ *
+ * @extends AbstractCrudController<Snapshot>
  */
-class SnapshotCrudController extends AbstractCrudController
+#[AdminCrud(
+    routePath: '/aws-lightsail/snapshot',
+    routeName: 'aws_lightsail_snapshot'
+)]
+final class SnapshotCrudController extends AbstractCrudController
 {
-
     public static function getEntityFqcn(): string
     {
         return Snapshot::class;
@@ -43,106 +51,127 @@ class SnapshotCrudController extends AbstractCrudController
             ->setEntityLabelInPlural('快照列表')
             ->setPageTitle('index', 'Lightsail 快照管理')
             ->setPageTitle('new', '创建快照')
-            ->setPageTitle('edit', fn (Snapshot $snapshot) => sprintf('编辑快照: %s', $snapshot->getName()))
-            ->setPageTitle('detail', fn (Snapshot $snapshot) => sprintf('快照详情: %s', $snapshot->getName()))
+            ->setPageTitle('edit', fn (Snapshot $snapshot) => \sprintf('编辑快照: %s', $snapshot->getName()))
+            ->setPageTitle('detail', fn (Snapshot $snapshot) => \sprintf('快照详情: %s', $snapshot->getName()))
             ->setSearchFields(['name', 'resourceName', 'region', 'state'])
-            ->setDefaultSort(['createTime' => 'DESC']);
+            ->setDefaultSort(['createTime' => 'DESC'])
+        ;
     }
 
     public function configureFields(string $pageName): iterable
     {
         yield IdField::new('id', 'ID')
             ->hideOnForm()
-            ->setMaxLength(9999);
-            
+            ->setMaxLength(9999)
+        ;
+
         yield TextField::new('name', '快照名称');
-            
+
         yield TextField::new('arn', 'AWS ARN')
             ->hideOnForm()
-            ->hideOnIndex();
-            
+            ->hideOnIndex()
+        ;
+
         yield TextField::new('resourceName', '资源名称')
-            ->setHelp('快照关联的资源名称');
-            
+            ->setHelp('快照关联的资源名称')
+        ;
+
         yield ChoiceField::new('type', '快照类型')
             ->setFormType(EnumType::class)
             ->setFormTypeOptions([
-                'class' => SnapshotTypeEnum::class
+                'class' => SnapshotTypeEnum::class,
             ])
             ->formatValue(function ($value) {
                 return $value instanceof SnapshotTypeEnum ? $value->getLabel() : '';
-            });
-            
+            })
+        ;
+
         yield TextField::new('region', '区域');
-            
+
         yield TextField::new('state', '状态')
-            ->hideOnForm();
-            
+            ->hideOnForm()
+        ;
+
         yield TextField::new('progress', '进度')
             ->hideOnForm()
-            ->hideOnIndex();
-            
+            ->hideOnIndex()
+        ;
+
         yield IntegerField::new('sizeInGb', '大小(GB)')
-            ->hideOnForm();
-            
+            ->hideOnForm()
+        ;
+
         yield BooleanField::new('isFromAutoSnapshot', '是否自动快照')
             ->renderAsSwitch(false)
-            ->setFormTypeOption('disabled', true);
-            
+            ->setFormTypeOption('disabled', true)
+        ;
+
         yield TextField::new('fromSnapshotName', '源快照名称')
             ->hideOnIndex()
-            ->hideOnForm();
-            
+            ->hideOnForm()
+        ;
+
         yield TextField::new('fromRegion', '源区域')
             ->hideOnIndex()
-            ->hideOnForm();
-            
+            ->hideOnForm()
+        ;
+
         yield CodeEditorField::new('tags', '标签')
             ->hideOnForm()
             ->hideOnIndex()
             ->formatValue(function ($value) {
-                return $value ? json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : '{}';
-            });
-            
+                return $value ? \json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : '{}';
+            })
+        ;
+
         yield AssociationField::new('credential', 'AWS 凭证')
-            ->setFormTypeOption('disabled', $pageName !== Crud::PAGE_NEW)
+            ->setFormTypeOption('disabled', Crud::PAGE_NEW !== $pageName)
             ->formatValue(function ($value) {
                 return $value instanceof AwsCredential ? $value->getName() : '';
-            });
-            
+            })
+        ;
+
         yield DateTimeField::new('createTime', '创建时间')
-            ->hideOnForm();
-            
+            ->hideOnForm()
+        ;
+
         yield DateTimeField::new('syncTime', '同步时间')
-            ->hideOnForm();
-            
+            ->hideOnForm()
+        ;
+
         yield DateTimeField::new('updateTime', '更新时间')
-            ->hideOnForm();
+            ->hideOnForm()
+        ;
     }
 
     public function configureActions(Actions $actions): Actions
     {
         $syncAction = Action::new('syncSnapshot', '同步')
             ->linkToCrudAction('syncSnapshot')
-            ->setIcon('fa fa-refresh');
-            
+            ->setIcon('fa fa-refresh')
+        ;
+
         $exportAction = Action::new('exportSnapshot', '导出')
             ->linkToCrudAction('exportSnapshot')
             ->setIcon('fa fa-download')
-            ->setCssClass('text-primary');
-            
+            ->setCssClass('text-primary')
+        ;
+
         $restoreAction = Action::new('restoreSnapshot', '恢复')
             ->linkToCrudAction('restoreSnapshot')
             ->setIcon('fa fa-undo')
-            ->setCssClass('text-warning');
-            
+            ->setCssClass('text-warning')
+        ;
+
         $copyAction = Action::new('copySnapshot', '复制')
             ->linkToCrudAction('copySnapshot')
             ->setIcon('fa fa-copy')
-            ->setCssClass('text-info');
-            
+            ->setCssClass('text-info')
+        ;
+
         return $actions
-            ->add(Crud::PAGE_INDEX, Action::DETAIL)
+            ->set(Crud::PAGE_INDEX, Action::DELETE)
+            ->set(Crud::PAGE_INDEX, Action::DETAIL)
             ->add(Crud::PAGE_INDEX, $syncAction)
             ->add(Crud::PAGE_INDEX, $exportAction)
             ->add(Crud::PAGE_INDEX, $restoreAction)
@@ -159,16 +188,17 @@ class SnapshotCrudController extends AbstractCrudController
             })
             ->update(Crud::PAGE_INDEX, Action::DETAIL, function (Action $action) {
                 return $action->setIcon('fa fa-eye')->setLabel('查看');
-            });
+            })
+        ;
     }
-    
+
     public function configureFilters(Filters $filters): Filters
     {
         $typeChoices = [];
         foreach (SnapshotTypeEnum::cases() as $case) {
             $typeChoices[$case->getLabel()] = $case->value;
         }
-        
+
         return $filters
             ->add(TextFilter::new('name', '快照名称'))
             ->add(TextFilter::new('resourceName', '资源名称'))
@@ -177,6 +207,7 @@ class SnapshotCrudController extends AbstractCrudController
             ->add(TextFilter::new('state', '状态'))
             ->add(BooleanFilter::new('isFromAutoSnapshot', '是否自动快照'))
             ->add(DateTimeFilter::new('createTime', '创建时间'))
-            ->add(EntityFilter::new('credential', 'AWS 凭证'));
+            ->add(EntityFilter::new('credential', 'AWS 凭证'))
+        ;
     }
-} 
+}

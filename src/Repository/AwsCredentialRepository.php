@@ -1,19 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Repository;
 
 use AwsLightsailBundle\Entity\AwsCredential;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Tourze\PHPUnitSymfonyKernelTest\Attribute\AsRepository;
 
 /**
  * @extends ServiceEntityRepository<AwsCredential>
- *
- * @method AwsCredential|null find($id, $lockMode = null, $lockVersion = null)
- * @method AwsCredential|null findOneBy(array $criteria, array $orderBy = null)
- * @method AwsCredential[]    findAll()
- * @method AwsCredential[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
+#[AsRepository(entityClass: AwsCredential::class)]
 class AwsCredentialRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
@@ -23,11 +22,27 @@ class AwsCredentialRepository extends ServiceEntityRepository
 
     /**
      * 查找默认凭证
-     *
-     * @return AwsCredential|null
      */
     public function findDefault(): ?AwsCredential
     {
         return $this->findOneBy(['isDefault' => true]);
+    }
+
+    public function save(AwsCredential $entity, bool $flush = true): void
+    {
+        $this->getEntityManager()->persist($entity);
+
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+
+    public function remove(AwsCredential $entity, bool $flush = true): void
+    {
+        $this->getEntityManager()->remove($entity);
+
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
     }
 }

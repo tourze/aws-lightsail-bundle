@@ -1,19 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Repository;
 
 use AwsLightsailBundle\Entity\Alarm;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Tourze\PHPUnitSymfonyKernelTest\Attribute\AsRepository;
 
 /**
  * @extends ServiceEntityRepository<Alarm>
- *
- * @method Alarm|null find($id, $lockMode = null, $lockVersion = null)
- * @method Alarm|null findOneBy(array $criteria, array $orderBy = null)
- * @method Alarm[]    findAll()
- * @method Alarm[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
+#[AsRepository(entityClass: Alarm::class)]
 class AlarmRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
@@ -25,44 +24,80 @@ class AlarmRepository extends ServiceEntityRepository
      * 按资源名称查找告警
      *
      * @param string $resourceName 资源名称
+     *
      * @return Alarm[]
+     * @phpstan-return array<int, Alarm>
      */
     public function findByResourceName(string $resourceName): array
     {
-        return $this->createQueryBuilder('a')
+        /** @var array<int, Alarm> $result */
+        $result = $this->createQueryBuilder('a')
             ->andWhere('a.resourceName = :resourceName')
             ->setParameter('resourceName', $resourceName)
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
+
+        return $result;
     }
 
     /**
      * 按资源类型查找告警
      *
      * @param string $resourceType 资源类型
+     *
      * @return Alarm[]
+     * @phpstan-return array<int, Alarm>
      */
     public function findByResourceType(string $resourceType): array
     {
-        return $this->createQueryBuilder('a')
+        /** @var array<int, Alarm> $result */
+        $result = $this->createQueryBuilder('a')
             ->andWhere('a.resourceType = :resourceType')
             ->setParameter('resourceType', $resourceType)
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
+
+        return $result;
     }
 
     /**
      * 按状态查找告警
      *
      * @param string $state 告警状态
+     *
      * @return Alarm[]
+     * @phpstan-return array<int, Alarm>
      */
     public function findByState(string $state): array
     {
-        return $this->createQueryBuilder('a')
+        /** @var array<int, Alarm> $result */
+        $result = $this->createQueryBuilder('a')
             ->andWhere('a.state = :state')
             ->setParameter('state', $state)
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
+
+        return $result;
     }
-} 
+
+    public function save(Alarm $entity, bool $flush = true): void
+    {
+        $this->getEntityManager()->persist($entity);
+
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+
+    public function remove(Alarm $entity, bool $flush = true): void
+    {
+        $this->getEntityManager()->remove($entity);
+
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+}

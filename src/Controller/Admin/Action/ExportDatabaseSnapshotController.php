@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Controller\Admin\Action;
 
 use AwsLightsailBundle\Entity\DatabaseSnapshot;
@@ -7,24 +9,26 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-class ExportDatabaseSnapshotController extends AbstractController
+#[Autoconfigure(public: true)]
+final class ExportDatabaseSnapshotController extends AbstractController
 {
     public function __construct(
-        private readonly AdminUrlGenerator $adminUrlGenerator
+        private readonly AdminUrlGenerator $adminUrlGenerator,
     ) {
     }
 
-    #[Route(path: '/admin/database-snapshot/{entityId}/export', name: 'export_database_snapshot')]
+    #[Route(path: '/admin/database-snapshot/{entityId}/export', name: 'export_database_snapshot', methods: ['POST'])]
     public function __invoke(AdminContext $context): Response
     {
-        /** @var DatabaseSnapshot $snapshot */
         $snapshot = $context->getEntity()->getInstance();
-        
-        $this->addFlash('success', sprintf('数据库快照 %s 导出指令已发送', $snapshot->getName()));
-        
+        \assert($snapshot instanceof DatabaseSnapshot);
+
+        $this->addFlash('success', \sprintf('数据库快照 %s 导出指令已发送', $snapshot->getName()));
+
         return $this->redirect($this->adminUrlGenerator
             ->setAction(Action::INDEX)
             ->setEntityId(null)

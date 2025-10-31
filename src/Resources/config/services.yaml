@@ -10,5 +10,6 @@ services:
     resource: '../../Repository/'
   AwsLightsailBundle\Service\:
     resource: '../../Service/'
+    public: true
   AwsLightsailBundle\Controller\:
     resource: '../../Controller/'

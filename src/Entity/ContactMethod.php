@@ -1,14 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Entity;
 
 use AwsLightsailBundle\Enum\ContactMethodStatusEnum;
 use AwsLightsailBundle\Enum\ContactMethodTypeEnum;
-use Carbon\CarbonImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
-use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 #[ORM\Entity]
@@ -16,58 +16,64 @@ use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 class ContactMethod implements \Stringable
 {
     use TimestampableAware;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => '主键ID'])]
     private ?int $id = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '联系方式名称'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $name;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => 'AWS ARN'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $arn;
 
     #[ORM\Column(type: Types::STRING, length: 50, enumType: ContactMethodTypeEnum::class, options: ['comment' => '联系方式类型'])]
+    #[Assert\Choice(callback: [ContactMethodTypeEnum::class, 'cases'])]
     private ContactMethodTypeEnum $type;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '联系方式终端点（邮箱或手机）'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $contactEndpoint;
 
     #[ORM\Column(type: Types::STRING, length: 50, enumType: ContactMethodStatusEnum::class, options: ['comment' => '联系方式状态'])]
+    #[Assert\Choice(callback: [ContactMethodStatusEnum::class, 'cases'])]
     private ContactMethodStatusEnum $status = ContactMethodStatusEnum::PENDING;
 
     #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => 'AWS 区域'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 50)]
     private string $region;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '协议'])]
+    #[Assert\Length(max: 255)]
     private ?string $protocol = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '最后验证时间'])]
-    private ?\DateTimeImmutable $lastVerifiedTime = null;
-
-    #[CreateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, options: ['comment' => '创建时间'])]
-    private \DateTimeImmutable $createdAt;
+    #[Assert\DateTime]
+    private ?\DateTimeImmutable $lastVerificationTime = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '同步时间'])]
-    private ?\DateTimeImmutable $syncedAt = null;
+    #[Assert\DateTime]
+    private ?\DateTimeImmutable $syncTime = null;
 
-    #[ORM\ManyToOne(targetEntity: AwsCredential::class)]
+    #[ORM\ManyToOne(targetEntity: AwsCredential::class, cascade: ['persist'])]
     #[ORM\JoinColumn(nullable: false)]
     private AwsCredential $credential;
 
-    #[UpdateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '更新时间'])]
-    private ?\DateTimeImmutable $updatedAt = null;
-
     public function __construct()
     {
-        $this->createdAt = CarbonImmutable::now();
+        // createTime 会通过 TimestampableAware trait 自动初始化
     }
 
     public function __toString(): string
     {
-        return sprintf('ContactMethod %s (%s): %s', $this->name, $this->type->value, $this->contactEndpoint);
+        return \sprintf('ContactMethod %s (%s): %s', $this->name, $this->type->value, $this->contactEndpoint);
     }
 
     public function getId(): ?int
@@ -80,10 +86,9 @@ class ContactMethod implements \Stringable
         return $this->name;
     }
 
-    public function setName(string $name): self
+    public function setName(string $name): void
     {
         $this->name = $name;
-        return $this;
     }
 
     public function getArn(): string
@@ -91,10 +96,9 @@ class ContactMethod implements \Stringable
         return $this->arn;
     }
 
-    public function setArn(string $arn): self
+    public function setArn(string $arn): void
     {
         $this->arn = $arn;
-        return $this;
     }
 
     public function getType(): ContactMethodTypeEnum
@@ -102,10 +106,9 @@ class ContactMethod implements \Stringable
         return $this->type;
     }
 
-    public function setType(ContactMethodTypeEnum $type): self
+    public function setType(ContactMethodTypeEnum $type): void
     {
         $this->type = $type;
-        return $this;
     }
 
     public function getContactEndpoint(): string
@@ -113,10 +116,9 @@ class ContactMethod implements \Stringable
         return $this->contactEndpoint;
     }
 
-    public function setContactEndpoint(string $contactEndpoint): self
+    public function setContactEndpoint(string $contactEndpoint): void
     {
         $this->contactEndpoint = $contactEndpoint;
-        return $this;
     }
 
     public function getStatus(): ContactMethodStatusEnum
@@ -124,10 +126,9 @@ class ContactMethod implements \Stringable
         return $this->status;
     }
 
-    public function setStatus(ContactMethodStatusEnum $status): self
+    public function setStatus(ContactMethodStatusEnum $status): void
     {
         $this->status = $status;
-        return $this;
     }
 
     public function getRegion(): string
@@ -135,10 +136,9 @@ class ContactMethod implements \Stringable
         return $this->region;
     }
 
-    public function setRegion(string $region): self
+    public function setRegion(string $region): void
     {
         $this->region = $region;
-        return $this;
     }
 
     public function getProtocol(): ?string
@@ -146,43 +146,35 @@ class ContactMethod implements \Stringable
         return $this->protocol;
     }
 
-    public function setProtocol(?string $protocol): self
+    public function setProtocol(?string $protocol): void
     {
         $this->protocol = $protocol;
-        return $this;
     }
 
-    public function getLastVerifiedTime(): ?\DateTimeImmutable
+    public function getLastVerificationTime(): ?\DateTimeImmutable
     {
-        return $this->lastVerifiedTime;
+        return $this->lastVerificationTime;
     }
 
-    public function setLastVerifiedTime(?\DateTimeInterface $lastVerifiedTime): self
+    public function setLastVerificationTime(?\DateTimeInterface $lastVerificationTime): void
     {
-        if ($lastVerifiedTime !== null && !$lastVerifiedTime instanceof \DateTimeImmutable) {
-            $lastVerifiedTime = \DateTimeImmutable::createFromInterface($lastVerifiedTime);
+        if (null !== $lastVerificationTime && !$lastVerificationTime instanceof \DateTimeImmutable) {
+            $lastVerificationTime = \DateTimeImmutable::createFromInterface($lastVerificationTime);
         }
-        $this->lastVerifiedTime = $lastVerifiedTime;
-        return $this;
+        $this->lastVerificationTime = $lastVerificationTime;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable
+    public function getSyncTime(): ?\DateTimeImmutable
     {
-        return $this->createdAt;
+        return $this->syncTime;
     }
 
-    public function getSyncedAt(): ?\DateTimeImmutable
+    public function setSyncTime(?\DateTimeInterface $syncTime): void
     {
-        return $this->syncedAt;
-    }
-
-    public function setSyncedAt(?\DateTimeInterface $syncedAt): self
-    {
-        if ($syncedAt !== null && !$syncedAt instanceof \DateTimeImmutable) {
-            $syncedAt = \DateTimeImmutable::createFromInterface($syncedAt);
+        if (null !== $syncTime && !$syncTime instanceof \DateTimeImmutable) {
+            $syncTime = \DateTimeImmutable::createFromInterface($syncTime);
         }
-        $this->syncedAt = $syncedAt;
-        return $this;
+        $this->syncTime = $syncTime;
     }
 
     public function getCredential(): AwsCredential
@@ -190,23 +182,8 @@ class ContactMethod implements \Stringable
         return $this->credential;
     }
 
-    public function setCredential(AwsCredential $credential): self
+    public function setCredential(AwsCredential $credential): void
     {
         $this->credential = $credential;
-        return $this;
     }
-
-    public function getUpdatedAt(): ?\DateTimeImmutable
-    {
-        return $this->updatedAt;
-    }
-
-    public function setUpdatedAt(?\DateTimeInterface $updatedAt): self
-    {
-        if ($updatedAt !== null && !$updatedAt instanceof \DateTimeImmutable) {
-            $updatedAt = \DateTimeImmutable::createFromInterface($updatedAt);
-        }
-        $this->updatedAt = $updatedAt;
-        return $this;
-    }
-} 
+}

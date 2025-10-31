@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Entity;
 
 use AwsLightsailBundle\Enum\DiskStateEnum;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 #[ORM\Entity]
@@ -19,49 +22,68 @@ class Disk implements \Stringable
     private ?int $id = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '磁盘名称'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $name;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => 'AWS ARN'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $arn;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '挂载到的实例'])]
+    #[Assert\Length(max: 255)]
     private ?string $attachedTo = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '挂载状态'])]
+    #[Assert\Length(max: 255)]
     private ?string $attachmentState = null;
 
     #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否为系统磁盘'])]
+    #[Assert\Type(type: 'bool')]
     private bool $isSystemDisk = false;
 
     #[ORM\Column(type: Types::STRING, length: 50, enumType: DiskStateEnum::class, options: ['comment' => '磁盘状态'])]
+    #[Assert\Choice(callback: [DiskStateEnum::class, 'cases'])]
     private DiskStateEnum $state;
 
     #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => 'AWS 区域'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 50)]
     private string $region;
 
     #[ORM\Column(type: Types::BIGINT, options: ['comment' => '大小(GB)'])]
+    #[Assert\Positive]
     private int $sizeInGb;
 
     #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['comment' => 'IOPS'])]
+    #[Assert\PositiveOrZero]
     private ?int $iops = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '路径'])]
+    #[Assert\Length(max: 255)]
     private ?string $path = null;
 
+    /**
+     * @var array<string, mixed>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '标签'])]
+    #[Assert\Type(type: 'array')]
     private ?array $tags = null;
 
     #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否配置自动快照'])]
+    #[Assert\Type(type: 'bool')]
     private bool $isAutoSnapshotConfigured = false;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '支持代码'])]
+    #[Assert\Length(max: 255)]
     private ?string $supportCode = null;
 
-
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '同步时间'])]
+    #[Assert\DateTime]
     private ?\DateTimeImmutable $syncTime = null;
 
-    #[ORM\ManyToOne(targetEntity: AwsCredential::class)]
+    #[ORM\ManyToOne(targetEntity: AwsCredential::class, cascade: ['persist'])]
     #[ORM\JoinColumn(nullable: false)]
     private AwsCredential $credential;
 
@@ -72,7 +94,7 @@ class Disk implements \Stringable
 
     public function __toString(): string
     {
-        return sprintf('Disk %s (%s, %d GB)', $this->name, $this->state->value, $this->sizeInGb);
+        return \sprintf('Disk %s (%s, %d GB)', $this->name, $this->state->value, $this->sizeInGb);
     }
 
     public function getId(): ?int
@@ -85,10 +107,9 @@ class Disk implements \Stringable
         return $this->name;
     }
 
-    public function setName(string $name): self
+    public function setName(string $name): void
     {
         $this->name = $name;
-        return $this;
     }
 
     public function getArn(): string
@@ -96,10 +117,9 @@ class Disk implements \Stringable
         return $this->arn;
     }
 
-    public function setArn(string $arn): self
+    public function setArn(string $arn): void
     {
         $this->arn = $arn;
-        return $this;
     }
 
     public function getAttachedTo(): ?string
@@ -107,10 +127,9 @@ class Disk implements \Stringable
         return $this->attachedTo;
     }
 
-    public function setAttachedTo(?string $attachedTo): self
+    public function setAttachedTo(?string $attachedTo): void
     {
         $this->attachedTo = $attachedTo;
-        return $this;
     }
 
     public function getAttachmentState(): ?string
@@ -118,10 +137,9 @@ class Disk implements \Stringable
         return $this->attachmentState;
     }
 
-    public function setAttachmentState(?string $attachmentState): self
+    public function setAttachmentState(?string $attachmentState): void
     {
         $this->attachmentState = $attachmentState;
-        return $this;
     }
 
     public function isSystemDisk(): bool
@@ -129,10 +147,9 @@ class Disk implements \Stringable
         return $this->isSystemDisk;
     }
 
-    public function setIsSystemDisk(bool $isSystemDisk): self
+    public function setIsSystemDisk(bool $isSystemDisk): void
     {
         $this->isSystemDisk = $isSystemDisk;
-        return $this;
     }
 
     public function getState(): DiskStateEnum
@@ -140,10 +157,9 @@ class Disk implements \Stringable
         return $this->state;
     }
 
-    public function setState(DiskStateEnum $state): self
+    public function setState(DiskStateEnum $state): void
     {
         $this->state = $state;
-        return $this;
     }
 
     public function getRegion(): string
@@ -151,10 +167,9 @@ class Disk implements \Stringable
         return $this->region;
     }
 
-    public function setRegion(string $region): self
+    public function setRegion(string $region): void
     {
         $this->region = $region;
-        return $this;
     }
 
     public function getSizeInGb(): int
@@ -162,10 +177,9 @@ class Disk implements \Stringable
         return $this->sizeInGb;
     }
 
-    public function setSizeInGb(int $sizeInGb): self
+    public function setSizeInGb(int $sizeInGb): void
     {
         $this->sizeInGb = $sizeInGb;
-        return $this;
     }
 
     public function getIops(): ?int
@@ -173,10 +187,9 @@ class Disk implements \Stringable
         return $this->iops;
     }
 
-    public function setIops(?int $iops): self
+    public function setIops(?int $iops): void
     {
         $this->iops = $iops;
-        return $this;
     }
 
     public function getPath(): ?string
@@ -184,21 +197,25 @@ class Disk implements \Stringable
         return $this->path;
     }
 
-    public function setPath(?string $path): self
+    public function setPath(?string $path): void
     {
         $this->path = $path;
-        return $this;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getTags(): ?array
     {
         return $this->tags;
     }
 
-    public function setTags(?array $tags): self
+    /**
+     * @param array<string, mixed>|null $tags
+     */
+    public function setTags(?array $tags): void
     {
         $this->tags = $tags;
-        return $this;
     }
 
     public function isAutoSnapshotConfigured(): bool
@@ -206,10 +223,9 @@ class Disk implements \Stringable
         return $this->isAutoSnapshotConfigured;
     }
 
-    public function setIsAutoSnapshotConfigured(bool $isAutoSnapshotConfigured): self
+    public function setIsAutoSnapshotConfigured(bool $isAutoSnapshotConfigured): void
     {
         $this->isAutoSnapshotConfigured = $isAutoSnapshotConfigured;
-        return $this;
     }
 
     public function getSupportCode(): ?string
@@ -217,10 +233,9 @@ class Disk implements \Stringable
         return $this->supportCode;
     }
 
-    public function setSupportCode(?string $supportCode): self
+    public function setSupportCode(?string $supportCode): void
     {
         $this->supportCode = $supportCode;
-        return $this;
     }
 
     public function getSyncTime(): ?\DateTimeImmutable
@@ -228,13 +243,12 @@ class Disk implements \Stringable
         return $this->syncTime;
     }
 
-    public function setSyncTime(?\DateTimeInterface $syncTime): self
+    public function setSyncTime(?\DateTimeInterface $syncTime): void
     {
-        if ($syncTime !== null && !$syncTime instanceof \DateTimeImmutable) {
+        if (null !== $syncTime && !$syncTime instanceof \DateTimeImmutable) {
             $syncTime = \DateTimeImmutable::createFromInterface($syncTime);
         }
         $this->syncTime = $syncTime;
-        return $this;
     }
 
     public function getCredential(): AwsCredential
@@ -242,9 +256,8 @@ class Disk implements \Stringable
         return $this->credential;
     }
 
-    public function setCredential(AwsCredential $credential): self
+    public function setCredential(AwsCredential $credential): void
     {
         $this->credential = $credential;
-        return $this;
     }
 }

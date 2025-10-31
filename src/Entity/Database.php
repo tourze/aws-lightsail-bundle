@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Entity;
 
 use AwsLightsailBundle\Enum\DatabaseEngineEnum;
 use AwsLightsailBundle\Enum\DatabaseStatusEnum;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 #[ORM\Entity]
@@ -20,70 +23,104 @@ class Database implements \Stringable
     private ?int $id = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '数据库名称'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $name;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => 'AWS ARN'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $arn;
 
     #[ORM\Column(type: Types::STRING, length: 50, enumType: DatabaseEngineEnum::class, options: ['comment' => '数据库引擎'])]
+    #[Assert\Choice(callback: [DatabaseEngineEnum::class, 'cases'])]
     private DatabaseEngineEnum $engine;
 
     #[ORM\Column(type: Types::STRING, length: 20, options: ['comment' => '引擎版本'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 20)]
     private string $engineVersion;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '主用户名'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $masterUsername;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '主节点终端节点'])]
+    #[Assert\Length(max: 255)]
     private ?string $masterEndpoint = null;
 
     #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['comment' => '主节点端口'])]
+    #[Assert\Range(min: 1, max: 65535)]
     private ?int $masterPort = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '从节点终端节点'])]
+    #[Assert\Length(max: 255)]
     private ?string $secondaryEndpoint = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '首选备份窗口'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $preferredBackupWindow;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '首选维护窗口'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $preferredMaintenanceWindow;
 
     #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否可公开访问'])]
+    #[Assert\Type(type: 'bool')]
     private bool $publiclyAccessible = false;
 
     #[ORM\Column(type: Types::STRING, length: 50, enumType: DatabaseStatusEnum::class, options: ['comment' => '数据库状态'])]
+    #[Assert\Choice(callback: [DatabaseStatusEnum::class, 'cases'])]
     private DatabaseStatusEnum $status;
 
     #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => 'AWS 区域'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 50)]
     private string $region;
 
     #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '支持代码'])]
+    #[Assert\Type(type: 'bool')]
     private bool $supportCode = false;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => 'CA证书标识符'])]
+    #[Assert\Length(max: 255)]
     private ?string $caCertificateIdentifier = null;
 
+    /**
+     * @var array<string, mixed>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '待修改的值'])]
+    #[Assert\Type(type: 'array')]
     private ?array $pendingModifiedValues = null;
 
     #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否启用备份保留'])]
+    #[Assert\Type(type: 'bool')]
     private bool $backupRetentionEnabled = false;
 
+    /**
+     * @var array<string, mixed>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '标签'])]
+    #[Assert\Type(type: 'array')]
     private ?array $tags = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '套餐ID'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $bundleId;
 
     #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否自动升级小版本'])]
+    #[Assert\Type(type: 'bool')]
     private bool $autoMinorVersionUpgrade = false;
 
-
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '同步时间'])]
+    #[Assert\DateTime]
     private ?\DateTimeImmutable $syncTime = null;
 
-    #[ORM\ManyToOne(targetEntity: AwsCredential::class)]
+    #[ORM\ManyToOne(targetEntity: AwsCredential::class, cascade: ['persist'])]
     #[ORM\JoinColumn(nullable: false)]
     private AwsCredential $credential;
 
@@ -95,7 +132,7 @@ class Database implements \Stringable
 
     public function __toString(): string
     {
-        return sprintf('Database %s (%s %s)', $this->name, $this->engine->value, $this->status->value);
+        return \sprintf('Database %s (%s %s)', $this->name, $this->engine->value, $this->status->value);
     }
 
     public function getId(): ?int
@@ -108,10 +145,9 @@ class Database implements \Stringable
         return $this->name;
     }
 
-    public function setName(string $name): self
+    public function setName(string $name): void
     {
         $this->name = $name;
-        return $this;
     }
 
     public function getArn(): string
@@ -119,10 +155,9 @@ class Database implements \Stringable
         return $this->arn;
     }
 
-    public function setArn(string $arn): self
+    public function setArn(string $arn): void
     {
         $this->arn = $arn;
-        return $this;
     }
 
     public function getEngine(): DatabaseEngineEnum
@@ -130,10 +165,9 @@ class Database implements \Stringable
         return $this->engine;
     }
 
-    public function setEngine(DatabaseEngineEnum $engine): self
+    public function setEngine(DatabaseEngineEnum $engine): void
     {
         $this->engine = $engine;
-        return $this;
     }
 
     public function getEngineVersion(): string
@@ -141,10 +175,9 @@ class Database implements \Stringable
         return $this->engineVersion;
     }
 
-    public function setEngineVersion(string $engineVersion): self
+    public function setEngineVersion(string $engineVersion): void
     {
         $this->engineVersion = $engineVersion;
-        return $this;
     }
 
     public function getMasterUsername(): string
@@ -152,10 +185,9 @@ class Database implements \Stringable
         return $this->masterUsername;
     }
 
-    public function setMasterUsername(string $masterUsername): self
+    public function setMasterUsername(string $masterUsername): void
     {
         $this->masterUsername = $masterUsername;
-        return $this;
     }
 
     public function getMasterEndpoint(): ?string
@@ -163,10 +195,9 @@ class Database implements \Stringable
         return $this->masterEndpoint;
     }
 
-    public function setMasterEndpoint(?string $masterEndpoint): self
+    public function setMasterEndpoint(?string $masterEndpoint): void
     {
         $this->masterEndpoint = $masterEndpoint;
-        return $this;
     }
 
     public function getMasterPort(): ?int
@@ -174,10 +205,9 @@ class Database implements \Stringable
         return $this->masterPort;
     }
 
-    public function setMasterPort(?int $masterPort): self
+    public function setMasterPort(?int $masterPort): void
     {
         $this->masterPort = $masterPort;
-        return $this;
     }
 
     public function getSecondaryEndpoint(): ?string
@@ -185,10 +215,9 @@ class Database implements \Stringable
         return $this->secondaryEndpoint;
     }
 
-    public function setSecondaryEndpoint(?string $secondaryEndpoint): self
+    public function setSecondaryEndpoint(?string $secondaryEndpoint): void
     {
         $this->secondaryEndpoint = $secondaryEndpoint;
-        return $this;
     }
 
     public function getPreferredBackupWindow(): string
@@ -196,10 +225,9 @@ class Database implements \Stringable
         return $this->preferredBackupWindow;
     }
 
-    public function setPreferredBackupWindow(string $preferredBackupWindow): self
+    public function setPreferredBackupWindow(string $preferredBackupWindow): void
     {
         $this->preferredBackupWindow = $preferredBackupWindow;
-        return $this;
     }
 
     public function getPreferredMaintenanceWindow(): string
@@ -207,10 +235,9 @@ class Database implements \Stringable
         return $this->preferredMaintenanceWindow;
     }
 
-    public function setPreferredMaintenanceWindow(string $preferredMaintenanceWindow): self
+    public function setPreferredMaintenanceWindow(string $preferredMaintenanceWindow): void
     {
         $this->preferredMaintenanceWindow = $preferredMaintenanceWindow;
-        return $this;
     }
 
     public function isPubliclyAccessible(): bool
@@ -218,10 +245,9 @@ class Database implements \Stringable
         return $this->publiclyAccessible;
     }
 
-    public function setPubliclyAccessible(bool $publiclyAccessible): self
+    public function setPubliclyAccessible(bool $publiclyAccessible): void
     {
         $this->publiclyAccessible = $publiclyAccessible;
-        return $this;
     }
 
     public function getStatus(): DatabaseStatusEnum
@@ -229,10 +255,9 @@ class Database implements \Stringable
         return $this->status;
     }
 
-    public function setStatus(DatabaseStatusEnum $status): self
+    public function setStatus(DatabaseStatusEnum $status): void
     {
         $this->status = $status;
-        return $this;
     }
 
     public function getRegion(): string
@@ -240,10 +265,9 @@ class Database implements \Stringable
         return $this->region;
     }
 
-    public function setRegion(string $region): self
+    public function setRegion(string $region): void
     {
         $this->region = $region;
-        return $this;
     }
 
     public function isSupportCode(): bool
@@ -251,10 +275,9 @@ class Database implements \Stringable
         return $this->supportCode;
     }
 
-    public function setSupportCode(bool $supportCode): self
+    public function setSupportCode(bool $supportCode): void
     {
         $this->supportCode = $supportCode;
-        return $this;
     }
 
     public function getCaCertificateIdentifier(): ?string
@@ -262,21 +285,25 @@ class Database implements \Stringable
         return $this->caCertificateIdentifier;
     }
 
-    public function setCaCertificateIdentifier(?string $caCertificateIdentifier): self
+    public function setCaCertificateIdentifier(?string $caCertificateIdentifier): void
     {
         $this->caCertificateIdentifier = $caCertificateIdentifier;
-        return $this;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getPendingModifiedValues(): ?array
     {
         return $this->pendingModifiedValues;
     }
 
-    public function setPendingModifiedValues(?array $pendingModifiedValues): self
+    /**
+     * @param array<string, mixed>|null $pendingModifiedValues
+     */
+    public function setPendingModifiedValues(?array $pendingModifiedValues): void
     {
         $this->pendingModifiedValues = $pendingModifiedValues;
-        return $this;
     }
 
     public function isBackupRetentionEnabled(): bool
@@ -284,21 +311,25 @@ class Database implements \Stringable
         return $this->backupRetentionEnabled;
     }
 
-    public function setBackupRetentionEnabled(bool $backupRetentionEnabled): self
+    public function setBackupRetentionEnabled(bool $backupRetentionEnabled): void
     {
         $this->backupRetentionEnabled = $backupRetentionEnabled;
-        return $this;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getTags(): ?array
     {
         return $this->tags;
     }
 
-    public function setTags(?array $tags): self
+    /**
+     * @param array<string, mixed>|null $tags
+     */
+    public function setTags(?array $tags): void
     {
         $this->tags = $tags;
-        return $this;
     }
 
     public function getBundleId(): string
@@ -306,10 +337,9 @@ class Database implements \Stringable
         return $this->bundleId;
     }
 
-    public function setBundleId(string $bundleId): self
+    public function setBundleId(string $bundleId): void
     {
         $this->bundleId = $bundleId;
-        return $this;
     }
 
     public function isAutoMinorVersionUpgrade(): bool
@@ -317,10 +347,9 @@ class Database implements \Stringable
         return $this->autoMinorVersionUpgrade;
     }
 
-    public function setAutoMinorVersionUpgrade(bool $autoMinorVersionUpgrade): self
+    public function setAutoMinorVersionUpgrade(bool $autoMinorVersionUpgrade): void
     {
         $this->autoMinorVersionUpgrade = $autoMinorVersionUpgrade;
-        return $this;
     }
 
     public function getSyncTime(): ?\DateTimeImmutable
@@ -328,13 +357,12 @@ class Database implements \Stringable
         return $this->syncTime;
     }
 
-    public function setSyncTime(?\DateTimeInterface $syncTime): self
+    public function setSyncTime(?\DateTimeInterface $syncTime): void
     {
-        if ($syncTime !== null && !$syncTime instanceof \DateTimeImmutable) {
+        if (null !== $syncTime && !$syncTime instanceof \DateTimeImmutable) {
             $syncTime = \DateTimeImmutable::createFromInterface($syncTime);
         }
         $this->syncTime = $syncTime;
-        return $this;
     }
 
     public function getCredential(): AwsCredential
@@ -342,9 +370,8 @@ class Database implements \Stringable
         return $this->credential;
     }
 
-    public function setCredential(AwsCredential $credential): self
+    public function setCredential(AwsCredential $credential): void
     {
         $this->credential = $credential;
-        return $this;
     }
 }

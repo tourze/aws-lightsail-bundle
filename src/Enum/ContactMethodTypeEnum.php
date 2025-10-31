@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Enum;
 
 use Tourze\EnumExtra\Itemable;
@@ -17,15 +19,14 @@ enum ContactMethodTypeEnum: string implements Labelable, Itemable, Selectable
 {
     use ItemTrait;
     use SelectTrait;
-
     case EMAIL = 'Email';
-    case SMS = 'SMS';
+    case SMS   = 'SMS';
 
     public function getLabel(): string
     {
         return match ($this) {
             self::EMAIL => '电子邮箱',
-            self::SMS => '短信',
+            self::SMS   => '短信',
         };
     }
 }

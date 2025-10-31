@@ -1,19 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Repository;
 
 use AwsLightsailBundle\Entity\Domain;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Tourze\PHPUnitSymfonyKernelTest\Attribute\AsRepository;
 
 /**
  * @extends ServiceEntityRepository<Domain>
- *
- * @method Domain|null find($id, $lockMode = null, $lockVersion = null)
- * @method Domain|null findOneBy(array $criteria, array $orderBy = null)
- * @method Domain[]    findAll()
- * @method Domain[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
+#[AsRepository(entityClass: Domain::class)]
 class DomainRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
@@ -25,46 +24,78 @@ class DomainRepository extends ServiceEntityRepository
      * 按区域查找域名
      *
      * @param string $region 区域
+     *
      * @return Domain[]
+     * @phpstan-return array<int, Domain>
      */
     public function findByRegion(string $region): array
     {
-        return $this->createQueryBuilder('d')
+        /** @var array<int, Domain> $result */
+        $result = $this->createQueryBuilder('d')
             ->andWhere('d.region = :region')
             ->setParameter('region', $region)
             ->orderBy('d.name', 'ASC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
+        return $result;
     }
 
     /**
      * 查找托管的域名
      *
      * @return Domain[]
+     * @phpstan-return array<int, Domain>
      */
     public function findManaged(): array
     {
-        return $this->createQueryBuilder('d')
+        /** @var array<int, Domain> $result */
+        $result = $this->createQueryBuilder('d')
             ->andWhere('d.isManaged = :isManaged')
             ->setParameter('isManaged', true)
             ->orderBy('d.name', 'ASC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
+        return $result;
     }
 
     /**
      * 按名称模式查找域名
      *
      * @param string $pattern 名称模式
+     *
      * @return Domain[]
+     * @phpstan-return array<int, Domain>
      */
     public function findByNamePattern(string $pattern): array
     {
-        return $this->createQueryBuilder('d')
+        /** @var array<int, Domain> $result */
+        $result = $this->createQueryBuilder('d')
             ->andWhere('d.name LIKE :pattern')
             ->setParameter('pattern', '%' . $pattern . '%')
             ->orderBy('d.name', 'ASC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
+        return $result;
     }
-} 
+
+    public function save(Domain $entity, bool $flush = true): void
+    {
+        $this->getEntityManager()->persist($entity);
+
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+
+    public function remove(Domain $entity, bool $flush = true): void
+    {
+        $this->getEntityManager()->remove($entity);
+
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+}

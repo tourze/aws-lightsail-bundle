@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Controller\Admin;
 
 use AwsLightsailBundle\Entity\AwsCredential;
 use AwsLightsailBundle\Entity\Database;
 use AwsLightsailBundle\Entity\DatabaseSnapshot;
 use AwsLightsailBundle\Enum\DatabaseEngineEnum;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminCrud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
@@ -27,10 +30,15 @@ use Symfony\Component\Form\Extension\Core\Type\EnumType;
 
 /**
  * Lightsail 数据库快照管理控制器
+ *
+ * @extends AbstractCrudController<DatabaseSnapshot>
  */
-class DatabaseSnapshotCrudController extends AbstractCrudController
+#[AdminCrud(
+    routePath: '/aws-lightsail/database-snapshot',
+    routeName: 'aws_lightsail_database_snapshot'
+)]
+final class DatabaseSnapshotCrudController extends AbstractCrudController
 {
-
     public static function getEntityFqcn(): string
     {
         return DatabaseSnapshot::class;
@@ -43,77 +51,90 @@ class DatabaseSnapshotCrudController extends AbstractCrudController
             ->setEntityLabelInPlural('数据库快照列表')
             ->setPageTitle('index', 'Lightsail 数据库快照管理')
             ->setPageTitle('new', '创建数据库快照')
-            ->setPageTitle('edit', fn(DatabaseSnapshot $snapshot) => sprintf('编辑数据库快照: %s', $snapshot->getName()))
-            ->setPageTitle('detail', fn(DatabaseSnapshot $snapshot) => sprintf('数据库快照详情: %s', $snapshot->getName()))
+            ->setPageTitle('edit', fn (DatabaseSnapshot $snapshot) => \sprintf('编辑数据库快照: %s', $snapshot->getName()))
+            ->setPageTitle('detail', fn (DatabaseSnapshot $snapshot) => \sprintf('数据库快照详情: %s', $snapshot->getName()))
             ->setSearchFields(['name', 'databaseName', 'region', 'state'])
-            ->setDefaultSort(['createTime' => 'DESC']);
+            ->setDefaultSort(['createTime' => 'DESC'])
+        ;
     }
 
     public function configureFields(string $pageName): iterable
     {
         yield IdField::new('id', 'ID')
             ->hideOnForm()
-            ->setMaxLength(9999);
+            ->setMaxLength(9999)
+        ;
 
         yield TextField::new('name', '快照名称');
 
         yield TextField::new('arn', 'AWS ARN')
             ->hideOnForm()
-            ->hideOnIndex();
+            ->hideOnIndex()
+        ;
 
         yield TextField::new('databaseName', '数据库名称');
 
         yield ChoiceField::new('engine', '数据库引擎')
             ->setFormType(EnumType::class)
             ->setFormTypeOptions([
-                'class' => DatabaseEngineEnum::class
+                'class' => DatabaseEngineEnum::class,
             ])
             ->formatValue(function ($value) {
                 return $value instanceof DatabaseEngineEnum ? $value->getLabel() : '';
-            });
+            })
+        ;
 
         yield TextField::new('engineVersion', '引擎版本');
 
         yield IntegerField::new('sizeInGb', '大小(GB)')
-            ->hideOnForm();
+            ->hideOnForm()
+        ;
 
         yield TextField::new('region', '区域');
 
         yield TextField::new('state', '状态')
-            ->hideOnForm();
+            ->hideOnForm()
+        ;
 
         yield BooleanField::new('isFromAutoSnapshot', '来自自动快照')
             ->renderAsSwitch(false)
-            ->setFormTypeOption('disabled', true);
+            ->setFormTypeOption('disabled', true)
+        ;
 
         yield CodeEditorField::new('tags', '标签')
             ->hideOnForm()
             ->hideOnIndex()
             ->formatValue(function ($value) {
-                return $value ? json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : '{}';
-            });
+                return $value ? \json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : '{}';
+            })
+        ;
 
         yield AssociationField::new('database', '关联数据库')
             ->hideOnIndex()
             ->setFormTypeOption('disabled', true)
             ->formatValue(function ($value) {
                 return $value instanceof Database ? $value->getName() : '';
-            });
+            })
+        ;
 
         yield AssociationField::new('credential', 'AWS 凭证')
-            ->setFormTypeOption('disabled', $pageName !== Crud::PAGE_NEW)
+            ->setFormTypeOption('disabled', Crud::PAGE_NEW !== $pageName)
             ->formatValue(function ($value) {
                 return $value instanceof AwsCredential ? $value->getName() : '';
-            });
+            })
+        ;
 
         yield DateTimeField::new('createTime', '创建时间')
-            ->hideOnForm();
+            ->hideOnForm()
+        ;
 
         yield DateTimeField::new('syncTime', '同步时间')
-            ->hideOnForm();
+            ->hideOnForm()
+        ;
 
         yield DateTimeField::new('updateTime', '更新时间')
-            ->hideOnForm();
+            ->hideOnForm()
+        ;
     }
 
     public function configureActions(Actions $actions): Actions
@@ -122,24 +143,28 @@ class DatabaseSnapshotCrudController extends AbstractCrudController
             ->linkToRoute('sync_database_snapshot', function (DatabaseSnapshot $entity): array {
                 return ['entityId' => $entity->getId()];
             })
-            ->setIcon('fa fa-refresh');
+            ->setIcon('fa fa-refresh')
+        ;
 
         $restoreAction = Action::new('restoreDatabaseSnapshot', '还原')
             ->linkToRoute('restore_database_snapshot', function (DatabaseSnapshot $entity): array {
                 return ['entityId' => $entity->getId()];
             })
             ->setIcon('fa fa-history')
-            ->setCssClass('text-primary');
+            ->setCssClass('text-primary')
+        ;
 
         $exportAction = Action::new('exportDatabaseSnapshot', '导出')
             ->linkToRoute('export_database_snapshot', function (DatabaseSnapshot $entity): array {
                 return ['entityId' => $entity->getId()];
             })
             ->setIcon('fa fa-download')
-            ->setCssClass('text-success');
+            ->setCssClass('text-success')
+        ;
 
         return $actions
-            ->add(Crud::PAGE_INDEX, Action::DETAIL)
+            ->set(Crud::PAGE_INDEX, Action::DELETE)
+            ->set(Crud::PAGE_INDEX, Action::DETAIL)
             ->add(Crud::PAGE_INDEX, $syncAction)
             ->add(Crud::PAGE_INDEX, $restoreAction)
             ->add(Crud::PAGE_INDEX, $exportAction)
@@ -154,7 +179,8 @@ class DatabaseSnapshotCrudController extends AbstractCrudController
             })
             ->update(Crud::PAGE_INDEX, Action::DETAIL, function (Action $action) {
                 return $action->setIcon('fa fa-eye')->setLabel('查看');
-            });
+            })
+        ;
     }
 
     public function configureFilters(Filters $filters): Filters
@@ -172,6 +198,7 @@ class DatabaseSnapshotCrudController extends AbstractCrudController
             ->add(ChoiceFilter::new('engine', '数据库引擎')->setChoices($engineChoices))
             ->add(BooleanFilter::new('isFromAutoSnapshot', '来自自动快照'))
             ->add(EntityFilter::new('database', '关联数据库'))
-            ->add(EntityFilter::new('credential', 'AWS 凭证'));
+            ->add(EntityFilter::new('credential', 'AWS 凭证'))
+        ;
     }
 }

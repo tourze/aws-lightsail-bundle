@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Controller\Admin;
 
 use AwsLightsailBundle\Entity\AwsCredential;
@@ -7,6 +9,7 @@ use AwsLightsailBundle\Entity\Instance;
 use AwsLightsailBundle\Enum\InstanceBlueprintEnum;
 use AwsLightsailBundle\Enum\InstanceBundleEnum;
 use AwsLightsailBundle\Enum\InstanceStateEnum;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminCrud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
@@ -23,13 +26,19 @@ use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\TextFilter;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Lightsail 实例管理控制器
+ *
+ * @extends AbstractCrudController<Instance>
  */
-class InstanceCrudController extends AbstractCrudController
+#[AdminCrud(
+    routePath: '/aws-lightsail/instance',
+    routeName: 'aws_lightsail_instance'
+)]
+final class InstanceCrudController extends AbstractCrudController
 {
-
     public static function getEntityFqcn(): string
     {
         return Instance::class;
@@ -42,110 +51,133 @@ class InstanceCrudController extends AbstractCrudController
             ->setEntityLabelInPlural('Lightsail 实例列表')
             ->setPageTitle('index', 'Lightsail 实例管理')
             ->setPageTitle('new', '创建 Lightsail 实例')
-            ->setPageTitle('edit', fn(Instance $instance) => sprintf('编辑实例: %s', $instance->getName()))
-            ->setPageTitle('detail', fn(Instance $instance) => sprintf('实例详情: %s', $instance->getName()))
+            ->setPageTitle('edit', fn (Instance $instance) => \sprintf('编辑实例: %s', $instance->getName()))
+            ->setPageTitle('detail', fn (Instance $instance) => \sprintf('实例详情: %s', $instance->getName()))
             ->setSearchFields(['name', 'publicIpAddress', 'privateIpAddress', 'region'])
-            ->setDefaultSort(['name' => 'ASC']);
+            ->setDefaultSort(['name' => 'ASC'])
+        ;
     }
 
     public function configureFields(string $pageName): iterable
     {
         yield IdField::new('id', 'ID')
             ->hideOnForm()
-            ->setMaxLength(9999);
+            ->setMaxLength(9999)
+        ;
 
         yield TextField::new('name', '实例名称');
 
         yield TextField::new('arn', 'AWS ARN')
-            ->hideOnForm()
-            ->hideOnIndex();
+            ->hideOnIndex()
+            ->setFormTypeOption('disabled', Crud::PAGE_NEW !== $pageName)
+        ;
 
         yield ChoiceField::new('state', '状态')
             ->setFormType(EnumType::class)
             ->setFormTypeOptions([
-                'class' => InstanceStateEnum::class,
-                'disabled' => true
+                'class'    => InstanceStateEnum::class,
+                'disabled' => true,
             ])
             ->formatValue(function ($value) {
                 return $value instanceof InstanceStateEnum ? $value->getLabel() : '';
-            });
+            })
+        ;
 
         yield ChoiceField::new('blueprint', '蓝图')
             ->setFormType(EnumType::class)
             ->setFormTypeOptions([
-                'class' => InstanceBlueprintEnum::class,
-                'disabled' => true
+                'class'    => InstanceBlueprintEnum::class,
+                'disabled' => true,
             ])
             ->formatValue(function ($value) {
                 return $value instanceof InstanceBlueprintEnum ? $value->getLabel() : '';
-            });
+            })
+        ;
 
         yield ChoiceField::new('bundle', '套餐')
             ->setFormType(EnumType::class)
             ->setFormTypeOptions([
-                'class' => InstanceBundleEnum::class,
-                'disabled' => true
+                'class'    => InstanceBundleEnum::class,
+                'disabled' => true,
             ])
             ->formatValue(function ($value) {
                 return $value instanceof InstanceBundleEnum ? $value->getLabel() : '';
-            });
+            })
+        ;
+
+        yield TextField::new('blueprintName', '蓝图名称')
+            ->setFormTypeOption('disabled', true)
+        ;
 
         yield TextField::new('region', '区域');
 
         yield TextField::new('publicIpAddress', '公网IP')
-            ->hideOnForm();
+            ->hideOnForm()
+        ;
 
         yield TextField::new('privateIpAddress', '私网IP')
-            ->hideOnForm();
+            ->hideOnForm()
+        ;
 
         yield TextField::new('keyPairName', '密钥对')
-            ->hideOnForm();
+            ->hideOnForm()
+        ;
 
         yield TextField::new('username', '用户名')
-            ->hideOnForm();
+            ->hideOnForm()
+        ;
 
         yield BooleanField::new('isMonitoring', '监控状态')
-            ->hideOnForm();
+            ->hideOnForm()
+        ;
 
         yield TextField::new('supportCode', '支持代码')
             ->hideOnForm()
-            ->hideOnIndex();
+            ->hideOnIndex()
+        ;
 
         yield CodeEditorField::new('hardware', '硬件配置')
             ->hideOnForm()
             ->hideOnIndex()
             ->formatValue(function ($value) {
-                return json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-            });
+                return \json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+            })
+        ;
 
         yield CodeEditorField::new('networking', '网络配置')
             ->hideOnForm()
             ->hideOnIndex()
             ->formatValue(function ($value) {
-                return json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-            });
+                return \json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+            })
+        ;
 
         yield CodeEditorField::new('tags', '标签')
             ->hideOnForm()
             ->hideOnIndex()
             ->formatValue(function ($value) {
-                return json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-            });
+                return \json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+            })
+        ;
 
         yield AssociationField::new('credential', 'AWS 凭证')
-            ->setFormTypeOption('disabled', $pageName !== Crud::PAGE_NEW)
+            ->setFormTypeOption('disabled', Crud::PAGE_NEW !== $pageName)
             ->formatValue(function ($value) {
                 return $value instanceof AwsCredential ? $value->getName() : '';
-            });
+            })
+        ;
 
-        yield DateTimeField::new('createdAt', '创建时间')
-            ->hideOnForm();
+        yield DateTimeField::new('createTime', '创建时间')
+            ->hideOnForm()
+        ;
 
-        yield DateTimeField::new('syncedAt', '同步时间')
-            ->hideOnForm();
+        yield DateTimeField::new('syncTime', '同步时间')
+            ->hideOnForm()
+        ;
 
-        yield DateTimeField::new('updatedAt', '更新时间')
-            ->hideOnForm();
+        yield DateTimeField::new('updateTime', '更新时间')
+            ->hideOnForm()
+        ;
     }
 
     public function configureActions(Actions $actions): Actions
@@ -154,29 +186,35 @@ class InstanceCrudController extends AbstractCrudController
             ->linkToCrudAction('startInstance')
             ->setIcon('fa fa-play')
             ->displayIf(static function (Instance $instance) {
-                return $instance->getState() === InstanceStateEnum::STOPPED;
-            });
+                return InstanceStateEnum::STOPPED === $instance->getState();
+            })
+        ;
 
         $stopAction = Action::new('stopInstance', '停止')
             ->linkToCrudAction('stopInstance')
             ->setIcon('fa fa-stop')
             ->displayIf(static function (Instance $instance) {
-                return $instance->getState() === InstanceStateEnum::RUNNING;
-            });
+                return InstanceStateEnum::RUNNING === $instance->getState();
+            })
+        ;
 
         $rebootAction = Action::new('rebootInstance', '重启')
             ->linkToCrudAction('rebootInstance')
             ->setIcon('fa fa-sync')
             ->displayIf(static function (Instance $instance) {
-                return $instance->getState() === InstanceStateEnum::RUNNING;
-            });
+                return InstanceStateEnum::RUNNING === $instance->getState();
+            })
+        ;
 
         $syncAction = Action::new('syncInstance', '同步')
             ->linkToCrudAction('syncInstance')
-            ->setIcon('fa fa-refresh');
+            ->setIcon('fa fa-refresh')
+        ;
 
         return $actions
-            ->add(Crud::PAGE_INDEX, Action::DETAIL)
+            ->set(Crud::PAGE_INDEX, Action::DELETE)
+            ->set(Crud::PAGE_INDEX, Action::EDIT)
+            ->set(Crud::PAGE_DETAIL, Action::DELETE)
             ->add(Crud::PAGE_INDEX, $startAction)
             ->add(Crud::PAGE_INDEX, $stopAction)
             ->add(Crud::PAGE_INDEX, $rebootAction)
@@ -191,9 +229,10 @@ class InstanceCrudController extends AbstractCrudController
             ->update(Crud::PAGE_INDEX, Action::EDIT, function (Action $action) {
                 return $action->setIcon('fa fa-edit')->setLabel('编辑');
             })
-            ->update(Crud::PAGE_INDEX, Action::DETAIL, function (Action $action) {
-                return $action->setIcon('fa fa-eye')->setLabel('查看');
-            });
+            ->update(Crud::PAGE_DETAIL, Action::DELETE, function (Action $action) {
+                return $action->setIcon('fa fa-trash')->setLabel('删除');
+            })
+        ;
     }
 
     public function configureFilters(Filters $filters): Filters
@@ -220,6 +259,91 @@ class InstanceCrudController extends AbstractCrudController
             ->add(ChoiceFilter::new('bundle', '套餐')->setChoices($bundleChoices))
             ->add(TextFilter::new('region', '区域'))
             ->add(TextFilter::new('publicIpAddress', '公网IP'))
-            ->add(EntityFilter::new('credential', 'AWS 凭证'));
+            ->add(EntityFilter::new('credential', 'AWS 凭证'))
+        ;
+    }
+
+    /**
+     * 启动实例action
+     */
+    public function startInstance(): Response
+    {
+        $context = $this->getContext();
+        if (null === $context) {
+            throw $this->createNotFoundException('Context not found');
+        }
+
+        $entity   = $context->getEntity();
+        $instance = $entity->getInstance();
+        if (null === $instance) {
+            throw $this->createNotFoundException('Entity instance not found');
+        }
+
+        $entityId = $instance->getId();
+
+        return $this->redirectToRoute('start_instance', ['entityId' => $entityId]);
+    }
+
+    /**
+     * 停止实例action
+     */
+    public function stopInstance(): Response
+    {
+        $context = $this->getContext();
+        if (null === $context) {
+            throw $this->createNotFoundException('Context not found');
+        }
+
+        $entity   = $context->getEntity();
+        $instance = $entity->getInstance();
+        if (null === $instance) {
+            throw $this->createNotFoundException('Entity instance not found');
+        }
+
+        $entityId = $instance->getId();
+
+        return $this->redirectToRoute('stop_instance', ['entityId' => $entityId]);
+    }
+
+    /**
+     * 重启实例action
+     */
+    public function rebootInstance(): Response
+    {
+        $context = $this->getContext();
+        if (null === $context) {
+            throw $this->createNotFoundException('Context not found');
+        }
+
+        $entity   = $context->getEntity();
+        $instance = $entity->getInstance();
+        if (null === $instance) {
+            throw $this->createNotFoundException('Entity instance not found');
+        }
+
+        $entityId = $instance->getId();
+
+        return $this->redirectToRoute('reboot_instance', ['entityId' => $entityId]);
+    }
+
+    /**
+     * 同步实例action
+     */
+    public function syncInstance(): Response
+    {
+        $context = $this->getContext();
+        if (null === $context) {
+            throw $this->createNotFoundException('Context not found');
+        }
+
+        $entity   = $context->getEntity();
+        $instance = $entity->getInstance();
+        if (null === $instance) {
+            throw $this->createNotFoundException('Entity instance not found');
+        }
+
+        $entityId = $instance->getId();
+
+        return $this->redirectToRoute('sync_instance', ['entityId' => $entityId]);
     }
 }

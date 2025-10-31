@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Controller\Admin\Action;
 
 use AwsLightsailBundle\Controller\Admin\DomainCrudController;
@@ -8,22 +10,25 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-class BackToDomainController extends AbstractController
+#[Autoconfigure(public: true)]
+final class BackToDomainController extends AbstractController
 {
     public function __construct(
-        private readonly AdminUrlGenerator $adminUrlGenerator
-    ) {}
+        private readonly AdminUrlGenerator $adminUrlGenerator,
+    ) {
+    }
 
-    #[Route(path: '/admin/domain-entry/back-to-domain', name: 'back_to_domain_entry')]
+    #[Route(path: '/admin/domain-entry/back-to-domain', name: 'back_to_domain_entry', methods: ['POST'])]
     public function __invoke(AdminContext $context): Response
     {
         // 如果是实体上下文，获取关联的域名
         $entity = $context->getEntity();
         if ($entity->getInstance() instanceof DomainEntry) {
-            $entry = $entity->getInstance();
+            $entry  = $entity->getInstance();
             $domain = $entry->getDomain();
 
             return $this->redirect($this->adminUrlGenerator

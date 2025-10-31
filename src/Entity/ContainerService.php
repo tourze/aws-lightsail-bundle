@@ -1,14 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Entity;
 
 use AwsLightsailBundle\Enum\ContainerServicePowerEnum;
 use AwsLightsailBundle\Enum\ContainerServiceStateEnum;
-use Carbon\CarbonImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
-use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 #[ORM\Entity]
@@ -16,74 +16,105 @@ use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 class ContainerService implements \Stringable
 {
     use TimestampableAware;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => '主键ID'])]
     private ?int $id = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '容器服务名称'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $name;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => 'AWS ARN'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $arn;
 
     #[ORM\Column(type: Types::STRING, length: 50, enumType: ContainerServicePowerEnum::class, options: ['comment' => '容器服务计算能力'])]
+    #[Assert\Choice(callback: [ContainerServicePowerEnum::class, 'cases'])]
+    #[Assert\NotBlank]
     private ContainerServicePowerEnum $power;
 
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => '缩放数量'])]
+    #[Assert\NotBlank]
+    #[Assert\PositiveOrZero]
     private int $scale;
 
     #[ORM\Column(type: Types::STRING, length: 50, enumType: ContainerServiceStateEnum::class, options: ['comment' => '服务状态'])]
+    #[Assert\Choice(callback: [ContainerServiceStateEnum::class, 'cases'])]
+    #[Assert\NotBlank]
     private ContainerServiceStateEnum $state;
 
     #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => 'AWS 区域'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 50)]
     private string $region;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '服务 URL'])]
+    #[Assert\Length(max: 255)]
+    #[Assert\Url]
     private ?string $url = null;
 
+    /**
+     * @var array<string, mixed>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '当前部署配置'])]
+    #[Assert\Type(type: 'array')]
     private ?array $currentDeployment = null;
 
+    /**
+     * @var array<string, mixed>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '下一次部署配置'])]
+    #[Assert\Type(type: 'array')]
     private ?array $nextDeployment = null;
 
     #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否启用公共域名'])]
+    #[Assert\Type(type: 'bool')]
     private bool $isPublicDomainEnabled = false;
 
     #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否启用私有域名'])]
+    #[Assert\Type(type: 'bool')]
     private bool $isPrivateDomainEnabled = false;
 
+    /**
+     * @var array<string, mixed>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '私有域名'])]
+    #[Assert\Type(type: 'array')]
     private ?array $privateDomainName = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '公共域名'])]
+    #[Assert\Length(max: 255)]
     private ?string $publicDomainNames = null;
 
+    /**
+     * @var array<string, mixed>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '容器镜像'])]
+    #[Assert\Type(type: 'array')]
     private ?array $containerImages = null;
 
+    /**
+     * @var array<string, mixed>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '标签'])]
+    #[Assert\Type(type: 'array')]
     private ?array $tags = null;
 
-    #[CreateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, options: ['comment' => '创建时间'])]
-    private \DateTimeInterface $createdAt;
-
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '同步时间'])]
-    private ?\DateTimeImmutable $syncedAt = null;
+    #[Assert\Type(type: '\DateTimeInterface')]
+    private ?\DateTimeImmutable $syncTime = null;
 
-    #[ORM\ManyToOne(targetEntity: AwsCredential::class)]
+    #[ORM\ManyToOne(targetEntity: AwsCredential::class, cascade: ['persist'])]
     #[ORM\JoinColumn(nullable: false)]
     private AwsCredential $credential;
 
-    #[UpdateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '更新时间'])]
-    private ?\DateTimeImmutable $updatedAt = null;
-
     public function __construct()
     {
-        $this->createdAt = CarbonImmutable::now();
+        // createTime 会通过 TimestampableAware trait 自动初始化
         $this->state = ContainerServiceStateEnum::UNKNOWN;
         $this->power = ContainerServicePowerEnum::NANO;
         $this->scale = 1;
@@ -91,7 +122,7 @@ class ContainerService implements \Stringable
 
     public function __toString(): string
     {
-        return sprintf('ContainerService %s (%s) - %s, scale: %d', $this->name, $this->state->value, $this->power->value, $this->scale);
+        return \sprintf('ContainerService %s (%s) - %s, scale: %d', $this->name, $this->state->value, $this->power->value, $this->scale);
     }
 
     public function getId(): ?int
@@ -104,10 +135,9 @@ class ContainerService implements \Stringable
         return $this->name;
     }
 
-    public function setName(string $name): self
+    public function setName(string $name): void
     {
         $this->name = $name;
-        return $this;
     }
 
     public function getArn(): string
@@ -115,10 +145,9 @@ class ContainerService implements \Stringable
         return $this->arn;
     }
 
-    public function setArn(string $arn): self
+    public function setArn(string $arn): void
     {
         $this->arn = $arn;
-        return $this;
     }
 
     public function getPower(): ContainerServicePowerEnum
@@ -126,10 +155,9 @@ class ContainerService implements \Stringable
         return $this->power;
     }
 
-    public function setPower(ContainerServicePowerEnum $power): self
+    public function setPower(ContainerServicePowerEnum $power): void
     {
         $this->power = $power;
-        return $this;
     }
 
     public function getScale(): int
@@ -137,10 +165,9 @@ class ContainerService implements \Stringable
         return $this->scale;
     }
 
-    public function setScale(int $scale): self
+    public function setScale(int $scale): void
     {
         $this->scale = $scale;
-        return $this;
     }
 
     public function getState(): ContainerServiceStateEnum
@@ -148,10 +175,9 @@ class ContainerService implements \Stringable
         return $this->state;
     }
 
-    public function setState(ContainerServiceStateEnum $state): self
+    public function setState(ContainerServiceStateEnum $state): void
     {
         $this->state = $state;
-        return $this;
     }
 
     public function getRegion(): string
@@ -159,10 +185,9 @@ class ContainerService implements \Stringable
         return $this->region;
     }
 
-    public function setRegion(string $region): self
+    public function setRegion(string $region): void
     {
         $this->region = $region;
-        return $this;
     }
 
     public function getUrl(): ?string
@@ -170,32 +195,41 @@ class ContainerService implements \Stringable
         return $this->url;
     }
 
-    public function setUrl(?string $url): self
+    public function setUrl(?string $url): void
     {
         $this->url = $url;
-        return $this;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getCurrentDeployment(): ?array
     {
         return $this->currentDeployment;
     }
 
-    public function setCurrentDeployment(?array $currentDeployment): self
+    /**
+     * @param array<string, mixed>|null $currentDeployment
+     */
+    public function setCurrentDeployment(?array $currentDeployment): void
     {
         $this->currentDeployment = $currentDeployment;
-        return $this;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getNextDeployment(): ?array
     {
         return $this->nextDeployment;
     }
 
-    public function setNextDeployment(?array $nextDeployment): self
+    /**
+     * @param array<string, mixed>|null $nextDeployment
+     */
+    public function setNextDeployment(?array $nextDeployment): void
     {
         $this->nextDeployment = $nextDeployment;
-        return $this;
     }
 
     public function isPublicDomainEnabled(): bool
@@ -203,10 +237,9 @@ class ContainerService implements \Stringable
         return $this->isPublicDomainEnabled;
     }
 
-    public function setIsPublicDomainEnabled(bool $isPublicDomainEnabled): self
+    public function setIsPublicDomainEnabled(bool $isPublicDomainEnabled): void
     {
         $this->isPublicDomainEnabled = $isPublicDomainEnabled;
-        return $this;
     }
 
     public function isPrivateDomainEnabled(): bool
@@ -214,21 +247,25 @@ class ContainerService implements \Stringable
         return $this->isPrivateDomainEnabled;
     }
 
-    public function setIsPrivateDomainEnabled(bool $isPrivateDomainEnabled): self
+    public function setIsPrivateDomainEnabled(bool $isPrivateDomainEnabled): void
     {
         $this->isPrivateDomainEnabled = $isPrivateDomainEnabled;
-        return $this;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getPrivateDomainName(): ?array
     {
         return $this->privateDomainName;
     }
 
-    public function setPrivateDomainName(?array $privateDomainName): self
+    /**
+     * @param array<string, mixed>|null $privateDomainName
+     */
+    public function setPrivateDomainName(?array $privateDomainName): void
     {
         $this->privateDomainName = $privateDomainName;
-        return $this;
     }
 
     public function getPublicDomainNames(): ?string
@@ -236,51 +273,54 @@ class ContainerService implements \Stringable
         return $this->publicDomainNames;
     }
 
-    public function setPublicDomainNames(?string $publicDomainNames): self
+    public function setPublicDomainNames(?string $publicDomainNames): void
     {
         $this->publicDomainNames = $publicDomainNames;
-        return $this;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getContainerImages(): ?array
     {
         return $this->containerImages;
     }
 
-    public function setContainerImages(?array $containerImages): self
+    /**
+     * @param array<string, mixed>|null $containerImages
+     */
+    public function setContainerImages(?array $containerImages): void
     {
         $this->containerImages = $containerImages;
-        return $this;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getTags(): ?array
     {
         return $this->tags;
     }
 
-    public function setTags(?array $tags): self
+    /**
+     * @param array<string, mixed>|null $tags
+     */
+    public function setTags(?array $tags): void
     {
         $this->tags = $tags;
-        return $this;
     }
 
-    public function getCreatedAt(): \DateTimeInterface
+    public function getSyncTime(): ?\DateTimeImmutable
     {
-        return $this->createdAt;
+        return $this->syncTime;
     }
 
-    public function getSyncedAt(): ?\DateTimeImmutable
+    public function setSyncTime(?\DateTimeInterface $syncTime): void
     {
-        return $this->syncedAt;
-    }
-
-    public function setSyncedAt(?\DateTimeInterface $syncedAt): self
-    {
-        if ($syncedAt !== null && !$syncedAt instanceof \DateTimeImmutable) {
-            $syncedAt = \DateTimeImmutable::createFromInterface($syncedAt);
+        if (null !== $syncTime && !$syncTime instanceof \DateTimeImmutable) {
+            $syncTime = \DateTimeImmutable::createFromInterface($syncTime);
         }
-        $this->syncedAt = $syncedAt;
-        return $this;
+        $this->syncTime = $syncTime;
     }
 
     public function getCredential(): AwsCredential
@@ -288,23 +328,8 @@ class ContainerService implements \Stringable
         return $this->credential;
     }
 
-    public function setCredential(AwsCredential $credential): self
+    public function setCredential(AwsCredential $credential): void
     {
         $this->credential = $credential;
-        return $this;
     }
-
-    public function getUpdatedAt(): ?\DateTimeImmutable
-    {
-        return $this->updatedAt;
-    }
-
-    public function setUpdatedAt(?\DateTimeInterface $updatedAt): self
-    {
-        if ($updatedAt !== null && !$updatedAt instanceof \DateTimeImmutable) {
-            $updatedAt = \DateTimeImmutable::createFromInterface($updatedAt);
-        }
-        $this->updatedAt = $updatedAt;
-        return $this;
-    }
-} 
+}

@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Entity;
 
 use AwsLightsailBundle\Repository\KeyPairRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 #[ORM\Entity(repositoryClass: KeyPairRepository::class)]
@@ -19,50 +22,66 @@ class KeyPair implements \Stringable
     private ?int $id = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '密钥对名称'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $name;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => 'AWS ARN'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $arn;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '指纹'])]
+    #[Assert\Length(max: 65535)]
     private ?string $fingerprint = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '公钥'])]
+    #[Assert\Length(max: 65535)]
     private ?string $publicKey = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '私钥'])]
+    #[Assert\Length(max: 65535)]
     private ?string $privateKey = null;
 
     #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否加密'])]
+    #[Assert\NotNull]
     private bool $isEncrypted = false;
 
     #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => 'AWS 区域'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 50)]
     private string $region;
 
     #[ORM\Column(type: Types::STRING, length: 50, nullable: true, options: ['comment' => '资源类型'])]
+    #[Assert\Length(max: 50)]
     private ?string $resourceType = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '支持代码'])]
+    #[Assert\Length(max: 255)]
     private ?string $supportCode = null;
 
+    /**
+     * @var array<string, string>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '标签'])]
+    #[Assert\Valid]
     private ?array $tags = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => 'AWS 创建时间'])]
-    private ?\DateTimeImmutable $awsCreatedAt = null;
-
+    #[Assert\Type(type: '\DateTimeImmutable')]
+    private ?\DateTimeImmutable $awsCreateTime = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '同步时间'])]
+    #[Assert\Type(type: '\DateTimeImmutable')]
     private ?\DateTimeImmutable $syncTime = null;
 
-    #[ORM\ManyToOne(targetEntity: AwsCredential::class)]
+    #[ORM\ManyToOne(targetEntity: AwsCredential::class, cascade: ['persist'])]
     #[ORM\JoinColumn(nullable: false)]
     private AwsCredential $credential;
 
-
     public function __toString(): string
     {
-        return sprintf('KeyPair %s (%s)', $this->name, $this->region);
+        return \sprintf('KeyPair %s (%s)', $this->name, $this->region);
     }
 
     public function getId(): ?int
@@ -75,10 +94,9 @@ class KeyPair implements \Stringable
         return $this->name;
     }
 
-    public function setName(string $name): self
+    public function setName(string $name): void
     {
         $this->name = $name;
-        return $this;
     }
 
     public function getArn(): string
@@ -86,10 +104,9 @@ class KeyPair implements \Stringable
         return $this->arn;
     }
 
-    public function setArn(string $arn): self
+    public function setArn(string $arn): void
     {
         $this->arn = $arn;
-        return $this;
     }
 
     public function getFingerprint(): ?string
@@ -97,10 +114,9 @@ class KeyPair implements \Stringable
         return $this->fingerprint;
     }
 
-    public function setFingerprint(?string $fingerprint): self
+    public function setFingerprint(?string $fingerprint): void
     {
         $this->fingerprint = $fingerprint;
-        return $this;
     }
 
     public function getPublicKey(): ?string
@@ -108,10 +124,9 @@ class KeyPair implements \Stringable
         return $this->publicKey;
     }
 
-    public function setPublicKey(?string $publicKey): self
+    public function setPublicKey(?string $publicKey): void
     {
         $this->publicKey = $publicKey;
-        return $this;
     }
 
     public function getPrivateKey(): ?string
@@ -119,10 +134,9 @@ class KeyPair implements \Stringable
         return $this->privateKey;
     }
 
-    public function setPrivateKey(?string $privateKey): self
+    public function setPrivateKey(?string $privateKey): void
     {
         $this->privateKey = $privateKey;
-        return $this;
     }
 
     public function isEncrypted(): bool
@@ -130,10 +144,9 @@ class KeyPair implements \Stringable
         return $this->isEncrypted;
     }
 
-    public function setIsEncrypted(bool $isEncrypted): self
+    public function setIsEncrypted(bool $isEncrypted): void
     {
         $this->isEncrypted = $isEncrypted;
-        return $this;
     }
 
     public function getRegion(): string
@@ -141,10 +154,9 @@ class KeyPair implements \Stringable
         return $this->region;
     }
 
-    public function setRegion(string $region): self
+    public function setRegion(string $region): void
     {
         $this->region = $region;
-        return $this;
     }
 
     public function getResourceType(): ?string
@@ -152,10 +164,9 @@ class KeyPair implements \Stringable
         return $this->resourceType;
     }
 
-    public function setResourceType(?string $resourceType): self
+    public function setResourceType(?string $resourceType): void
     {
         $this->resourceType = $resourceType;
-        return $this;
     }
 
     public function getSupportCode(): ?string
@@ -163,35 +174,38 @@ class KeyPair implements \Stringable
         return $this->supportCode;
     }
 
-    public function setSupportCode(?string $supportCode): self
+    public function setSupportCode(?string $supportCode): void
     {
         $this->supportCode = $supportCode;
-        return $this;
     }
 
+    /**
+     * @return array<string, string>|null
+     */
     public function getTags(): ?array
     {
         return $this->tags;
     }
 
-    public function setTags(?array $tags): self
+    /**
+     * @param array<string, string>|null $tags
+     */
+    public function setTags(?array $tags): void
     {
         $this->tags = $tags;
-        return $this;
     }
 
-    public function getAwsCreatedAt(): ?\DateTimeImmutable
+    public function getAwsCreateTime(): ?\DateTimeImmutable
     {
-        return $this->awsCreatedAt;
+        return $this->awsCreateTime;
     }
 
-    public function setAwsCreatedAt(?\DateTimeInterface $awsCreatedAt): self
+    public function setAwsCreateTime(?\DateTimeInterface $awsCreateTime): void
     {
-        if ($awsCreatedAt !== null && !$awsCreatedAt instanceof \DateTimeImmutable) {
-            $awsCreatedAt = \DateTimeImmutable::createFromInterface($awsCreatedAt);
+        if (null !== $awsCreateTime && !$awsCreateTime instanceof \DateTimeImmutable) {
+            $awsCreateTime = \DateTimeImmutable::createFromInterface($awsCreateTime);
         }
-        $this->awsCreatedAt = $awsCreatedAt;
-        return $this;
+        $this->awsCreateTime = $awsCreateTime;
     }
 
     public function getSyncTime(): ?\DateTimeImmutable
@@ -199,13 +213,12 @@ class KeyPair implements \Stringable
         return $this->syncTime;
     }
 
-    public function setSyncTime(?\DateTimeInterface $syncTime): self
+    public function setSyncTime(?\DateTimeInterface $syncTime): void
     {
-        if ($syncTime !== null && !$syncTime instanceof \DateTimeImmutable) {
+        if (null !== $syncTime && !$syncTime instanceof \DateTimeImmutable) {
             $syncTime = \DateTimeImmutable::createFromInterface($syncTime);
         }
         $this->syncTime = $syncTime;
-        return $this;
     }
 
     public function getCredential(): AwsCredential
@@ -213,9 +226,8 @@ class KeyPair implements \Stringable
         return $this->credential;
     }
 
-    public function setCredential(AwsCredential $credential): self
+    public function setCredential(AwsCredential $credential): void
     {
         $this->credential = $credential;
-        return $this;
     }
 }

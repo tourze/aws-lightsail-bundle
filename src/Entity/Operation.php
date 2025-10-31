@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Entity;
 
 use AwsLightsailBundle\Enum\OperationStatusEnum;
@@ -7,6 +9,7 @@ use AwsLightsailBundle\Enum\OperationTypeEnum;
 use AwsLightsailBundle\Repository\OperationRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 #[ORM\Entity(repositoryClass: OperationRepository::class)]
@@ -21,49 +24,63 @@ class Operation implements \Stringable
     private ?int $id = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '操作ID'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $operationId;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '资源名称'])]
+    #[Assert\Length(max: 255)]
     private ?string $resourceName = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '资源类型'])]
+    #[Assert\Length(max: 255)]
     private ?string $resourceType = null;
 
     #[ORM\Column(type: Types::STRING, length: 100, enumType: OperationTypeEnum::class, options: ['comment' => '操作类型'])]
+    #[Assert\Choice(callback: [OperationTypeEnum::class, 'cases'])]
     private OperationTypeEnum $type;
 
     #[ORM\Column(type: Types::STRING, length: 50, enumType: OperationStatusEnum::class, options: ['comment' => '操作状态'])]
+    #[Assert\Choice(callback: [OperationStatusEnum::class, 'cases'])]
     private OperationStatusEnum $status;
 
     #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => 'AWS 区域'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 50)]
     private string $region;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '错误代码'])]
+    #[Assert\Length(max: 65535)]
     private ?string $errorCode = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '错误详情'])]
+    #[Assert\Length(max: 65535)]
     private ?string $errorDetails = null;
 
-
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '完成时间'])]
-    private ?\DateTimeImmutable $completeTime = null;
+    #[Assert\Type(type: \DateTimeImmutable::class)]
+    private ?\DateTimeImmutable $completionTime = null;
 
-    #[ORM\ManyToOne(targetEntity: AwsCredential::class)]
+    #[ORM\ManyToOne(targetEntity: AwsCredential::class, cascade: ['persist'])]
     #[ORM\JoinColumn(nullable: false)]
     private AwsCredential $credential;
 
+    /**
+     * @var array<string, mixed>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '元数据'])]
+    #[Assert\Type(type: 'array')]
     private ?array $metadata = null;
 
     public function __construct()
     {
         $this->status = OperationStatusEnum::UNKNOWN;
-        $this->type = OperationTypeEnum::OTHER;
+        $this->type   = OperationTypeEnum::OTHER;
     }
 
     public function __toString(): string
     {
-        return sprintf('Operation %s (%s)', $this->operationId, $this->status->value);
+        return \sprintf('Operation %s (%s)', $this->operationId, $this->status->value);
     }
 
     public function getId(): ?int
@@ -76,10 +93,9 @@ class Operation implements \Stringable
         return $this->operationId;
     }
 
-    public function setOperationId(string $operationId): self
+    public function setOperationId(string $operationId): void
     {
         $this->operationId = $operationId;
-        return $this;
     }
 
     public function getResourceName(): ?string
@@ -87,10 +103,9 @@ class Operation implements \Stringable
         return $this->resourceName;
     }
 
-    public function setResourceName(?string $resourceName): self
+    public function setResourceName(?string $resourceName): void
     {
         $this->resourceName = $resourceName;
-        return $this;
     }
 
     public function getResourceType(): ?string
@@ -98,10 +113,9 @@ class Operation implements \Stringable
         return $this->resourceType;
     }
 
-    public function setResourceType(?string $resourceType): self
+    public function setResourceType(?string $resourceType): void
     {
         $this->resourceType = $resourceType;
-        return $this;
     }
 
     public function getType(): OperationTypeEnum
@@ -109,10 +123,9 @@ class Operation implements \Stringable
         return $this->type;
     }
 
-    public function setType(OperationTypeEnum $type): self
+    public function setType(OperationTypeEnum $type): void
     {
         $this->type = $type;
-        return $this;
     }
 
     public function getStatus(): OperationStatusEnum
@@ -120,10 +133,9 @@ class Operation implements \Stringable
         return $this->status;
     }
 
-    public function setStatus(OperationStatusEnum $status): self
+    public function setStatus(OperationStatusEnum $status): void
     {
         $this->status = $status;
-        return $this;
     }
 
     public function getRegion(): string
@@ -131,10 +143,9 @@ class Operation implements \Stringable
         return $this->region;
     }
 
-    public function setRegion(string $region): self
+    public function setRegion(string $region): void
     {
         $this->region = $region;
-        return $this;
     }
 
     public function getErrorCode(): ?string
@@ -142,10 +153,9 @@ class Operation implements \Stringable
         return $this->errorCode;
     }
 
-    public function setErrorCode(?string $errorCode): self
+    public function setErrorCode(?string $errorCode): void
     {
         $this->errorCode = $errorCode;
-        return $this;
     }
 
     public function getErrorDetails(): ?string
@@ -153,24 +163,22 @@ class Operation implements \Stringable
         return $this->errorDetails;
     }
 
-    public function setErrorDetails(?string $errorDetails): self
+    public function setErrorDetails(?string $errorDetails): void
     {
         $this->errorDetails = $errorDetails;
-        return $this;
     }
 
-    public function getCompleteTime(): ?\DateTimeImmutable
+    public function getCompletionTime(): ?\DateTimeImmutable
     {
-        return $this->completeTime;
+        return $this->completionTime;
     }
 
-    public function setCompleteTime(?\DateTimeInterface $completeTime): self
+    public function setCompletionTime(?\DateTimeInterface $completionTime): void
     {
-        if ($completeTime !== null && !$completeTime instanceof \DateTimeImmutable) {
-            $completeTime = \DateTimeImmutable::createFromInterface($completeTime);
+        if (null !== $completionTime && !$completionTime instanceof \DateTimeImmutable) {
+            $completionTime = \DateTimeImmutable::createFromInterface($completionTime);
         }
-        $this->completeTime = $completeTime;
-        return $this;
+        $this->completionTime = $completionTime;
     }
 
     public function getCredential(): AwsCredential
@@ -178,20 +186,24 @@ class Operation implements \Stringable
         return $this->credential;
     }
 
-    public function setCredential(AwsCredential $credential): self
+    public function setCredential(AwsCredential $credential): void
     {
         $this->credential = $credential;
-        return $this;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getMetadata(): ?array
     {
         return $this->metadata;
     }
 
-    public function setMetadata(?array $metadata): self
+    /**
+     * @param array<string, mixed>|null $metadata
+     */
+    public function setMetadata(?array $metadata): void
     {
         $this->metadata = $metadata;
-        return $this;
     }
 }

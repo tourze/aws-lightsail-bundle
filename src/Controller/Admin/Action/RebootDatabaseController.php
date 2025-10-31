@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Controller\Admin\Action;
 
 use AwsLightsailBundle\Entity\Database;
@@ -7,24 +9,26 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-class RebootDatabaseController extends AbstractController
+#[Autoconfigure(public: true)]
+final class RebootDatabaseController extends AbstractController
 {
     public function __construct(
-        private readonly AdminUrlGenerator $adminUrlGenerator
+        private readonly AdminUrlGenerator $adminUrlGenerator,
     ) {
     }
 
-    #[Route(path: '/admin/database/{entityId}/reboot', name: 'reboot_database')]
+    #[Route(path: '/admin/database/{entityId}/reboot', name: 'reboot_database', methods: ['POST'])]
     public function __invoke(AdminContext $context): Response
     {
-        /** @var Database $database */
         $database = $context->getEntity()->getInstance();
-        
-        $this->addFlash('warning', sprintf('数据库 %s 重启指令已发送', $database->getName()));
-        
+        \assert($database instanceof Database);
+
+        $this->addFlash('warning', \sprintf('数据库 %s 重启指令已发送', $database->getName()));
+
         return $this->redirect($this->adminUrlGenerator
             ->setAction(Action::INDEX)
             ->setEntityId(null)

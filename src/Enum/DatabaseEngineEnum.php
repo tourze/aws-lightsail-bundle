@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Enum;
 
 use Tourze\EnumExtra\Itemable;
@@ -17,14 +19,13 @@ enum DatabaseEngineEnum: string implements Labelable, Itemable, Selectable
 {
     use ItemTrait;
     use SelectTrait;
-
-    case MYSQL = 'mysql';
+    case MYSQL    = 'mysql';
     case POSTGRES = 'postgres';
 
     public function getLabel(): string
     {
         return match ($this) {
-            self::MYSQL => 'MySQL',
+            self::MYSQL    => 'MySQL',
             self::POSTGRES => 'PostgreSQL',
         };
     }

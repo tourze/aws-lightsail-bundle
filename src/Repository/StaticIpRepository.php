@@ -1,20 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Repository;
 
 use AwsLightsailBundle\Entity\Instance;
 use AwsLightsailBundle\Entity\StaticIp;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Tourze\PHPUnitSymfonyKernelTest\Attribute\AsRepository;
 
 /**
  * @extends ServiceEntityRepository<StaticIp>
- *
- * @method StaticIp|null find($id, $lockMode = null, $lockVersion = null)
- * @method StaticIp|null findOneBy(array $criteria, array $orderBy = null)
- * @method StaticIp[]    findAll()
- * @method StaticIp[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
+#[AsRepository(entityClass: StaticIp::class)]
 class StaticIpRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
@@ -26,69 +25,101 @@ class StaticIpRepository extends ServiceEntityRepository
      * 按区域查找静态IP
      *
      * @param string $region 区域
+     *
      * @return StaticIp[]
+     * @phpstan-return array<int, StaticIp>
      */
     public function findByRegion(string $region): array
     {
-        return $this->createQueryBuilder('s')
+        /** @var array<int, StaticIp> $result */
+        $result = $this->createQueryBuilder('s')
             ->andWhere('s.region = :region')
             ->setParameter('region', $region)
             ->orderBy('s.name', 'ASC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
+        return $result;
     }
 
     /**
      * 查找已分配给实例的静态IP
      *
      * @return StaticIp[]
+     * @phpstan-return array<int, StaticIp>
      */
     public function findAttached(): array
     {
-        return $this->createQueryBuilder('s')
-            ->andWhere('s.instanceName IS NOT NULL')
+        /** @var array<int, StaticIp> $result */
+        $result = $this->createQueryBuilder('s')
+            ->andWhere('s.attachedTo IS NOT NULL')
             ->orderBy('s.name', 'ASC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
+        return $result;
     }
 
     /**
      * 查找未分配的静态IP
      *
      * @return StaticIp[]
+     * @phpstan-return array<int, StaticIp>
      */
     public function findDetached(): array
     {
-        return $this->createQueryBuilder('s')
-            ->andWhere('s.instanceName IS NULL')
+        /** @var array<int, StaticIp> $result */
+        $result = $this->createQueryBuilder('s')
+            ->andWhere('s.attachedTo IS NULL')
             ->orderBy('s.name', 'ASC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
+        return $result;
     }
 
     /**
      * 按实例查找静态IP
      *
      * @param Instance $instance 实例
-     * @return StaticIp|null
      */
     public function findByInstance(Instance $instance): ?StaticIp
     {
-        return $this->createQueryBuilder('s')
-            ->andWhere('s.instanceName = :instanceName')
+        /** @var StaticIp|null $result */
+        $result = $this->createQueryBuilder('s')
+            ->andWhere('s.attachedTo = :instanceName')
             ->setParameter('instanceName', $instance->getName())
             ->getQuery()
-            ->getOneOrNullResult();
+            ->getOneOrNullResult()
+        ;
+        return $result;
     }
 
     /**
      * 按IP地址查找静态IP
      *
      * @param string $ipAddress IP地址
-     * @return StaticIp|null
      */
     public function findByIpAddress(string $ipAddress): ?StaticIp
     {
         return $this->findOneBy(['ipAddress' => $ipAddress]);
     }
-} 
+
+    public function save(StaticIp $entity, bool $flush = true): void
+    {
+        $this->getEntityManager()->persist($entity);
+
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+
+    public function remove(StaticIp $entity, bool $flush = true): void
+    {
+        $this->getEntityManager()->remove($entity);
+
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+}

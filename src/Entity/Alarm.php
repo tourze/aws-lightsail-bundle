@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Entity;
 
 use AwsLightsailBundle\Enum\AlarmMetricEnum;
@@ -7,6 +9,7 @@ use AwsLightsailBundle\Enum\AlarmStateEnum;
 use AwsLightsailBundle\Repository\AlarmRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 #[ORM\Entity(repositoryClass: AlarmRepository::class)]
@@ -21,58 +24,90 @@ class Alarm implements \Stringable
     private ?int $id = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '告警名称'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $name;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => 'AWS ARN'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $arn;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '关联资源名称'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $resourceName;
 
     #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => '资源类型'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 50)]
     private string $resourceType;
 
     #[ORM\Column(type: Types::STRING, length: 100, enumType: AlarmMetricEnum::class, options: ['comment' => '指标名称'])]
+    #[Assert\Choice(callback: [AlarmMetricEnum::class, 'cases'])]
     private AlarmMetricEnum $metricName;
 
     #[ORM\Column(type: Types::STRING, length: 50, enumType: AlarmStateEnum::class, options: ['comment' => '告警状态'])]
+    #[Assert\Choice(callback: [AlarmStateEnum::class, 'cases'])]
     private AlarmStateEnum $state;
 
     #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => 'AWS 区域'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 50)]
     private string $region;
 
     #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => '比较运算符'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 50)]
     private string $comparisonOperator;
 
     #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => '评估周期'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 50)]
     private string $evaluationPeriods;
 
     #[ORM\Column(type: Types::FLOAT, options: ['comment' => '阈值'])]
+    #[Assert\NotBlank]
     private float $threshold;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '缺失数据处理方式'])]
+    #[Assert\Length(max: 255)]
     private ?string $treatMissingData = null;
 
+    /**
+     * @var array<int, string>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '通知协议'])]
+    #[Assert\Type(type: 'array')]
     private ?array $contactProtocols = null;
 
+    /**
+     * @var array<string, mixed>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '监控资源信息'])]
+    #[Assert\Type(type: 'array')]
     private ?array $monitoredResourceInfo = null;
 
+    /**
+     * @var array<int, mixed>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '触发告警需要的数据点'])]
+    #[Assert\Type(type: 'array')]
     private ?array $datapointsToAlarm = null;
 
     #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否启用通知'])]
+    #[Assert\NotBlank]
     private bool $notificationEnabled = true;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '通知触发时间'])]
+    #[Assert\Type(type: \DateTimeImmutable::class)]
     private ?\DateTimeImmutable $notificationTriggeredTime = null;
 
-
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '同步时间'])]
+    #[Assert\Type(type: \DateTimeImmutable::class)]
     private ?\DateTimeImmutable $syncTime = null;
 
-    #[ORM\ManyToOne(targetEntity: AwsCredential::class)]
+    #[ORM\ManyToOne(targetEntity: AwsCredential::class, cascade: ['persist'])]
     #[ORM\JoinColumn(nullable: false)]
     private AwsCredential $credential;
 
@@ -83,7 +118,7 @@ class Alarm implements \Stringable
 
     public function __toString(): string
     {
-        return sprintf('Alarm %s (%s) for %s', $this->name, $this->state->value, $this->resourceName);
+        return \sprintf('Alarm %s (%s) for %s', $this->name, $this->state->value, $this->resourceName);
     }
 
     public function getId(): ?int
@@ -96,10 +131,9 @@ class Alarm implements \Stringable
         return $this->name;
     }
 
-    public function setName(string $name): self
+    public function setName(string $name): void
     {
         $this->name = $name;
-        return $this;
     }
 
     public function getArn(): string
@@ -107,10 +141,9 @@ class Alarm implements \Stringable
         return $this->arn;
     }
 
-    public function setArn(string $arn): self
+    public function setArn(string $arn): void
     {
         $this->arn = $arn;
-        return $this;
     }
 
     public function getResourceName(): string
@@ -118,10 +151,9 @@ class Alarm implements \Stringable
         return $this->resourceName;
     }
 
-    public function setResourceName(string $resourceName): self
+    public function setResourceName(string $resourceName): void
     {
         $this->resourceName = $resourceName;
-        return $this;
     }
 
     public function getResourceType(): string
@@ -129,10 +161,9 @@ class Alarm implements \Stringable
         return $this->resourceType;
     }
 
-    public function setResourceType(string $resourceType): self
+    public function setResourceType(string $resourceType): void
     {
         $this->resourceType = $resourceType;
-        return $this;
     }
 
     public function getMetricName(): AlarmMetricEnum
@@ -140,10 +171,9 @@ class Alarm implements \Stringable
         return $this->metricName;
     }
 
-    public function setMetricName(AlarmMetricEnum $metricName): self
+    public function setMetricName(AlarmMetricEnum $metricName): void
     {
         $this->metricName = $metricName;
-        return $this;
     }
 
     public function getState(): AlarmStateEnum
@@ -151,10 +181,9 @@ class Alarm implements \Stringable
         return $this->state;
     }
 
-    public function setState(AlarmStateEnum $state): self
+    public function setState(AlarmStateEnum $state): void
     {
         $this->state = $state;
-        return $this;
     }
 
     public function getRegion(): string
@@ -162,10 +191,9 @@ class Alarm implements \Stringable
         return $this->region;
     }
 
-    public function setRegion(string $region): self
+    public function setRegion(string $region): void
     {
         $this->region = $region;
-        return $this;
     }
 
     public function getComparisonOperator(): string
@@ -173,10 +201,9 @@ class Alarm implements \Stringable
         return $this->comparisonOperator;
     }
 
-    public function setComparisonOperator(string $comparisonOperator): self
+    public function setComparisonOperator(string $comparisonOperator): void
     {
         $this->comparisonOperator = $comparisonOperator;
-        return $this;
     }
 
     public function getEvaluationPeriods(): string
@@ -184,10 +211,9 @@ class Alarm implements \Stringable
         return $this->evaluationPeriods;
     }
 
-    public function setEvaluationPeriods(string $evaluationPeriods): self
+    public function setEvaluationPeriods(string $evaluationPeriods): void
     {
         $this->evaluationPeriods = $evaluationPeriods;
-        return $this;
     }
 
     public function getThreshold(): float
@@ -195,10 +221,9 @@ class Alarm implements \Stringable
         return $this->threshold;
     }
 
-    public function setThreshold(float $threshold): self
+    public function setThreshold(float $threshold): void
     {
         $this->threshold = $threshold;
-        return $this;
     }
 
     public function getTreatMissingData(): ?string
@@ -206,43 +231,57 @@ class Alarm implements \Stringable
         return $this->treatMissingData;
     }
 
-    public function setTreatMissingData(?string $treatMissingData): self
+    public function setTreatMissingData(?string $treatMissingData): void
     {
         $this->treatMissingData = $treatMissingData;
-        return $this;
     }
 
+    /**
+     * @return array<int, string>|null
+     */
     public function getContactProtocols(): ?array
     {
         return $this->contactProtocols;
     }
 
-    public function setContactProtocols(?array $contactProtocols): self
+    /**
+     * @param array<int, string>|null $contactProtocols
+     */
+    public function setContactProtocols(?array $contactProtocols): void
     {
         $this->contactProtocols = $contactProtocols;
-        return $this;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getMonitoredResourceInfo(): ?array
     {
         return $this->monitoredResourceInfo;
     }
 
-    public function setMonitoredResourceInfo(?array $monitoredResourceInfo): self
+    /**
+     * @param array<string, mixed>|null $monitoredResourceInfo
+     */
+    public function setMonitoredResourceInfo(?array $monitoredResourceInfo): void
     {
         $this->monitoredResourceInfo = $monitoredResourceInfo;
-        return $this;
     }
 
+    /**
+     * @return array<int, mixed>|null
+     */
     public function getDatapointsToAlarm(): ?array
     {
         return $this->datapointsToAlarm;
     }
 
-    public function setDatapointsToAlarm(?array $datapointsToAlarm): self
+    /**
+     * @param array<int, mixed>|null $datapointsToAlarm
+     */
+    public function setDatapointsToAlarm(?array $datapointsToAlarm): void
     {
         $this->datapointsToAlarm = $datapointsToAlarm;
-        return $this;
     }
 
     public function isNotificationEnabled(): bool
@@ -250,10 +289,9 @@ class Alarm implements \Stringable
         return $this->notificationEnabled;
     }
 
-    public function setNotificationEnabled(bool $notificationEnabled): self
+    public function setNotificationEnabled(bool $notificationEnabled): void
     {
         $this->notificationEnabled = $notificationEnabled;
-        return $this;
     }
 
     public function getNotificationTriggeredTime(): ?\DateTimeImmutable
@@ -261,13 +299,12 @@ class Alarm implements \Stringable
         return $this->notificationTriggeredTime;
     }
 
-    public function setNotificationTriggeredTime(?\DateTimeInterface $notificationTriggeredTime): self
+    public function setNotificationTriggeredTime(?\DateTimeInterface $notificationTriggeredTime): void
     {
-        if ($notificationTriggeredTime !== null && !$notificationTriggeredTime instanceof \DateTimeImmutable) {
+        if (null !== $notificationTriggeredTime && !$notificationTriggeredTime instanceof \DateTimeImmutable) {
             $notificationTriggeredTime = \DateTimeImmutable::createFromInterface($notificationTriggeredTime);
         }
         $this->notificationTriggeredTime = $notificationTriggeredTime;
-        return $this;
     }
 
     public function getSyncTime(): ?\DateTimeImmutable
@@ -275,13 +312,12 @@ class Alarm implements \Stringable
         return $this->syncTime;
     }
 
-    public function setSyncTime(?\DateTimeInterface $syncTime): self
+    public function setSyncTime(?\DateTimeInterface $syncTime): void
     {
-        if ($syncTime !== null && !$syncTime instanceof \DateTimeImmutable) {
+        if (null !== $syncTime && !$syncTime instanceof \DateTimeImmutable) {
             $syncTime = \DateTimeImmutable::createFromInterface($syncTime);
         }
         $this->syncTime = $syncTime;
-        return $this;
     }
 
     public function getCredential(): AwsCredential
@@ -289,9 +325,8 @@ class Alarm implements \Stringable
         return $this->credential;
     }
 
-    public function setCredential(AwsCredential $credential): self
+    public function setCredential(AwsCredential $credential): void
     {
         $this->credential = $credential;
-        return $this;
     }
 }

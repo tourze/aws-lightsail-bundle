@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Entity;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 #[ORM\Entity]
@@ -18,56 +21,74 @@ class DiskSnapshot implements \Stringable
     private ?int $id = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '快照名称'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $name;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => 'AWS ARN'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $arn;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '磁盘名称'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $diskName;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '磁盘路径'])]
+    #[Assert\Length(max: 255)]
     private ?string $diskPath = null;
 
     #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => 'AWS 区域'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 50)]
     private string $region;
 
     #[ORM\Column(type: Types::BIGINT, options: ['comment' => '大小(GB)'])]
+    #[Assert\Positive]
     private int $sizeInGb;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '状态'])]
+    #[Assert\Length(max: 1000)]
     private ?string $state = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '进度'])]
+    #[Assert\Length(max: 1000)]
     private ?string $progress = null;
 
+    /**
+     * @var array<string, mixed>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '标签'])]
+    #[Assert\Type(type: 'array')]
     private ?array $tags = null;
 
     #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否来自自动快照'])]
+    #[Assert\Type(type: 'bool')]
     private bool $isFromAutoSnapshot = false;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '来源磁盘快照名称'])]
+    #[Assert\Length(max: 255)]
     private ?string $fromDiskSnapshotName = null;
 
     #[ORM\Column(type: Types::STRING, length: 50, nullable: true, options: ['comment' => '来源区域'])]
+    #[Assert\Length(max: 50)]
     private ?string $fromRegion = null;
 
-
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '同步时间'])]
+    #[Assert\DateTime]
     private ?\DateTimeImmutable $syncTime = null;
 
-    #[ORM\ManyToOne(targetEntity: AwsCredential::class)]
+    #[ORM\ManyToOne(targetEntity: AwsCredential::class, cascade: ['persist'])]
     #[ORM\JoinColumn(nullable: false)]
     private AwsCredential $credential;
 
     #[ORM\ManyToOne(targetEntity: Disk::class)]
     private ?Disk $disk = null;
 
-
     public function __toString(): string
     {
-        return sprintf('DiskSnapshot %s (%s, %d GB)', $this->name, $this->diskName, $this->sizeInGb);
+        return \sprintf('DiskSnapshot %s (%s, %d GB)', $this->name, $this->diskName, $this->sizeInGb);
     }
 
     public function getId(): ?int
@@ -80,10 +101,9 @@ class DiskSnapshot implements \Stringable
         return $this->name;
     }
 
-    public function setName(string $name): self
+    public function setName(string $name): void
     {
         $this->name = $name;
-        return $this;
     }
 
     public function getArn(): string
@@ -91,10 +111,9 @@ class DiskSnapshot implements \Stringable
         return $this->arn;
     }
 
-    public function setArn(string $arn): self
+    public function setArn(string $arn): void
     {
         $this->arn = $arn;
-        return $this;
     }
 
     public function getDiskName(): string
@@ -102,10 +121,9 @@ class DiskSnapshot implements \Stringable
         return $this->diskName;
     }
 
-    public function setDiskName(string $diskName): self
+    public function setDiskName(string $diskName): void
     {
         $this->diskName = $diskName;
-        return $this;
     }
 
     public function getDiskPath(): ?string
@@ -113,10 +131,9 @@ class DiskSnapshot implements \Stringable
         return $this->diskPath;
     }
 
-    public function setDiskPath(?string $diskPath): self
+    public function setDiskPath(?string $diskPath): void
     {
         $this->diskPath = $diskPath;
-        return $this;
     }
 
     public function getRegion(): string
@@ -124,10 +141,9 @@ class DiskSnapshot implements \Stringable
         return $this->region;
     }
 
-    public function setRegion(string $region): self
+    public function setRegion(string $region): void
     {
         $this->region = $region;
-        return $this;
     }
 
     public function getSizeInGb(): int
@@ -135,10 +151,9 @@ class DiskSnapshot implements \Stringable
         return $this->sizeInGb;
     }
 
-    public function setSizeInGb(int $sizeInGb): self
+    public function setSizeInGb(int $sizeInGb): void
     {
         $this->sizeInGb = $sizeInGb;
-        return $this;
     }
 
     public function getState(): ?string
@@ -146,10 +161,9 @@ class DiskSnapshot implements \Stringable
         return $this->state;
     }
 
-    public function setState(?string $state): self
+    public function setState(?string $state): void
     {
         $this->state = $state;
-        return $this;
     }
 
     public function getProgress(): ?string
@@ -157,21 +171,25 @@ class DiskSnapshot implements \Stringable
         return $this->progress;
     }
 
-    public function setProgress(?string $progress): self
+    public function setProgress(?string $progress): void
     {
         $this->progress = $progress;
-        return $this;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getTags(): ?array
     {
         return $this->tags;
     }
 
-    public function setTags(?array $tags): self
+    /**
+     * @param array<string, mixed>|null $tags
+     */
+    public function setTags(?array $tags): void
     {
         $this->tags = $tags;
-        return $this;
     }
 
     public function isFromAutoSnapshot(): bool
@@ -179,10 +197,9 @@ class DiskSnapshot implements \Stringable
         return $this->isFromAutoSnapshot;
     }
 
-    public function setIsFromAutoSnapshot(bool $isFromAutoSnapshot): self
+    public function setIsFromAutoSnapshot(bool $isFromAutoSnapshot): void
     {
         $this->isFromAutoSnapshot = $isFromAutoSnapshot;
-        return $this;
     }
 
     public function getFromDiskSnapshotName(): ?string
@@ -190,10 +207,9 @@ class DiskSnapshot implements \Stringable
         return $this->fromDiskSnapshotName;
     }
 
-    public function setFromDiskSnapshotName(?string $fromDiskSnapshotName): self
+    public function setFromDiskSnapshotName(?string $fromDiskSnapshotName): void
     {
         $this->fromDiskSnapshotName = $fromDiskSnapshotName;
-        return $this;
     }
 
     public function getFromRegion(): ?string
@@ -201,10 +217,9 @@ class DiskSnapshot implements \Stringable
         return $this->fromRegion;
     }
 
-    public function setFromRegion(?string $fromRegion): self
+    public function setFromRegion(?string $fromRegion): void
     {
         $this->fromRegion = $fromRegion;
-        return $this;
     }
 
     public function getSyncTime(): ?\DateTimeImmutable
@@ -212,13 +227,12 @@ class DiskSnapshot implements \Stringable
         return $this->syncTime;
     }
 
-    public function setSyncTime(?\DateTimeInterface $syncTime): self
+    public function setSyncTime(?\DateTimeInterface $syncTime): void
     {
-        if ($syncTime !== null && !$syncTime instanceof \DateTimeImmutable) {
+        if (null !== $syncTime && !$syncTime instanceof \DateTimeImmutable) {
             $syncTime = \DateTimeImmutable::createFromInterface($syncTime);
         }
         $this->syncTime = $syncTime;
-        return $this;
     }
 
     public function getCredential(): AwsCredential
@@ -226,10 +240,9 @@ class DiskSnapshot implements \Stringable
         return $this->credential;
     }
 
-    public function setCredential(AwsCredential $credential): self
+    public function setCredential(AwsCredential $credential): void
     {
         $this->credential = $credential;
-        return $this;
     }
 
     public function getDisk(): ?Disk
@@ -237,9 +250,8 @@ class DiskSnapshot implements \Stringable
         return $this->disk;
     }
 
-    public function setDisk(?Disk $disk): self
+    public function setDisk(?Disk $disk): void
     {
         $this->disk = $disk;
-        return $this;
     }
 }

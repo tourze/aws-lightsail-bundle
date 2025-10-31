@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Enum;
 
 use Tourze\EnumExtra\Itemable;
@@ -17,23 +19,22 @@ enum LoadBalancerStatusEnum: string implements Labelable, Itemable, Selectable
 {
     use ItemTrait;
     use SelectTrait;
-
-    case ACTIVE = 'active';
+    case ACTIVE       = 'active';
     case PROVISIONING = 'provisioning';
-    case FAILED = 'failed';
-    case UPDATING = 'updating';
-    case DELETING = 'deleting';
-    case UNKNOWN = 'unknown';
+    case FAILED       = 'failed';
+    case UPDATING     = 'updating';
+    case DELETING     = 'deleting';
+    case UNKNOWN      = 'unknown';
 
     public function getLabel(): string
     {
         return match ($this) {
-            self::ACTIVE => '活跃',
+            self::ACTIVE       => '活跃',
             self::PROVISIONING => '配置中',
-            self::FAILED => '失败',
-            self::UPDATING => '更新中',
-            self::DELETING => '删除中',
-            self::UNKNOWN => '未知',
+            self::FAILED       => '失败',
+            self::UPDATING     => '更新中',
+            self::DELETING     => '删除中',
+            self::UNKNOWN      => '未知',
         };
     }
 }

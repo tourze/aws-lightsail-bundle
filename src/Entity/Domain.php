@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Entity;
 
 use AwsLightsailBundle\Repository\DomainRepository;
@@ -7,6 +9,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 #[ORM\Entity(repositoryClass: DomainRepository::class)]
@@ -21,28 +24,42 @@ class Domain implements \Stringable
     private ?int $id = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '域名'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $name;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => 'AWS ARN'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $arn;
 
     #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => 'AWS 区域'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 50)]
     private string $region;
 
     #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否由 Lightsail 管理'])]
+    #[Assert\NotNull]
     private bool $isManaged = true;
 
+    /**
+     * @var Collection<int, DomainEntry>
+     */
     #[ORM\OneToMany(targetEntity: DomainEntry::class, mappedBy: 'domain', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $entries;
 
+    /**
+     * @var array<string, mixed>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '标签'])]
+    #[Assert\Valid]
     private ?array $tags = null;
 
-
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '同步时间'])]
+    #[Assert\Type(type: '\DateTimeImmutable')]
     private ?\DateTimeImmutable $syncTime = null;
 
-    #[ORM\ManyToOne(targetEntity: AwsCredential::class)]
+    #[ORM\ManyToOne(targetEntity: AwsCredential::class, cascade: ['persist'])]
     #[ORM\JoinColumn(nullable: false)]
     private AwsCredential $credential;
 
@@ -53,7 +70,7 @@ class Domain implements \Stringable
 
     public function __toString(): string
     {
-        return sprintf('Domain %s', $this->name);
+        return \sprintf('Domain %s', $this->name);
     }
 
     public function getId(): ?int
@@ -66,10 +83,9 @@ class Domain implements \Stringable
         return $this->name;
     }
 
-    public function setName(string $name): self
+    public function setName(string $name): void
     {
         $this->name = $name;
-        return $this;
     }
 
     public function getArn(): string
@@ -77,10 +93,9 @@ class Domain implements \Stringable
         return $this->arn;
     }
 
-    public function setArn(string $arn): self
+    public function setArn(string $arn): void
     {
         $this->arn = $arn;
-        return $this;
     }
 
     public function getRegion(): string
@@ -88,10 +103,9 @@ class Domain implements \Stringable
         return $this->region;
     }
 
-    public function setRegion(string $region): self
+    public function setRegion(string $region): void
     {
         $this->region = $region;
-        return $this;
     }
 
     public function isManaged(): bool
@@ -99,10 +113,9 @@ class Domain implements \Stringable
         return $this->isManaged;
     }
 
-    public function setIsManaged(bool $isManaged): self
+    public function setIsManaged(bool $isManaged): void
     {
         $this->isManaged = $isManaged;
-        return $this;
     }
 
     /**
@@ -113,37 +126,34 @@ class Domain implements \Stringable
         return $this->entries;
     }
 
-    public function addEntry(DomainEntry $entry): self
+    public function addEntry(DomainEntry $entry): void
     {
         if (!$this->entries->contains($entry)) {
             $this->entries->add($entry);
             $entry->setDomain($this);
         }
-
-        return $this;
     }
 
-    public function removeEntry(DomainEntry $entry): self
+    public function removeEntry(DomainEntry $entry): void
     {
-        if ($this->entries->removeElement($entry)) {
-            // set the owning side to null (unless already changed)
-            if ($entry->getDomain() === $this) {
-                $entry->setDomain(null);
-            }
-        }
-
-        return $this;
+        // orphanRemoval=true will automatically delete the entry when removed
+        $this->entries->removeElement($entry);
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getTags(): ?array
     {
         return $this->tags;
     }
 
-    public function setTags(?array $tags): self
+    /**
+     * @param array<string, mixed>|null $tags
+     */
+    public function setTags(?array $tags): void
     {
         $this->tags = $tags;
-        return $this;
     }
 
     public function getSyncTime(): ?\DateTimeImmutable
@@ -151,13 +161,12 @@ class Domain implements \Stringable
         return $this->syncTime;
     }
 
-    public function setSyncTime(?\DateTimeInterface $syncTime): self
+    public function setSyncTime(?\DateTimeInterface $syncTime): void
     {
-        if ($syncTime !== null && !$syncTime instanceof \DateTimeImmutable) {
+        if (null !== $syncTime && !$syncTime instanceof \DateTimeImmutable) {
             $syncTime = \DateTimeImmutable::createFromInterface($syncTime);
         }
         $this->syncTime = $syncTime;
-        return $this;
     }
 
     public function getCredential(): AwsCredential
@@ -165,9 +174,8 @@ class Domain implements \Stringable
         return $this->credential;
     }
 
-    public function setCredential(AwsCredential $credential): self
+    public function setCredential(AwsCredential $credential): void
     {
         $this->credential = $credential;
-        return $this;
     }
 }

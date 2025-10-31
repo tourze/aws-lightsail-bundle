@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Controller\Admin;
 
 use AwsLightsailBundle\Entity\AwsCredential;
 use AwsLightsailBundle\Entity\Domain;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminCrud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
@@ -21,10 +24,15 @@ use EasyCorp\Bundle\EasyAdminBundle\Filter\TextFilter;
 
 /**
  * Lightsail 域名管理控制器
+ *
+ * @extends AbstractCrudController<Domain>
  */
-class DomainCrudController extends AbstractCrudController
+#[AdminCrud(
+    routePath: '/aws-lightsail/domain',
+    routeName: 'aws_lightsail_domain'
+)]
+final class DomainCrudController extends AbstractCrudController
 {
-
     public static function getEntityFqcn(): string
     {
         return Domain::class;
@@ -37,65 +45,77 @@ class DomainCrudController extends AbstractCrudController
             ->setEntityLabelInPlural('域名列表')
             ->setPageTitle('index', 'Lightsail 域名管理')
             ->setPageTitle('new', '创建域名')
-            ->setPageTitle('edit', fn (Domain $domain) => sprintf('编辑域名: %s', $domain->getName()))
-            ->setPageTitle('detail', fn (Domain $domain) => sprintf('域名详情: %s', $domain->getName()))
+            ->setPageTitle('edit', fn (Domain $domain) => \sprintf('编辑域名: %s', $domain->getName()))
+            ->setPageTitle('detail', fn (Domain $domain) => \sprintf('域名详情: %s', $domain->getName()))
             ->setSearchFields(['name', 'region'])
-            ->setDefaultSort(['name' => 'ASC']);
+            ->setDefaultSort(['name' => 'ASC'])
+        ;
     }
 
     public function configureFields(string $pageName): iterable
     {
         yield IdField::new('id', 'ID')
             ->hideOnForm()
-            ->setMaxLength(9999);
-            
+            ->setMaxLength(9999)
+        ;
+
         yield TextField::new('name', '域名');
-            
+
         yield TextField::new('arn', 'AWS ARN')
             ->hideOnForm()
-            ->hideOnIndex();
-            
+            ->hideOnIndex()
+        ;
+
         yield TextField::new('region', '区域');
-            
+
         yield BooleanField::new('isManaged', '是否托管')
-            ->renderAsSwitch(true);
-            
+            ->renderAsSwitch(true)
+        ;
+
         yield CodeEditorField::new('tags', '标签')
             ->hideOnForm()
             ->hideOnIndex()
             ->formatValue(function ($value) {
-                return $value ? json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : '{}';
-            });
-            
+                return $value ? \json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : '{}';
+            })
+        ;
+
         yield AssociationField::new('credential', 'AWS 凭证')
-            ->setFormTypeOption('disabled', $pageName !== Crud::PAGE_NEW)
+            ->setFormTypeOption('disabled', Crud::PAGE_NEW !== $pageName)
             ->formatValue(function ($value) {
                 return $value instanceof AwsCredential ? $value->getName() : '';
-            });
-            
+            })
+        ;
+
         yield DateTimeField::new('createTime', '创建时间')
-            ->hideOnForm();
-            
+            ->hideOnForm()
+        ;
+
         yield DateTimeField::new('syncTime', '同步时间')
-            ->hideOnForm();
-            
+            ->hideOnForm()
+        ;
+
         yield DateTimeField::new('updateTime', '更新时间')
-            ->hideOnForm();
+            ->hideOnForm()
+        ;
     }
 
     public function configureActions(Actions $actions): Actions
     {
         $syncAction = Action::new('syncDomain', '同步')
             ->linkToCrudAction('syncDomain')
-            ->setIcon('fa fa-refresh');
-            
+            ->setIcon('fa fa-refresh')
+        ;
+
         $addEntryAction = Action::new('addDomainEntry', '添加记录')
             ->linkToCrudAction('addDomainEntry')
             ->setIcon('fa fa-plus')
-            ->setCssClass('text-success');
-            
+            ->setCssClass('text-success')
+        ;
+
         return $actions
-            ->add(Crud::PAGE_INDEX, Action::DETAIL)
+            ->set(Crud::PAGE_INDEX, Action::DELETE)
+            ->set(Crud::PAGE_INDEX, Action::DETAIL)
             ->add(Crud::PAGE_INDEX, $syncAction)
             ->add(Crud::PAGE_INDEX, $addEntryAction)
             ->add(Crud::PAGE_DETAIL, $syncAction)
@@ -108,15 +128,17 @@ class DomainCrudController extends AbstractCrudController
             })
             ->update(Crud::PAGE_INDEX, Action::DETAIL, function (Action $action) {
                 return $action->setIcon('fa fa-eye')->setLabel('查看');
-            });
+            })
+        ;
     }
-    
+
     public function configureFilters(Filters $filters): Filters
     {
         return $filters
             ->add(TextFilter::new('name', '域名'))
             ->add(TextFilter::new('region', '区域'))
             ->add(BooleanFilter::new('isManaged', '是否托管'))
-            ->add(EntityFilter::new('credential', 'AWS 凭证'));
+            ->add(EntityFilter::new('credential', 'AWS 凭证'))
+        ;
     }
-} 
+}

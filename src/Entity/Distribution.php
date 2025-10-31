@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Entity;
 
 use AwsLightsailBundle\Enum\DistributionStatusEnum;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 #[ORM\Entity]
@@ -19,53 +22,89 @@ class Distribution implements \Stringable
     private ?int $id = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '分发名称'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $name;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => 'AWS ARN'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $arn;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '默认域名'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $defaultDomainName;
 
     #[ORM\Column(type: Types::STRING, length: 50, enumType: DistributionStatusEnum::class, options: ['comment' => '状态'])]
+    #[Assert\Choice(callback: [DistributionStatusEnum::class, 'cases'])]
     private DistributionStatusEnum $status;
 
     #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => 'AWS 区域'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 50)]
     private string $region;
 
+    /**
+     * @var array<string, mixed>
+     */
     #[ORM\Column(type: Types::JSON, options: ['comment' => '源站配置'])]
+    #[Assert\Type(type: 'array')]
     private array $originConfigs = [];
 
+    /**
+     * @var array<string, mixed>
+     */
     #[ORM\Column(type: Types::JSON, options: ['comment' => '默认缓存行为'])]
+    #[Assert\Type(type: 'array')]
     private array $defaultCacheBehavior = [];
 
+    /**
+     * @var array<string, mixed>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '缓存行为'])]
+    #[Assert\Type(type: 'array')]
     private ?array $cacheBehaviors = null;
 
     #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否启用'])]
+    #[Assert\Type(type: 'bool')]
     private bool $isEnabled = true;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '证书名称'])]
+    #[Assert\Length(max: 255)]
     private ?string $certificateName = null;
 
     #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '查看器协议策略'])]
+    #[Assert\Type(type: 'bool')]
     private bool $viewerProtocolPolicy = false;
 
+    /**
+     * @var array<string, mixed>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '标签'])]
+    #[Assert\Type(type: 'array')]
     private ?array $tags = null;
 
-
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '同步时间'])]
+    #[Assert\Type(type: '\DateTimeImmutable')]
     private ?\DateTimeImmutable $syncTime = null;
 
-    #[ORM\ManyToOne(targetEntity: AwsCredential::class)]
+    #[ORM\ManyToOne(targetEntity: AwsCredential::class, cascade: ['persist'])]
     #[ORM\JoinColumn(nullable: false)]
     private AwsCredential $credential;
 
+    /**
+     * @var array<int, string>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '替代域名'])]
+    #[Assert\Type(type: 'array')]
     private ?array $alternativeDomainNames = null;
 
+    /**
+     * @var array<int, string>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '源站公共DNS'])]
+    #[Assert\Type(type: 'array')]
     private ?array $originPublicDNS = null;
 
     public function __construct()
@@ -75,7 +114,7 @@ class Distribution implements \Stringable
 
     public function __toString(): string
     {
-        return sprintf('Distribution %s (%s)', $this->name, $this->status->value);
+        return \sprintf('Distribution %s (%s)', $this->name, $this->status->value);
     }
 
     public function getId(): ?int
@@ -88,10 +127,9 @@ class Distribution implements \Stringable
         return $this->name;
     }
 
-    public function setName(string $name): self
+    public function setName(string $name): void
     {
         $this->name = $name;
-        return $this;
     }
 
     public function getArn(): string
@@ -99,10 +137,9 @@ class Distribution implements \Stringable
         return $this->arn;
     }
 
-    public function setArn(string $arn): self
+    public function setArn(string $arn): void
     {
         $this->arn = $arn;
-        return $this;
     }
 
     public function getDefaultDomainName(): string
@@ -110,10 +147,9 @@ class Distribution implements \Stringable
         return $this->defaultDomainName;
     }
 
-    public function setDefaultDomainName(string $defaultDomainName): self
+    public function setDefaultDomainName(string $defaultDomainName): void
     {
         $this->defaultDomainName = $defaultDomainName;
-        return $this;
     }
 
     public function getStatus(): DistributionStatusEnum
@@ -121,10 +157,9 @@ class Distribution implements \Stringable
         return $this->status;
     }
 
-    public function setStatus(DistributionStatusEnum $status): self
+    public function setStatus(DistributionStatusEnum $status): void
     {
         $this->status = $status;
-        return $this;
     }
 
     public function getRegion(): string
@@ -132,43 +167,57 @@ class Distribution implements \Stringable
         return $this->region;
     }
 
-    public function setRegion(string $region): self
+    public function setRegion(string $region): void
     {
         $this->region = $region;
-        return $this;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getOriginConfigs(): array
     {
         return $this->originConfigs;
     }
 
-    public function setOriginConfigs(array $originConfigs): self
+    /**
+     * @param array<string, mixed> $originConfigs
+     */
+    public function setOriginConfigs(array $originConfigs): void
     {
         $this->originConfigs = $originConfigs;
-        return $this;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getDefaultCacheBehavior(): array
     {
         return $this->defaultCacheBehavior;
     }
 
-    public function setDefaultCacheBehavior(array $defaultCacheBehavior): self
+    /**
+     * @param array<string, mixed> $defaultCacheBehavior
+     */
+    public function setDefaultCacheBehavior(array $defaultCacheBehavior): void
     {
         $this->defaultCacheBehavior = $defaultCacheBehavior;
-        return $this;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getCacheBehaviors(): ?array
     {
         return $this->cacheBehaviors;
     }
 
-    public function setCacheBehaviors(?array $cacheBehaviors): self
+    /**
+     * @param array<string, mixed>|null $cacheBehaviors
+     */
+    public function setCacheBehaviors(?array $cacheBehaviors): void
     {
         $this->cacheBehaviors = $cacheBehaviors;
-        return $this;
     }
 
     public function isEnabled(): bool
@@ -176,10 +225,9 @@ class Distribution implements \Stringable
         return $this->isEnabled;
     }
 
-    public function setIsEnabled(bool $isEnabled): self
+    public function setIsEnabled(bool $isEnabled): void
     {
         $this->isEnabled = $isEnabled;
-        return $this;
     }
 
     public function getCertificateName(): ?string
@@ -187,10 +235,9 @@ class Distribution implements \Stringable
         return $this->certificateName;
     }
 
-    public function setCertificateName(?string $certificateName): self
+    public function setCertificateName(?string $certificateName): void
     {
         $this->certificateName = $certificateName;
-        return $this;
     }
 
     public function getViewerProtocolPolicy(): bool
@@ -198,21 +245,25 @@ class Distribution implements \Stringable
         return $this->viewerProtocolPolicy;
     }
 
-    public function setViewerProtocolPolicy(bool $viewerProtocolPolicy): self
+    public function setViewerProtocolPolicy(bool $viewerProtocolPolicy): void
     {
         $this->viewerProtocolPolicy = $viewerProtocolPolicy;
-        return $this;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getTags(): ?array
     {
         return $this->tags;
     }
 
-    public function setTags(?array $tags): self
+    /**
+     * @param array<string, mixed>|null $tags
+     */
+    public function setTags(?array $tags): void
     {
         $this->tags = $tags;
-        return $this;
     }
 
     public function getSyncTime(): ?\DateTimeImmutable
@@ -220,13 +271,12 @@ class Distribution implements \Stringable
         return $this->syncTime;
     }
 
-    public function setSyncTime(?\DateTimeInterface $syncTime): self
+    public function setSyncTime(?\DateTimeInterface $syncTime): void
     {
-        if ($syncTime !== null && !$syncTime instanceof \DateTimeImmutable) {
+        if (null !== $syncTime && !$syncTime instanceof \DateTimeImmutable) {
             $syncTime = \DateTimeImmutable::createFromInterface($syncTime);
         }
         $this->syncTime = $syncTime;
-        return $this;
     }
 
     public function getCredential(): AwsCredential
@@ -234,31 +284,40 @@ class Distribution implements \Stringable
         return $this->credential;
     }
 
-    public function setCredential(AwsCredential $credential): self
+    public function setCredential(AwsCredential $credential): void
     {
         $this->credential = $credential;
-        return $this;
     }
 
+    /**
+     * @return array<int, string>|null
+     */
     public function getAlternativeDomainNames(): ?array
     {
         return $this->alternativeDomainNames;
     }
 
-    public function setAlternativeDomainNames(?array $alternativeDomainNames): self
+    /**
+     * @param array<int, string>|null $alternativeDomainNames
+     */
+    public function setAlternativeDomainNames(?array $alternativeDomainNames): void
     {
         $this->alternativeDomainNames = $alternativeDomainNames;
-        return $this;
     }
 
+    /**
+     * @return array<int, string>|null
+     */
     public function getOriginPublicDNS(): ?array
     {
         return $this->originPublicDNS;
     }
 
-    public function setOriginPublicDNS(?array $originPublicDNS): self
+    /**
+     * @param array<int, string>|null $originPublicDNS
+     */
+    public function setOriginPublicDNS(?array $originPublicDNS): void
     {
         $this->originPublicDNS = $originPublicDNS;
-        return $this;
     }
 }

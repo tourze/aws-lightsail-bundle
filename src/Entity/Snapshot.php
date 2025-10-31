@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Entity;
 
 use AwsLightsailBundle\Enum\SnapshotTypeEnum;
 use AwsLightsailBundle\Repository\SnapshotRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 #[ORM\Entity(repositoryClass: SnapshotRepository::class)]
@@ -13,59 +16,78 @@ use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 class Snapshot implements \Stringable
 {
     use TimestampableAware;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => '主键ID'])]
     private ?int $id = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '快照名称'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $name;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => 'AWS ARN'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $arn;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '资源名称'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $resourceName;
 
     #[ORM\Column(type: Types::STRING, length: 50, enumType: SnapshotTypeEnum::class, options: ['comment' => '快照类型'])]
+    #[Assert\Choice(callback: [SnapshotTypeEnum::class, 'cases'])]
     private SnapshotTypeEnum $type = SnapshotTypeEnum::INSTANCE;
 
     #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => 'AWS 区域'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 50)]
     private string $region;
 
+    /**
+     * @var array<string, string>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '标签'])]
+    #[Assert\Type(type: 'array')]
     private ?array $tags = null;
 
-
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '同步时间'])]
+    #[Assert\DateTime]
     private ?\DateTimeImmutable $syncTime = null;
 
-    #[ORM\ManyToOne(targetEntity: AwsCredential::class)]
+    #[ORM\ManyToOne(targetEntity: AwsCredential::class, cascade: ['persist'])]
     #[ORM\JoinColumn(nullable: false)]
     private AwsCredential $credential;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '来源快照名称'])]
+    #[Assert\Length(max: 255)]
     private ?string $fromSnapshotName = null;
 
     #[ORM\Column(type: Types::STRING, length: 50, nullable: true, options: ['comment' => '来源区域'])]
+    #[Assert\Length(max: 50)]
     private ?string $fromRegion = null;
 
     #[ORM\Column(type: Types::BIGINT, nullable: true, options: ['comment' => '大小(GB)'])]
+    #[Assert\PositiveOrZero]
     private ?int $sizeInGb = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '状态'])]
+    #[Assert\Length(max: 1000)]
     private ?string $state = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '进度'])]
+    #[Assert\Length(max: 1000)]
     private ?string $progress = null;
 
     #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否来自自动快照'])]
+    #[Assert\Type(type: 'bool')]
     private bool $isFromAutoSnapshot = false;
-
 
     public function __toString(): string
     {
-        return sprintf('Snapshot %s (%s)', $this->name, $this->resourceName);
+        return \sprintf('Snapshot %s (%s)', $this->name, $this->resourceName);
     }
 
     public function getId(): ?int
@@ -78,10 +100,9 @@ class Snapshot implements \Stringable
         return $this->name;
     }
 
-    public function setName(string $name): self
+    public function setName(string $name): void
     {
         $this->name = $name;
-        return $this;
     }
 
     public function getArn(): string
@@ -89,10 +110,9 @@ class Snapshot implements \Stringable
         return $this->arn;
     }
 
-    public function setArn(string $arn): self
+    public function setArn(string $arn): void
     {
         $this->arn = $arn;
-        return $this;
     }
 
     public function getResourceName(): string
@@ -100,10 +120,9 @@ class Snapshot implements \Stringable
         return $this->resourceName;
     }
 
-    public function setResourceName(string $resourceName): self
+    public function setResourceName(string $resourceName): void
     {
         $this->resourceName = $resourceName;
-        return $this;
     }
 
     public function getType(): SnapshotTypeEnum
@@ -111,10 +130,9 @@ class Snapshot implements \Stringable
         return $this->type;
     }
 
-    public function setType(SnapshotTypeEnum $type): self
+    public function setType(SnapshotTypeEnum $type): void
     {
         $this->type = $type;
-        return $this;
     }
 
     public function getRegion(): string
@@ -122,21 +140,25 @@ class Snapshot implements \Stringable
         return $this->region;
     }
 
-    public function setRegion(string $region): self
+    public function setRegion(string $region): void
     {
         $this->region = $region;
-        return $this;
     }
 
+    /**
+     * @return array<string, string>|null
+     */
     public function getTags(): ?array
     {
         return $this->tags;
     }
 
-    public function setTags(?array $tags): self
+    /**
+     * @param array<string, string>|null $tags
+     */
+    public function setTags(?array $tags): void
     {
         $this->tags = $tags;
-        return $this;
     }
 
     public function getSyncTime(): ?\DateTimeImmutable
@@ -144,13 +166,12 @@ class Snapshot implements \Stringable
         return $this->syncTime;
     }
 
-    public function setSyncTime(?\DateTimeInterface $syncTime): self
+    public function setSyncTime(?\DateTimeInterface $syncTime): void
     {
-        if ($syncTime !== null && !$syncTime instanceof \DateTimeImmutable) {
+        if (null !== $syncTime && !$syncTime instanceof \DateTimeImmutable) {
             $syncTime = \DateTimeImmutable::createFromInterface($syncTime);
         }
         $this->syncTime = $syncTime;
-        return $this;
     }
 
     public function getCredential(): AwsCredential
@@ -158,10 +179,9 @@ class Snapshot implements \Stringable
         return $this->credential;
     }
 
-    public function setCredential(AwsCredential $credential): self
+    public function setCredential(AwsCredential $credential): void
     {
         $this->credential = $credential;
-        return $this;
     }
 
     public function getFromSnapshotName(): ?string
@@ -169,10 +189,9 @@ class Snapshot implements \Stringable
         return $this->fromSnapshotName;
     }
 
-    public function setFromSnapshotName(?string $fromSnapshotName): self
+    public function setFromSnapshotName(?string $fromSnapshotName): void
     {
         $this->fromSnapshotName = $fromSnapshotName;
-        return $this;
     }
 
     public function getFromRegion(): ?string
@@ -180,10 +199,9 @@ class Snapshot implements \Stringable
         return $this->fromRegion;
     }
 
-    public function setFromRegion(?string $fromRegion): self
+    public function setFromRegion(?string $fromRegion): void
     {
         $this->fromRegion = $fromRegion;
-        return $this;
     }
 
     public function getSizeInGb(): ?int
@@ -191,10 +209,9 @@ class Snapshot implements \Stringable
         return $this->sizeInGb;
     }
 
-    public function setSizeInGb(?int $sizeInGb): self
+    public function setSizeInGb(?int $sizeInGb): void
     {
         $this->sizeInGb = $sizeInGb;
-        return $this;
     }
 
     public function getState(): ?string
@@ -202,10 +219,9 @@ class Snapshot implements \Stringable
         return $this->state;
     }
 
-    public function setState(?string $state): self
+    public function setState(?string $state): void
     {
         $this->state = $state;
-        return $this;
     }
 
     public function getProgress(): ?string
@@ -213,10 +229,9 @@ class Snapshot implements \Stringable
         return $this->progress;
     }
 
-    public function setProgress(?string $progress): self
+    public function setProgress(?string $progress): void
     {
         $this->progress = $progress;
-        return $this;
     }
 
     public function isFromAutoSnapshot(): bool
@@ -224,8 +239,8 @@ class Snapshot implements \Stringable
         return $this->isFromAutoSnapshot;
     }
 
-    public function setIsFromAutoSnapshot(bool $isFromAutoSnapshot): self
+    public function setIsFromAutoSnapshot(bool $isFromAutoSnapshot): void
     {
         $this->isFromAutoSnapshot = $isFromAutoSnapshot;
-        return $this;
-    }}
+    }
+}

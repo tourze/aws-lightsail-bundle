@@ -1,16 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AwsLightsailBundle\Entity;
 
 use AwsLightsailBundle\Enum\InstanceBlueprintEnum;
 use AwsLightsailBundle\Enum\InstanceBundleEnum;
 use AwsLightsailBundle\Enum\InstanceStateEnum;
 use AwsLightsailBundle\Repository\InstanceRepository;
-use Carbon\CarbonImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
-use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 #[ORM\Entity(repositoryClass: InstanceRepository::class)]
@@ -18,107 +18,147 @@ use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 class Instance implements \Stringable
 {
     use TimestampableAware;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => '主键ID'])]
     private ?int $id = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => '实例名称'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $name;
 
     #[ORM\Column(type: Types::STRING, length: 255, options: ['comment' => 'AWS ARN'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $arn;
 
     #[ORM\Column(type: Types::STRING, length: 100, enumType: InstanceStateEnum::class, options: ['comment' => '实例状态'])]
+    #[Assert\Choice(callback: [InstanceStateEnum::class, 'cases'])]
+    #[Assert\NotBlank]
     private InstanceStateEnum $state = InstanceStateEnum::UNKNOWN;
 
     #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['comment' => '实例状态代码'])]
+    #[Assert\Type(type: 'int')]
     private ?int $stateCode = null;
 
     #[ORM\Column(type: Types::STRING, length: 100, enumType: InstanceBlueprintEnum::class, options: ['comment' => '蓝图类型'])]
+    #[Assert\Choice(callback: [InstanceBlueprintEnum::class, 'cases'])]
+    #[Assert\NotBlank]
     private InstanceBlueprintEnum $blueprint;
 
     #[ORM\Column(type: Types::STRING, length: 100, nullable: true, options: ['comment' => '蓝图名称'])]
+    #[Assert\Length(max: 100)]
     private ?string $blueprintName = null;
 
     #[ORM\Column(type: Types::STRING, length: 100, enumType: InstanceBundleEnum::class, options: ['comment' => '实例套餐'])]
+    #[Assert\Choice(callback: [InstanceBundleEnum::class, 'cases'])]
+    #[Assert\NotBlank]
     private InstanceBundleEnum $bundle;
 
     #[ORM\Column(type: Types::STRING, length: 50, options: ['comment' => 'AWS 区域'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 50)]
     private string $region;
 
     #[ORM\Column(type: Types::STRING, length: 50, nullable: true, options: ['comment' => '可用区'])]
+    #[Assert\Length(max: 50)]
     private ?string $availabilityZone = null;
 
     #[ORM\Column(type: Types::STRING, length: 50, nullable: true, options: ['comment' => '资源类型'])]
+    #[Assert\Length(max: 50)]
     private ?string $resourceType = null;
 
     #[ORM\Column(type: Types::STRING, length: 20, nullable: true, options: ['comment' => '公网 IP 地址'])]
+    #[Assert\Length(max: 20)]
+    #[Assert\Ip]
     private ?string $publicIpAddress = null;
 
     #[ORM\Column(type: Types::STRING, length: 20, nullable: true, options: ['comment' => '私网 IP 地址'])]
+    #[Assert\Length(max: 20)]
+    #[Assert\Ip]
     private ?string $privateIpAddress = null;
 
+    /**
+     * @var array<int, string>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => 'IPv6 地址列表'])]
+    #[Assert\Type(type: 'array')]
     private ?array $ipv6Addresses = null;
 
     #[ORM\Column(type: Types::STRING, length: 20, nullable: true, options: ['comment' => 'IP 地址类型（ipv4/ipv6/dualstack）'])]
+    #[Assert\Length(max: 20)]
     private ?string $ipAddressType = null;
 
     #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否为静态 IP'])]
+    #[Assert\Type(type: 'bool')]
     private bool $isStaticIp = false;
 
     #[ORM\ManyToOne(targetEntity: KeyPair::class)]
     #[ORM\JoinColumn(nullable: true)]
     private ?KeyPair $keyPair = null;
 
+    /**
+     * @var array<string, mixed>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '标签'])]
+    #[Assert\Type(type: 'array')]
     private ?array $tags = null;
 
+    /**
+     * @var array<string, mixed>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '硬件配置'])]
+    #[Assert\Type(type: 'array')]
     private ?array $hardware = null;
 
+    /**
+     * @var array<string, mixed>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '网络配置'])]
+    #[Assert\Type(type: 'array')]
     private ?array $networking = null;
 
+    /**
+     * @var array<string, mixed>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '元数据选项'])]
+    #[Assert\Type(type: 'array')]
     private ?array $metadataOptions = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => 'AWS 创建时间'])]
-    private ?\DateTimeImmutable $awsCreatedAt = null;
+    #[Assert\Type(type: '\DateTimeInterface')]
+    private ?\DateTimeImmutable $awsCreationTime = null;
 
-    #[CreateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, options: ['comment' => '创建时间'])]
-    private \DateTimeInterface $createdAt;
-
-    #[ORM\ManyToOne(targetEntity: AwsCredential::class)]
+    #[ORM\ManyToOne(targetEntity: AwsCredential::class, cascade: ['persist'])]
     #[ORM\JoinColumn(nullable: false)]
     private AwsCredential $credential;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '同步时间'])]
-    private ?\DateTimeImmutable $syncedAt = null;
+    #[Assert\Type(type: '\DateTimeInterface')]
+    private ?\DateTimeImmutable $syncTime = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '用户名'])]
+    #[Assert\Length(max: 65535)]
     private ?string $username = null;
 
     #[ORM\Column(type: Types::BOOLEAN, options: ['comment' => '是否启用监控'])]
+    #[Assert\Type(type: 'bool')]
     private bool $isMonitoring = false;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '支持代码'])]
+    #[Assert\Length(max: 255)]
     private ?string $supportCode = null;
-
-    #[UpdateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '更新时间'])]
-    private ?\DateTimeImmutable $updatedAt = null;
 
     public function __construct()
     {
-        $this->createdAt = CarbonImmutable::now();
+        // createTime 会通过 TimestampableAware trait 自动初始化
     }
 
     public function __toString(): string
     {
-        return sprintf('Instance %s (%s, %s)', $this->name, $this->state->value, $this->region);
+        return \sprintf('Instance %s (%s, %s)', $this->name, $this->state->value, $this->region);
     }
 
     public function getId(): ?int
@@ -131,10 +171,9 @@ class Instance implements \Stringable
         return $this->name;
     }
 
-    public function setName(string $name): self
+    public function setName(string $name): void
     {
         $this->name = $name;
-        return $this;
     }
 
     public function getArn(): string
@@ -142,10 +181,9 @@ class Instance implements \Stringable
         return $this->arn;
     }
 
-    public function setArn(string $arn): self
+    public function setArn(string $arn): void
     {
         $this->arn = $arn;
-        return $this;
     }
 
     public function getState(): InstanceStateEnum
@@ -153,10 +191,9 @@ class Instance implements \Stringable
         return $this->state;
     }
 
-    public function setState(InstanceStateEnum $state): self
+    public function setState(InstanceStateEnum $state): void
     {
         $this->state = $state;
-        return $this;
     }
 
     public function getStateCode(): ?int
@@ -164,10 +201,9 @@ class Instance implements \Stringable
         return $this->stateCode;
     }
 
-    public function setStateCode(?int $stateCode): self
+    public function setStateCode(?int $stateCode): void
     {
         $this->stateCode = $stateCode;
-        return $this;
     }
 
     public function getBlueprint(): InstanceBlueprintEnum
@@ -175,10 +211,9 @@ class Instance implements \Stringable
         return $this->blueprint;
     }
 
-    public function setBlueprint(InstanceBlueprintEnum $blueprint): self
+    public function setBlueprint(InstanceBlueprintEnum $blueprint): void
     {
         $this->blueprint = $blueprint;
-        return $this;
     }
 
     public function getBlueprintName(): ?string
@@ -186,10 +221,9 @@ class Instance implements \Stringable
         return $this->blueprintName;
     }
 
-    public function setBlueprintName(?string $blueprintName): self
+    public function setBlueprintName(?string $blueprintName): void
     {
         $this->blueprintName = $blueprintName;
-        return $this;
     }
 
     public function getBundle(): InstanceBundleEnum
@@ -197,10 +231,9 @@ class Instance implements \Stringable
         return $this->bundle;
     }
 
-    public function setBundle(InstanceBundleEnum $bundle): self
+    public function setBundle(InstanceBundleEnum $bundle): void
     {
         $this->bundle = $bundle;
-        return $this;
     }
 
     public function getRegion(): string
@@ -208,10 +241,9 @@ class Instance implements \Stringable
         return $this->region;
     }
 
-    public function setRegion(string $region): self
+    public function setRegion(string $region): void
     {
         $this->region = $region;
-        return $this;
     }
 
     public function getAvailabilityZone(): ?string
@@ -219,10 +251,9 @@ class Instance implements \Stringable
         return $this->availabilityZone;
     }
 
-    public function setAvailabilityZone(?string $availabilityZone): self
+    public function setAvailabilityZone(?string $availabilityZone): void
     {
         $this->availabilityZone = $availabilityZone;
-        return $this;
     }
 
     public function getResourceType(): ?string
@@ -230,10 +261,9 @@ class Instance implements \Stringable
         return $this->resourceType;
     }
 
-    public function setResourceType(?string $resourceType): self
+    public function setResourceType(?string $resourceType): void
     {
         $this->resourceType = $resourceType;
-        return $this;
     }
 
     public function getPublicIpAddress(): ?string
@@ -241,10 +271,9 @@ class Instance implements \Stringable
         return $this->publicIpAddress;
     }
 
-    public function setPublicIpAddress(?string $publicIpAddress): self
+    public function setPublicIpAddress(?string $publicIpAddress): void
     {
         $this->publicIpAddress = $publicIpAddress;
-        return $this;
     }
 
     public function getPrivateIpAddress(): ?string
@@ -252,21 +281,25 @@ class Instance implements \Stringable
         return $this->privateIpAddress;
     }
 
-    public function setPrivateIpAddress(?string $privateIpAddress): self
+    public function setPrivateIpAddress(?string $privateIpAddress): void
     {
         $this->privateIpAddress = $privateIpAddress;
-        return $this;
     }
 
+    /**
+     * @return array<int, string>|null
+     */
     public function getIpv6Addresses(): ?array
     {
         return $this->ipv6Addresses;
     }
 
-    public function setIpv6Addresses(?array $ipv6Addresses): self
+    /**
+     * @param array<int, string>|null $ipv6Addresses
+     */
+    public function setIpv6Addresses(?array $ipv6Addresses): void
     {
         $this->ipv6Addresses = $ipv6Addresses;
-        return $this;
     }
 
     public function getIpAddressType(): ?string
@@ -274,10 +307,9 @@ class Instance implements \Stringable
         return $this->ipAddressType;
     }
 
-    public function setIpAddressType(?string $ipAddressType): self
+    public function setIpAddressType(?string $ipAddressType): void
     {
         $this->ipAddressType = $ipAddressType;
-        return $this;
     }
 
     public function isStaticIp(): bool
@@ -285,10 +317,9 @@ class Instance implements \Stringable
         return $this->isStaticIp;
     }
 
-    public function setIsStaticIp(bool $isStaticIp): self
+    public function setIsStaticIp(bool $isStaticIp): void
     {
         $this->isStaticIp = $isStaticIp;
-        return $this;
     }
 
     public function getKeyPair(): ?KeyPair
@@ -296,73 +327,86 @@ class Instance implements \Stringable
         return $this->keyPair;
     }
 
-    public function setKeyPair(?KeyPair $keyPair): self
+    public function setKeyPair(?KeyPair $keyPair): void
     {
         $this->keyPair = $keyPair;
-        return $this;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getTags(): ?array
     {
         return $this->tags;
     }
 
-    public function setTags(?array $tags): self
+    /**
+     * @param array<string, mixed>|null $tags
+     */
+    public function setTags(?array $tags): void
     {
         $this->tags = $tags;
-        return $this;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getHardware(): ?array
     {
         return $this->hardware;
     }
 
-    public function setHardware(?array $hardware): self
+    /**
+     * @param array<string, mixed>|null $hardware
+     */
+    public function setHardware(?array $hardware): void
     {
         $this->hardware = $hardware;
-        return $this;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getNetworking(): ?array
     {
         return $this->networking;
     }
 
-    public function setNetworking(?array $networking): self
+    /**
+     * @param array<string, mixed>|null $networking
+     */
+    public function setNetworking(?array $networking): void
     {
         $this->networking = $networking;
-        return $this;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getMetadataOptions(): ?array
     {
         return $this->metadataOptions;
     }
 
-    public function setMetadataOptions(?array $metadataOptions): self
+    /**
+     * @param array<string, mixed>|null $metadataOptions
+     */
+    public function setMetadataOptions(?array $metadataOptions): void
     {
         $this->metadataOptions = $metadataOptions;
-        return $this;
     }
 
-    public function getAwsCreatedAt(): ?\DateTimeImmutable
+    public function getAwsCreationTime(): ?\DateTimeImmutable
     {
-        return $this->awsCreatedAt;
+        return $this->awsCreationTime;
     }
 
-    public function setAwsCreatedAt(?\DateTimeInterface $awsCreatedAt): self
+    public function setAwsCreationTime(?\DateTimeInterface $awsCreationTime): void
     {
-        if ($awsCreatedAt !== null && !$awsCreatedAt instanceof \DateTimeImmutable) {
-            $awsCreatedAt = \DateTimeImmutable::createFromInterface($awsCreatedAt);
+        if (null !== $awsCreationTime && !$awsCreationTime instanceof \DateTimeImmutable) {
+            $awsCreationTime = \DateTimeImmutable::createFromInterface($awsCreationTime);
         }
-        $this->awsCreatedAt = $awsCreatedAt;
-        return $this;
-    }
-
-    public function getCreatedAt(): \DateTimeInterface
-    {
-        return $this->createdAt;
+        $this->awsCreationTime = $awsCreationTime;
     }
 
     public function getCredential(): AwsCredential
@@ -370,24 +414,22 @@ class Instance implements \Stringable
         return $this->credential;
     }
 
-    public function setCredential(AwsCredential $credential): self
+    public function setCredential(AwsCredential $credential): void
     {
         $this->credential = $credential;
-        return $this;
     }
 
-    public function getSyncedAt(): ?\DateTimeImmutable
+    public function getSyncTime(): ?\DateTimeImmutable
     {
-        return $this->syncedAt;
+        return $this->syncTime;
     }
 
-    public function setSyncedAt(?\DateTimeInterface $syncedAt): self
+    public function setSyncTime(?\DateTimeInterface $syncTime): void
     {
-        if ($syncedAt !== null && !$syncedAt instanceof \DateTimeImmutable) {
-            $syncedAt = \DateTimeImmutable::createFromInterface($syncedAt);
+        if (null !== $syncTime && !$syncTime instanceof \DateTimeImmutable) {
+            $syncTime = \DateTimeImmutable::createFromInterface($syncTime);
         }
-        $this->syncedAt = $syncedAt;
-        return $this;
+        $this->syncTime = $syncTime;
     }
 
     public function getUsername(): ?string
@@ -395,10 +437,9 @@ class Instance implements \Stringable
         return $this->username;
     }
 
-    public function setUsername(?string $username): self
+    public function setUsername(?string $username): void
     {
         $this->username = $username;
-        return $this;
     }
 
     public function isMonitoring(): bool
@@ -406,10 +447,9 @@ class Instance implements \Stringable
         return $this->isMonitoring;
     }
 
-    public function setIsMonitoring(bool $isMonitoring): self
+    public function setIsMonitoring(bool $isMonitoring): void
     {
         $this->isMonitoring = $isMonitoring;
-        return $this;
     }
 
     public function getSupportCode(): ?string
@@ -417,23 +457,8 @@ class Instance implements \Stringable
         return $this->supportCode;
     }
 
-    public function setSupportCode(?string $supportCode): self
+    public function setSupportCode(?string $supportCode): void
     {
         $this->supportCode = $supportCode;
-        return $this;
-    }
-
-    public function getUpdatedAt(): ?\DateTimeImmutable
-    {
-        return $this->updatedAt;
-    }
-
-    public function setUpdatedAt(?\DateTimeInterface $updatedAt): self
-    {
-        if ($updatedAt !== null && !$updatedAt instanceof \DateTimeImmutable) {
-            $updatedAt = \DateTimeImmutable::createFromInterface($updatedAt);
-        }
-        $this->updatedAt = $updatedAt;
-        return $this;
     }
 }
