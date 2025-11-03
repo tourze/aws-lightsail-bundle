@@ -12,14 +12,11 @@ use Tourze\RoutingAutoLoaderBundle\RoutingAutoLoaderBundle;
 
 class AwsLightsailBundle extends Bundle implements BundleDependencyInterface
 {
-    /**
-     * @return array<class-string<Bundle>, array<string, bool>>
-     */
     public static function getBundleDependencies(): array
     {
         return [
-            DoctrineBundle::class          => ['all' => true],
-            EasyAdminMenuBundle::class     => ['all' => true],
+            DoctrineBundle::class => ['all' => true],
+            EasyAdminMenuBundle::class => ['all' => true],
             RoutingAutoLoaderBundle::class => ['all' => true],
         ];
     }
