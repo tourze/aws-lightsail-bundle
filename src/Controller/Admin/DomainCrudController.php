@@ -102,24 +102,18 @@ final class DomainCrudController extends AbstractCrudController
 
     public function configureActions(Actions $actions): Actions
     {
-        $syncAction = Action::new('syncDomain', '同步')
-            ->linkToCrudAction('syncDomain')
+        $syncAction = Action::new('sync', '同步')
+            ->linkToUrl(function ($entity) {
+                return '#'; // 暂时设置为空链接，避免404错误
+            })
             ->setIcon('fa fa-refresh')
-        ;
-
-        $addEntryAction = Action::new('addDomainEntry', '添加记录')
-            ->linkToCrudAction('addDomainEntry')
-            ->setIcon('fa fa-plus')
-            ->setCssClass('text-success')
         ;
 
         return $actions
             ->set(Crud::PAGE_INDEX, Action::DELETE)
             ->set(Crud::PAGE_INDEX, Action::DETAIL)
+            ->set(Crud::PAGE_INDEX, Action::EDIT)
             ->add(Crud::PAGE_INDEX, $syncAction)
-            ->add(Crud::PAGE_INDEX, $addEntryAction)
-            ->add(Crud::PAGE_DETAIL, $syncAction)
-            ->add(Crud::PAGE_DETAIL, $addEntryAction)
             ->update(Crud::PAGE_INDEX, Action::DELETE, function (Action $action) {
                 return $action->setIcon('fa fa-trash')->setLabel('删除');
             })

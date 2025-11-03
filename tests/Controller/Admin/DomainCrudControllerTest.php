@@ -107,13 +107,14 @@ final class DomainCrudControllerTest extends AbstractEasyAdminControllerTestCase
 
     public static function provideIndexPageHeaders(): iterable
     {
-        yield 'name' => ['name'];
-        yield 'region' => ['region'];
-        yield 'isManaged' => ['isManaged'];
-        yield 'tags' => ['tags'];
-        yield 'createTime' => ['createTime'];
-        yield 'syncTime' => ['syncTime'];
-        yield 'updateTime' => ['updateTime'];
+        yield 'ID' => ['ID'];
+        yield '域名' => ['域名'];
+        yield '区域' => ['区域'];
+        yield '是否托管' => ['是否托管'];
+        yield 'AWS 凭证' => ['AWS 凭证'];
+        yield '创建时间' => ['创建时间'];
+        yield '同步时间' => ['同步时间'];
+        yield '更新时间' => ['更新时间'];
     }
 
     public static function provideNewPageFields(): iterable
@@ -121,7 +122,6 @@ final class DomainCrudControllerTest extends AbstractEasyAdminControllerTestCase
         yield 'name' => ['name'];
         yield 'region' => ['region'];
         yield 'isManaged' => ['isManaged'];
-        yield 'tags' => ['tags'];
         yield 'credential' => ['credential'];
     }
 
@@ -130,7 +130,7 @@ final class DomainCrudControllerTest extends AbstractEasyAdminControllerTestCase
         yield 'name' => ['name'];
         yield 'region' => ['region'];
         yield 'isManaged' => ['isManaged'];
-        yield 'tags' => ['tags'];
+        // credential字段在编辑页面是disabled的，但仍然存在
         yield 'credential' => ['credential'];
     }
 }

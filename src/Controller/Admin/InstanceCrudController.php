@@ -9,6 +9,7 @@ use AwsLightsailBundle\Entity\Instance;
 use AwsLightsailBundle\Enum\InstanceBlueprintEnum;
 use AwsLightsailBundle\Enum\InstanceBundleEnum;
 use AwsLightsailBundle\Enum\InstanceStateEnum;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminAction;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminCrud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
@@ -212,6 +213,7 @@ final class InstanceCrudController extends AbstractCrudController
         ;
 
         return $actions
+            ->disable(Action::NEW)  // 禁用创建新实例，因为实例是通过AWS创建的
             ->set(Crud::PAGE_INDEX, Action::DELETE)
             ->set(Crud::PAGE_INDEX, Action::EDIT)
             ->set(Crud::PAGE_DETAIL, Action::DELETE)
@@ -266,6 +268,7 @@ final class InstanceCrudController extends AbstractCrudController
     /**
      * 启动实例action
      */
+#[AdminAction]
     public function startInstance(): Response
     {
         $context = $this->getContext();
@@ -287,6 +290,7 @@ final class InstanceCrudController extends AbstractCrudController
     /**
      * 停止实例action
      */
+#[AdminAction]
     public function stopInstance(): Response
     {
         $context = $this->getContext();
@@ -308,6 +312,7 @@ final class InstanceCrudController extends AbstractCrudController
     /**
      * 重启实例action
      */
+#[AdminAction]
     public function rebootInstance(): Response
     {
         $context = $this->getContext();
@@ -329,6 +334,7 @@ final class InstanceCrudController extends AbstractCrudController
     /**
      * 同步实例action
      */
+#[AdminAction]
     public function syncInstance(): Response
     {
         $context = $this->getContext();

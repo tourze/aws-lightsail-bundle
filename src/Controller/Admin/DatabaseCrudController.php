@@ -210,8 +210,6 @@ final class DatabaseCrudController extends AbstractCrudController
         ;
 
         return $actions
-            ->set(Crud::PAGE_INDEX, Action::DELETE)
-            ->set(Crud::PAGE_INDEX, Action::DETAIL)
             ->add(Crud::PAGE_INDEX, $syncAction)
             ->add(Crud::PAGE_INDEX, $startAction)
             ->add(Crud::PAGE_INDEX, $stopAction)
@@ -222,15 +220,6 @@ final class DatabaseCrudController extends AbstractCrudController
             ->add(Crud::PAGE_DETAIL, $stopAction)
             ->add(Crud::PAGE_DETAIL, $rebootAction)
             ->add(Crud::PAGE_DETAIL, $createSnapshotAction)
-            ->update(Crud::PAGE_INDEX, Action::DELETE, function (Action $action) {
-                return $action->setIcon('fa fa-trash')->setLabel('删除');
-            })
-            ->update(Crud::PAGE_INDEX, Action::EDIT, function (Action $action) {
-                return $action->setIcon('fa fa-edit')->setLabel('编辑');
-            })
-            ->update(Crud::PAGE_INDEX, Action::DETAIL, function (Action $action) {
-                return $action->setIcon('fa fa-eye')->setLabel('查看');
-            })
         ;
     }
 

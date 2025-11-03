@@ -7,6 +7,7 @@ namespace AwsLightsailBundle\Controller\Admin;
 use AwsLightsailBundle\Entity\AwsCredential;
 use AwsLightsailBundle\Entity\Disk;
 use AwsLightsailBundle\Enum\DiskStateEnum;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminAction;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminCrud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
@@ -183,9 +184,6 @@ final class DiskCrudController extends AbstractCrudController
             ->update(Crud::PAGE_INDEX, Action::DELETE, function (Action $action) {
                 return $action->setIcon('fa fa-trash')->setLabel('删除');
             })
-            ->update(Crud::PAGE_INDEX, Action::EDIT, function (Action $action) {
-                return $action->setIcon('fa fa-edit')->setLabel('编辑');
-            })
             ->update(Crud::PAGE_INDEX, Action::DETAIL, function (Action $action) {
                 return $action->setIcon('fa fa-eye')->setLabel('查看');
             })
@@ -209,5 +207,45 @@ final class DiskCrudController extends AbstractCrudController
             ->add(BooleanFilter::new('isAutoSnapshotConfigured', '已配置自动快照'))
             ->add(EntityFilter::new('credential', 'AWS 凭证'))
         ;
-    }
+      }
+
+    /**
+     * 同步磁盘信息
+     */
+#[AdminAction]
+public function syncDisk()
+{
+    // TODO: 实现同步逻辑
+    return $this->redirectToCrudAction('index');
+}
+
+/**
+     * 挂载磁盘
+     */
+#[AdminAction]
+public function attachDisk()
+{
+    // TODO: 实现挂载逻辑
+    return $this->redirectToCrudAction('index');
+}
+
+/**
+     * 分离磁盘
+     */
+#[AdminAction]
+public function detachDisk()
+{
+    // TODO: 实现分离逻辑
+    return $this->redirectToCrudAction('index');
+}
+
+/**
+     * 创建磁盘快照
+     */
+#[AdminAction]
+public function createDiskSnapshot()
+{
+    // TODO: 实现创建快照逻辑
+    return $this->redirectToCrudAction('index');
+}
 }

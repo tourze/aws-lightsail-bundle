@@ -195,6 +195,7 @@ final class LoadBalancerCrudController extends AbstractCrudController
         return $actions
             ->set(Crud::PAGE_INDEX, Action::DELETE)
             ->set(Crud::PAGE_INDEX, Action::DETAIL)
+            ->set(Crud::PAGE_INDEX, Action::EDIT)
             ->add(Crud::PAGE_INDEX, $syncAction)
             ->add(Crud::PAGE_INDEX, $attachAction)
             ->add(Crud::PAGE_INDEX, $detachAction)

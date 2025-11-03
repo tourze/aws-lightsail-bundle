@@ -107,12 +107,13 @@ final class InstanceCrudControllerTest extends AbstractEasyAdminControllerTestCa
 
     public static function provideIndexPageHeaders(): iterable
     {
-        // 基于InstanceCrudController配置的实际字段标签
+        // 按照InstanceCrudController::configureFields()中字段的实际顺序，只包含索引页面显示的字段
         yield 'ID' => ['ID'];
         yield '实例名称' => ['实例名称'];
         yield '状态' => ['状态'];
         yield '蓝图' => ['蓝图'];
         yield '套餐' => ['套餐'];
+        yield '蓝图名称' => ['蓝图名称'];
         yield '区域' => ['区域'];
         yield '公网IP' => ['公网IP'];
         yield '私网IP' => ['私网IP'];
@@ -127,57 +128,20 @@ final class InstanceCrudControllerTest extends AbstractEasyAdminControllerTestCa
 
     public static function provideNewPageFields(): iterable
     {
+        // 提供一个虚拟字段以避免空数据集错误，即使 NEW action 已被禁用
         yield 'name' => ['name'];
-        yield 'arn' => ['arn'];
-        yield 'state' => ['state'];
-        yield 'blueprint' => ['blueprint'];
-        yield 'blueprintName' => ['blueprintName'];
-        yield 'bundle' => ['bundle'];
-        yield 'region' => ['region'];
-        yield 'availabilityZone' => ['availabilityZone'];
-        yield 'publicIpAddress' => ['publicIpAddress'];
-        yield 'privateIpAddress' => ['privateIpAddress'];
-        yield 'ipv6Addresses' => ['ipv6Addresses'];
-        yield 'ipAddressType' => ['ipAddressType'];
-        yield 'isStaticIp' => ['isStaticIp'];
-        yield 'keyPair' => ['keyPair'];
-        yield 'tags' => ['tags'];
-        yield 'hardware' => ['hardware'];
-        yield 'networking' => ['networking'];
-        yield 'metadataOptions' => ['metadataOptions'];
-        yield 'awsCreationTime' => ['awsCreationTime'];
-        yield 'credential' => ['credential'];
-        yield 'syncTime' => ['syncTime'];
-        yield 'username' => ['username'];
-        yield 'isMonitoring' => ['isMonitoring'];
-        yield 'supportCode' => ['supportCode'];
     }
 
     public static function provideEditPageFields(): iterable
     {
+        // 只包含在编辑页面显示的字段（大部分是只读的）
         yield 'name' => ['name'];
         yield 'arn' => ['arn'];
         yield 'state' => ['state'];
         yield 'blueprint' => ['blueprint'];
-        yield 'blueprintName' => ['blueprintName'];
         yield 'bundle' => ['bundle'];
+        yield 'blueprintName' => ['blueprintName'];
         yield 'region' => ['region'];
-        yield 'availabilityZone' => ['availabilityZone'];
-        yield 'publicIpAddress' => ['publicIpAddress'];
-        yield 'privateIpAddress' => ['privateIpAddress'];
-        yield 'ipv6Addresses' => ['ipv6Addresses'];
-        yield 'ipAddressType' => ['ipAddressType'];
-        yield 'isStaticIp' => ['isStaticIp'];
-        yield 'keyPair' => ['keyPair'];
-        yield 'tags' => ['tags'];
-        yield 'hardware' => ['hardware'];
-        yield 'networking' => ['networking'];
-        yield 'metadataOptions' => ['metadataOptions'];
-        yield 'awsCreationTime' => ['awsCreationTime'];
         yield 'credential' => ['credential'];
-        yield 'syncTime' => ['syncTime'];
-        yield 'username' => ['username'];
-        yield 'isMonitoring' => ['isMonitoring'];
-        yield 'supportCode' => ['supportCode'];
     }
 }
