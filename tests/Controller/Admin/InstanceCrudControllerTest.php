@@ -144,4 +144,28 @@ final class InstanceCrudControllerTest extends AbstractEasyAdminControllerTestCa
         yield 'region' => ['region'];
         yield 'credential' => ['credential'];
     }
+
+    public function testStartInstance(): void
+    {
+        $reflection = new \ReflectionMethod($this->getControllerService(), 'startInstance');
+        $this->assertTrue($reflection->isPublic(), 'startInstance方法应该是公共的');
+    }
+
+    public function testStopInstance(): void
+    {
+        $reflection = new \ReflectionMethod($this->getControllerService(), 'stopInstance');
+        $this->assertTrue($reflection->isPublic(), 'stopInstance方法应该是公共的');
+    }
+
+    public function testRebootInstance(): void
+    {
+        $reflection = new \ReflectionMethod($this->getControllerService(), 'rebootInstance');
+        $this->assertTrue($reflection->isPublic(), 'rebootInstance方法应该是公共的');
+    }
+
+    public function testSyncInstance(): void
+    {
+        $reflection = new \ReflectionMethod($this->getControllerService(), 'syncInstance');
+        $this->assertTrue($reflection->isPublic(), 'syncInstance方法应该是公共的');
+    }
 }

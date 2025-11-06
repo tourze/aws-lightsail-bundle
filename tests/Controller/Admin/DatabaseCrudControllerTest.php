@@ -126,13 +126,31 @@ final class DatabaseCrudControllerTest extends AbstractEasyAdminControllerTestCa
 
     public static function provideNewPageFields(): iterable
     {
-        // 跳过新页面测试 - 由于有复杂的关联字段和枚举配置
-        self::markTestSkipped('新页面测试被跳过 - 涉及复杂的关联字段配置');
+        yield '数据库名称' => ['数据库名称'];
+        yield '数据库引擎' => ['数据库引擎'];
+        yield '引擎版本' => ['引擎版本'];
+        yield '主终端节点' => ['主终端节点'];
+        yield '状态' => ['状态'];
+        yield '套餐ID' => ['套餐ID'];
+        yield '区域' => ['区域'];
+        yield '公开访问' => ['公开访问'];
+        yield '备份保留' => ['备份保留'];
+        yield '自动次要版本升级' => ['自动次要版本升级'];
+        yield 'AWS 凭证' => ['AWS 凭证'];
     }
 
     public static function provideEditPageFields(): iterable
     {
-        // 跳过编辑页面测试 - 由于有复杂的关联字段和枚举配置
-        self::markTestSkipped('编辑页面测试被跳过 - 涉及复杂的关联字段配置');
+        yield '数据库名称' => ['数据库名称'];
+        yield '数据库引擎' => ['数据库引擎'];
+        yield '引擎版本' => ['引擎版本'];
+        yield '主终端节点' => ['主终端节点'];
+        yield '状态' => ['状态'];
+        yield '套餐ID' => ['套餐ID'];
+        yield '区域' => ['区域'];
+        yield '公开访问' => ['公开访问'];
+        yield '备份保留' => ['备份保留'];
+        yield '自动次要版本升级' => ['自动次要版本升级'];
+        yield 'AWS 凭证' => ['AWS 凭证'];
     }
 }

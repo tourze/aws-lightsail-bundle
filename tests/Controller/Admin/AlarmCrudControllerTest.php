@@ -126,14 +126,14 @@ final class AlarmCrudControllerTest extends AbstractEasyAdminControllerTestCase
 
     public static function provideNewPageFields(): iterable
     {
-        // NEW action已被禁用，使用占位符避免空数据集错误
-        yield 'NEW action is disabled' => ['placeholder'];
+        // NEW action已被禁用，提供占位符数据
+        yield 'placeholder' => ['placeholder'];
     }
 
     public static function provideEditPageFields(): iterable
     {
-        // EDIT action已被禁用，使用占位符避免空数据集错误
-        yield 'EDIT action is disabled' => ['placeholder'];
+        // EDIT action已被禁用，提供占位符数据
+        yield 'placeholder' => ['placeholder'];
     }
 
     /**

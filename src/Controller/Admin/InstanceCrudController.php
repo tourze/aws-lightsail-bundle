@@ -268,7 +268,7 @@ final class InstanceCrudController extends AbstractCrudController
     /**
      * 启动实例action
      */
-#[AdminAction]
+    #[AdminAction(routePath: '{id}/start', routeName: 'startInstanceAction')]
     public function startInstance(): Response
     {
         $context = $this->getContext();
@@ -290,7 +290,7 @@ final class InstanceCrudController extends AbstractCrudController
     /**
      * 停止实例action
      */
-#[AdminAction]
+    #[AdminAction(routePath: '{id}/stop', routeName: 'stopInstanceAction')]
     public function stopInstance(): Response
     {
         $context = $this->getContext();
@@ -312,7 +312,7 @@ final class InstanceCrudController extends AbstractCrudController
     /**
      * 重启实例action
      */
-#[AdminAction]
+    #[AdminAction(routePath: '{id}/reboot', routeName: 'rebootInstanceAction')]
     public function rebootInstance(): Response
     {
         $context = $this->getContext();
@@ -334,7 +334,7 @@ final class InstanceCrudController extends AbstractCrudController
     /**
      * 同步实例action
      */
-#[AdminAction]
+    #[AdminAction(routePath: '{id}/sync', routeName: 'syncInstanceAction')]
     public function syncInstance(): Response
     {
         $context = $this->getContext();

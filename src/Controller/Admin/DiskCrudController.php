@@ -27,6 +27,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\TextFilter;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Lightsail 磁盘管理控制器
@@ -212,40 +213,84 @@ final class DiskCrudController extends AbstractCrudController
     /**
      * 同步磁盘信息
      */
-#[AdminAction]
-public function syncDisk()
-{
-    // TODO: 实现同步逻辑
-    return $this->redirectToCrudAction('index');
-}
+    #[AdminAction(routePath: '{id}/sync', routeName: 'syncDiskAction')]
+    public function syncDisk(): Response
+    {
+        // TODO: 实现同步逻辑
+        $context = $this->getContext();
+        if (null === $context) {
+            throw $this->createNotFoundException('找不到后台上下文');
+        }
 
-/**
+        $request = $context->getRequest();
+        $referer = $request->headers->get('referer');
+        if (is_string($referer) && '' !== $referer) {
+            return $this->redirect($referer);
+        }
+
+        return $this->redirectToRoute('admin');
+    }
+
+    /**
      * 挂载磁盘
      */
-#[AdminAction]
-public function attachDisk()
-{
-    // TODO: 实现挂载逻辑
-    return $this->redirectToCrudAction('index');
-}
+    #[AdminAction(routePath: '{id}/attach', routeName: 'attachDiskAction')]
+    public function attachDisk(): Response
+    {
+        // TODO: 实现挂载逻辑
+        $context = $this->getContext();
+        if (null === $context) {
+            throw $this->createNotFoundException('找不到后台上下文');
+        }
 
-/**
+        $request = $context->getRequest();
+        $referer = $request->headers->get('referer');
+        if (is_string($referer) && '' !== $referer) {
+            return $this->redirect($referer);
+        }
+
+        return $this->redirectToRoute('admin');
+    }
+
+    /**
      * 分离磁盘
      */
-#[AdminAction]
-public function detachDisk()
-{
-    // TODO: 实现分离逻辑
-    return $this->redirectToCrudAction('index');
-}
+    #[AdminAction(routePath: '{id}/detach', routeName: 'detachDiskAction')]
+    public function detachDisk(): Response
+    {
+        // TODO: 实现分离逻辑
+        $context = $this->getContext();
+        if (null === $context) {
+            throw $this->createNotFoundException('找不到后台上下文');
+        }
 
-/**
+        $request = $context->getRequest();
+        $referer = $request->headers->get('referer');
+        if (is_string($referer) && '' !== $referer) {
+            return $this->redirect($referer);
+        }
+
+        return $this->redirectToRoute('admin');
+    }
+
+    /**
      * 创建磁盘快照
      */
-#[AdminAction]
-public function createDiskSnapshot()
-{
-    // TODO: 实现创建快照逻辑
-    return $this->redirectToCrudAction('index');
-}
+    #[AdminAction(routePath: '{id}/create-snapshot', routeName: 'createDiskSnapshotAction')]
+    public function createDiskSnapshot(): Response
+    {
+        // TODO: 实现创建快照逻辑
+        $context = $this->getContext();
+        if (null === $context) {
+            throw $this->createNotFoundException('找不到后台上下文');
+        }
+
+        $request = $context->getRequest();
+        $referer = $request->headers->get('referer');
+        if (is_string($referer) && '' !== $referer) {
+            return $this->redirect($referer);
+        }
+
+        return $this->redirectToRoute('admin');
+    }
 }

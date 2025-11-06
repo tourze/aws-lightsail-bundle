@@ -108,18 +108,19 @@ final class CertificateCrudControllerTest extends AbstractEasyAdminControllerTes
 
     public static function provideIndexPageHeaders(): iterable
     {
-        yield 'name' => ['name'];
-        yield 'domainName' => ['domainName'];
-        yield 'status' => ['status'];
-        yield 'region' => ['region'];
-        yield 'notBefore' => ['notBefore'];
-        yield 'notAfter' => ['notAfter'];
-        yield 'isManaged' => ['isManaged'];
-        yield 'inUse' => ['inUse'];
-        yield 'credential' => ['credential'];
-        yield 'createTime' => ['createTime'];
-        yield 'syncTime' => ['syncTime'];
-        yield 'updateTime' => ['updateTime'];
+        yield 'ID' => ['ID'];
+        yield '证书名称' => ['证书名称'];
+        yield '域名' => ['域名'];
+        yield '状态' => ['状态'];
+        yield '区域' => ['区域'];
+        yield '生效时间' => ['生效时间'];
+        yield '过期时间' => ['过期时间'];
+        yield '由 AWS 管理' => ['由 AWS 管理'];
+        yield '正在使用' => ['正在使用'];
+        yield 'AWS 凭证' => ['AWS 凭证'];
+        yield '创建时间' => ['创建时间'];
+        yield '同步时间' => ['同步时间'];
+        yield '更新时间' => ['更新时间'];
     }
 
     public static function provideNewPageFields(): iterable

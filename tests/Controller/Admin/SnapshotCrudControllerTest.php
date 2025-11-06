@@ -21,7 +21,7 @@ final class SnapshotCrudControllerTest extends AbstractEasyAdminControllerTestCa
     public function testUnauthenticatedAccessIsBlocked(): void
     {
         $client = self::createClient();
-        $client->request('GET', '/aws-lighsail/snapshot');
+        $client->request('GET', '/aws-lightsail/snapshot');
 
         // 预期：404 (路由不存在) 或 401/403 (未认证/未授权)
         $statusCode = $client->getResponse()->getStatusCode();
@@ -31,42 +31,42 @@ final class SnapshotCrudControllerTest extends AbstractEasyAdminControllerTestCa
     public function testGetMethodIsAllowed(): void
     {
         $client = self::createClient();
-        $client->request('GET', '/aws-lighsail/snapshot');
+        $client->request('GET', '/aws-lightsail/snapshot');
         $this->assertContains($client->getResponse()->getStatusCode(), [200, 401, 403, 404]);
     }
 
     public function testPostMethodForNewIsAllowed(): void
     {
         $client = self::createClient();
-        $client->request('POST', '/aws-lighsail/snapshot/new');
+        $client->request('POST', '/aws-lightsail/snapshot/new');
         $this->assertContains($client->getResponse()->getStatusCode(), [200, 302, 401, 403, 404, 405]);
     }
 
     public function testPutMethodIsNotAllowed(): void
     {
         $client = self::createClient();
-        $client->request('PUT', '/aws-lighsail/snapshot');
+        $client->request('PUT', '/aws-lightsail/snapshot');
         $this->assertContains($client->getResponse()->getStatusCode(), [404, 405]);
     }
 
     public function testDeleteMethodForEntityIsAllowed(): void
     {
         $client = self::createClient();
-        $client->request('DELETE', '/aws-lighsail/snapshot/1/delete');
+        $client->request('DELETE', '/aws-lightsail/snapshot/1/delete');
         $this->assertContains($client->getResponse()->getStatusCode(), [200, 302, 401, 403, 404, 405]);
     }
 
     public function testHeadMethodIsAllowed(): void
     {
         $client = self::createClient();
-        $client->request('HEAD', '/aws-lighsail/snapshot');
+        $client->request('HEAD', '/aws-lightsail/snapshot');
         $this->assertContains($client->getResponse()->getStatusCode(), [200, 401, 403, 404]);
     }
 
     public function testOptionsMethodIsAllowed(): void
     {
         $client = self::createClient();
-        $client->request('OPTIONS', '/aws-lighsail/snapshot');
+        $client->request('OPTIONS', '/aws-lightsail/snapshot');
         $this->assertContains($client->getResponse()->getStatusCode(), [200, 204, 404, 405]);
     }
 
@@ -90,7 +90,7 @@ final class SnapshotCrudControllerTest extends AbstractEasyAdminControllerTestCa
     public function testConfigureMethodsViaHttp(): void
     {
         $client = self::createClient();
-        $client->request('GET', '/aws-lighsail/snapshot');
+        $client->request('GET', '/aws-lightsail/snapshot');
 
         // 测试路由配置是否正确（返回200表示配置方法都正常工作）
         $statusCode = $client->getResponse()->getStatusCode();

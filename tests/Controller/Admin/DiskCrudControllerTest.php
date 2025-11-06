@@ -124,13 +124,41 @@ final class DiskCrudControllerTest extends AbstractEasyAdminControllerTestCase
 
     public static function provideNewPageFields(): iterable
     {
-        // 暂时跳过新页面字段测试，因为测试基类检测有问题
-        return [];
+        yield 'name' => ['磁盘名称'];
+        yield 'sizeInGb' => ['大小(GB)'];
+        yield 'region' => ['区域'];
+        yield 'credential' => ['AWS 凭证'];
     }
 
     public static function provideEditPageFields(): iterable
     {
-        // 暂时跳过编辑页面字段测试，因为测试基类检测有问题
-        return [];
+        yield 'name' => ['磁盘名称'];
+        yield 'sizeInGb' => ['大小(GB)'];
+        yield 'region' => ['区域'];
+        yield 'credential' => ['AWS 凭证'];
+    }
+
+    public function testSyncDisk(): void
+    {
+        $reflection = new \ReflectionMethod($this->getControllerService(), 'syncDisk');
+        $this->assertTrue($reflection->isPublic(), 'syncDisk方法应该是公共的');
+    }
+
+    public function testAttachDisk(): void
+    {
+        $reflection = new \ReflectionMethod($this->getControllerService(), 'attachDisk');
+        $this->assertTrue($reflection->isPublic(), 'attachDisk方法应该是公共的');
+    }
+
+    public function testDetachDisk(): void
+    {
+        $reflection = new \ReflectionMethod($this->getControllerService(), 'detachDisk');
+        $this->assertTrue($reflection->isPublic(), 'detachDisk方法应该是公共的');
+    }
+
+    public function testCreateDiskSnapshot(): void
+    {
+        $reflection = new \ReflectionMethod($this->getControllerService(), 'createDiskSnapshot');
+        $this->assertTrue($reflection->isPublic(), 'createDiskSnapshot方法应该是公共的');
     }
 }

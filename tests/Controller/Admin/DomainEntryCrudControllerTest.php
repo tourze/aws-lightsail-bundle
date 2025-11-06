@@ -121,13 +121,23 @@ final class DomainEntryCrudControllerTest extends AbstractEasyAdminControllerTes
 
     public static function provideNewPageFields(): iterable
     {
-        // 暂时跳过新页面字段测试，因为测试基类检测有问题
-        return [];
+        yield 'name' => ['name'];
+        yield 'type' => ['type'];
+        yield 'value' => ['value'];
+        yield 'ttl' => ['ttl'];
+        yield 'priority' => ['priority'];
+        yield 'isAlias' => ['isAlias'];
+        yield 'domain' => ['domain'];
     }
 
     public static function provideEditPageFields(): iterable
     {
-        // 暂时跳过编辑页面字段测试，因为测试基类检测有问题
-        return [];
+        yield 'name' => ['name'];
+        yield 'type' => ['type'];
+        yield 'value' => ['value'];
+        yield 'ttl' => ['ttl'];
+        yield 'priority' => ['priority'];
+        yield 'isAlias' => ['isAlias'];
+        yield 'domain' => ['domain'];
     }
 }

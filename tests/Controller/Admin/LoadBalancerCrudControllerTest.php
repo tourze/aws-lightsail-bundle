@@ -123,13 +123,41 @@ final class LoadBalancerCrudControllerTest extends AbstractEasyAdminControllerTe
 
     public static function provideNewPageFields(): iterable
     {
-        // 暂时跳过新页面字段测试，因为测试基类检测有问题
-        return [];
+        yield 'name' => ['name'];
+        yield 'dnsName' => ['dnsName'];
+        yield 'region' => ['region'];
+        yield 'healthCheckPort' => ['healthCheckPort'];
+        yield 'healthCheckProtocol' => ['healthCheckProtocol'];
+        yield 'healthCheckPath' => ['healthCheckPath'];
+        yield 'healthCheckIntervalSeconds' => ['healthCheckIntervalSeconds'];
+        yield 'healthCheckTimeoutSeconds' => ['healthCheckTimeoutSeconds'];
+        yield 'healthyThreshold' => ['healthyThreshold'];
+        yield 'unhealthyThreshold' => ['unhealthyThreshold'];
+        yield 'status' => ['status'];
+        yield 'tlsPolicyEnabled' => ['tlsPolicyEnabled'];
+        yield 'tlsCertificateName' => ['tlsCertificateName'];
+        yield 'configurationOptions' => ['configurationOptions'];
+        yield 'credential' => ['credential'];
     }
 
     public static function provideEditPageFields(): iterable
     {
-        // 暂时跳过编辑页面字段测试，因为测试基类检测有问题
-        return [];
+        yield 'name' => ['name'];
+        yield 'dnsName' => ['dnsName'];
+        yield 'region' => ['region'];
+        yield 'healthCheckPort' => ['healthCheckPort'];
+        yield 'healthCheckProtocol' => ['healthCheckProtocol'];
+        yield 'healthCheckPath' => ['healthCheckPath'];
+        yield 'healthCheckIntervalSeconds' => ['healthCheckIntervalSeconds'];
+        yield 'healthCheckTimeoutSeconds' => ['healthCheckTimeoutSeconds'];
+        yield 'healthyThreshold' => ['healthyThreshold'];
+        yield 'unhealthyThreshold' => ['unhealthyThreshold'];
+        yield 'status' => ['status'];
+        yield 'tlsPolicyEnabled' => ['tlsPolicyEnabled'];
+        yield 'tlsCertificateName' => ['tlsCertificateName'];
+        yield 'instanceHealthSummary' => ['instanceHealthSummary'];
+        yield 'attachedInstances' => ['attachedInstances'];
+        yield 'configurationOptions' => ['configurationOptions'];
+        yield 'credential' => ['credential'];
     }
 }
