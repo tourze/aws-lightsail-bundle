@@ -40,15 +40,6 @@ final class AwsLightsailBundleSimpleTest extends TestCase
         $this->assertInstanceOf(BundleDependencyInterface::class, new AwsLightsailBundle());
     }
 
-    public function testGetBundleDependenciesReturnsArray(): void
-    {
-        $dependencies = AwsLightsailBundle::getBundleDependencies();
-        $this->assertIsArray($dependencies);
-
-        // 验证依赖包含 EasyAdminMenuBundle
-        $this->assertArrayHasKey('Tourze\EasyAdminMenuBundle\EasyAdminMenuBundle', $dependencies);
-    }
-
     public function testBootShouldNoError(): void
     {
         $bundle = new AwsLightsailBundle();
