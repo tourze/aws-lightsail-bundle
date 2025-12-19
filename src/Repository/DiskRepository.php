@@ -14,7 +14,7 @@ use Tourze\PHPUnitSymfonyKernelTest\Attribute\AsRepository;
  * @extends ServiceEntityRepository<Disk>
  */
 #[AsRepository(entityClass: Disk::class)]
-class DiskRepository extends ServiceEntityRepository
+final class DiskRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {

@@ -6,7 +6,7 @@ namespace AwsLightsailBundle\DependencyInjection;
 
 use Tourze\SymfonyDependencyServiceLoader\AutoExtension;
 
-class AwsLightsailExtension extends AutoExtension
+final class AwsLightsailExtension extends AutoExtension
 {
     protected function getConfigDir(): string
     {

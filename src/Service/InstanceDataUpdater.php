@@ -13,7 +13,7 @@ use Psr\Log\LoggerInterface;
  * 实例数据更新辅助类
  */
 #[WithMonologChannel(channel: 'aws_lightsail')]
-readonly class InstanceDataUpdater
+final readonly class InstanceDataUpdater
 {
     public function __construct(
         private LoggerInterface $logger,

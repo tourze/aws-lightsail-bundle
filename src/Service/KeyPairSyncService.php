@@ -17,7 +17,7 @@ use Psr\Log\LoggerInterface;
  * AWS Lightsail 密钥对同步服务
  */
 #[WithMonologChannel(channel: 'aws_lightsail')]
-readonly class KeyPairSyncService
+final readonly class KeyPairSyncService
 {
     public function __construct(
         private EntityManagerInterface $entityManager,

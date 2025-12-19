@@ -24,7 +24,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
     description: '同步 AWS Lightsail 实例列表',
 )]
 #[WithMonologChannel(channel: 'aws_lightsail')]
-class InstanceSyncCommand extends Command
+final class InstanceSyncCommand extends Command
 {
     public const NAME = 'aws:lightsail:instance:sync';
 

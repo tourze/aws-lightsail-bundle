@@ -7,6 +7,6 @@ namespace AwsLightsailBundle\Exception;
 /**
  * 实例数据无效异常
  */
-class InvalidInstanceDataException extends \RuntimeException
+final class InvalidInstanceDataException extends \RuntimeException
 {
 }

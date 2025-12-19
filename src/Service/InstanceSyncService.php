@@ -20,7 +20,7 @@ use Psr\Log\LoggerInterface;
  * AWS Lightsail 实例同步服务
  */
 #[WithMonologChannel(channel: 'aws_lightsail')]
-readonly class InstanceSyncService
+final readonly class InstanceSyncService
 {
     public function __construct(
         private EntityManagerInterface $entityManager,

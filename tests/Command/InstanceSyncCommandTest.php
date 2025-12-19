@@ -26,7 +26,7 @@ final class InstanceSyncCommandTest extends AbstractCommandTestCase
         $this->assertInstanceOf(InstanceSyncCommand::class, $command);
 
         $application = new Application();
-        $application->add($command);
+        $application->addCommand($command);
 
         return new CommandTester($command);
     }

@@ -15,7 +15,7 @@ use Tourze\PHPUnitSymfonyKernelTest\Attribute\AsRepository;
  * @extends ServiceEntityRepository<DatabaseSnapshot>
  */
 #[AsRepository(entityClass: DatabaseSnapshot::class)]
-class DatabaseSnapshotRepository extends ServiceEntityRepository
+final class DatabaseSnapshotRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {

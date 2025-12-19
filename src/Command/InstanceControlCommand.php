@@ -26,7 +26,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
     name: self::NAME,
     description: '控制 AWS Lightsail 实例（启动/停止/重启）',
 )]
-class InstanceControlCommand extends Command
+final class InstanceControlCommand extends Command
 {
     public const NAME = 'aws:lightsail:instance:control';
 

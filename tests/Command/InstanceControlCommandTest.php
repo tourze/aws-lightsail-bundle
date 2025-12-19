@@ -33,7 +33,7 @@ final class InstanceControlCommandTest extends AbstractCommandTestCase
         $this->assertInstanceOf(InstanceControlCommand::class, $command);
 
         $application = new Application();
-        $application->add($command);
+        $application->addCommand($command);
 
         return new CommandTester($command);
     }

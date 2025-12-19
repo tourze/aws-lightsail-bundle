@@ -26,7 +26,7 @@ final class InstanceCreateCommandWithDbTest extends AbstractCommandTestCase
         $this->assertInstanceOf(InstanceCreateCommand::class, $command);
 
         $application = new Application();
-        $application->add($command);
+        $application->addCommand($command);
 
         return new CommandTester($command);
     }

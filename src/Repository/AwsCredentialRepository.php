@@ -13,7 +13,7 @@ use Tourze\PHPUnitSymfonyKernelTest\Attribute\AsRepository;
  * @extends ServiceEntityRepository<AwsCredential>
  */
 #[AsRepository(entityClass: AwsCredential::class)]
-class AwsCredentialRepository extends ServiceEntityRepository
+final class AwsCredentialRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {

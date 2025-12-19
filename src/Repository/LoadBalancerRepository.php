@@ -14,7 +14,7 @@ use Tourze\PHPUnitSymfonyKernelTest\Attribute\AsRepository;
  * @extends ServiceEntityRepository<LoadBalancer>
  */
 #[AsRepository(entityClass: LoadBalancer::class)]
-class LoadBalancerRepository extends ServiceEntityRepository
+final class LoadBalancerRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {

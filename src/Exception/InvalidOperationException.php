@@ -7,6 +7,6 @@ namespace AwsLightsailBundle\Exception;
 /**
  * 无效操作异常
  */
-class InvalidOperationException extends \RuntimeException
+final class InvalidOperationException extends \RuntimeException
 {
 }

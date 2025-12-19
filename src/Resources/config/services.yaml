@@ -3,13 +3,14 @@ services:
   _defaults:
     autowire: true      # Automatically injects dependencies in your services.
     autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+    public: false
 
   AwsLightsailBundle\Command\:
     resource: '../../Command/'
+  AwsLightsailBundle\Controller\:
+    resource: '../../Controller/'
   AwsLightsailBundle\Repository\:
     resource: '../../Repository/'
   AwsLightsailBundle\Service\:
     resource: '../../Service/'
     public: true
-  AwsLightsailBundle\Controller\:
-    resource: '../../Controller/'

@@ -25,7 +25,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
     name: self::NAME,
     description: '创建 AWS Lightsail 实例',
 )]
-class InstanceCreateCommand extends Command
+final class InstanceCreateCommand extends Command
 {
     public const NAME = 'aws:lightsail:instance:create';
 

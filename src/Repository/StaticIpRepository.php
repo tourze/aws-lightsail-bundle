@@ -14,7 +14,7 @@ use Tourze\PHPUnitSymfonyKernelTest\Attribute\AsRepository;
  * @extends ServiceEntityRepository<StaticIp>
  */
 #[AsRepository(entityClass: StaticIp::class)]
-class StaticIpRepository extends ServiceEntityRepository
+final class StaticIpRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {

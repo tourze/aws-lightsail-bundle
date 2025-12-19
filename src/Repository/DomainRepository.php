@@ -13,7 +13,7 @@ use Tourze\PHPUnitSymfonyKernelTest\Attribute\AsRepository;
  * @extends ServiceEntityRepository<Domain>
  */
 #[AsRepository(entityClass: Domain::class)]
-class DomainRepository extends ServiceEntityRepository
+final class DomainRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
